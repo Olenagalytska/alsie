@@ -14,7 +14,7 @@ async function initializeCourseProgress() {
     // Validate required parameters
     if (!course_id) {
         console.error('Required URL parameters are missing: course_id');
-        window.location.href = '/';
+        //window.location.href = '/';
         return;
     }
     

@@ -420,8 +420,8 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             
             // Create user description if available
             if (paramsDefinition.user_description) {
-                const userDescription = document.createElement('p');
-                userDescription.className = 'body_XS';
+                const userDescription = document.createElement('text');
+                userDescription.className = 'field-label';
                 userDescription.innerText = paramsDefinition.user_description;
                 specificationsContainer.appendChild(userDescription);
             }
@@ -645,7 +645,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
         });
         
         // Handle import template button click
-        importTemplateButton.addEventListener('click', function() {
+        importTemplateButton.addEventListener('click', async function() {
             const selectedTemplateId = parseInt(templateSelector.value);
             const selectedTemplate = templates.find(template => template.id === selectedTemplateId);
             
@@ -662,31 +662,72 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
                     }
                 }
                 
-                // Update form fields
-                instructionsInput.value = selectedTemplate.instructions || '';
-                if (descriptionParagraph) {
-                    descriptionParagraph.innerText = selectedTemplate.description || '';
+                try {
+                    // Disable import button and show loading state
+                    importTemplateButton.disabled = true;
+                    const originalText = importTemplateButton.innerText;
+                    importTemplateButton.innerText = 'Importing...';
+                    importTemplateButton.className = 'button_disabled_m';
+                    
+                    // Call the import template API
+                    const response = await fetch('https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/import_template', {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            block_id: blockData.id,
+                            template_id: selectedTemplate.id
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('Server response:', errorText);
+                        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+                    }
+                    
+                    const result = await response.json();
+                    console.log('Template imported successfully:', result);
+                    
+                    // Update form fields with the imported data
+                    instructionsInput.value = selectedTemplate.instructions || '';
+                    if (descriptionParagraph) {
+                        descriptionParagraph.innerText = selectedTemplate.description || '';
+                    }
+                    if (templateNameElement) {
+                        templateNameElement.innerText = selectedTemplate.name || '';
+                    }
+                    template_id = selectedTemplate.id;
+                    current_template_id = selectedTemplate.id;
+                    
+                    // Trigger auto-resize if it's a textarea
+                    if (instructionsInput.tagName === 'TEXTAREA') {
+                        autoResizeTextarea(instructionsInput);
+                    }
+                    
+                    // Reset import button style
+                    importTemplateButton.className = 'button_disabled_m';
+                    
+                    // Update form changed status
+                    if (updateFormChangedStatus) {
+                        updateFormChangedStatus();
+                    }
+                    
+                    console.log('Template imported:', selectedTemplate.name);
+                    alert('Template imported successfully!');
+                    
+                } catch (error) {
+                    console.error('Error importing template:', error);
+                    alert(`Error importing template: ${error.message}`);
+                    
+                    // Reset button state on error
+                    importTemplateButton.className = 'button_inverse_m';
+                } finally {
+                    // Re-enable button
+                    importTemplateButton.disabled = false;
+                    importTemplateButton.innerText = originalText || 'Import Template';
                 }
-                if (templateNameElement) {
-                    templateNameElement.innerText = selectedTemplate.name || '';
-                }
-                template_id = selectedTemplate.id;
-                current_template_id = selectedTemplate.id;
-                
-                // Trigger auto-resize if it's a textarea
-                if (instructionsInput.tagName === 'TEXTAREA') {
-                    autoResizeTextarea(instructionsInput);
-                }
-                
-                // Reset import button style
-                importTemplateButton.className = 'button_disabled_m';
-                
-                // Update form changed status
-                if (updateFormChangedStatus) {
-                    updateFormChangedStatus();
-                }
-                
-                console.log('Template imported:', selectedTemplate.name);
             }
         });
         

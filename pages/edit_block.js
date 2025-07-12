@@ -289,6 +289,7 @@ async function initializeTemplateImport(config) {
 // INITIALIZE ASSISTANT FORM
 // ===========================
 
+// Updated initializeAssistantForm function with specifications support
 async function initializeAssistantForm(blockData, block_id, lesson_id) {
     const form = document.getElementById('int-assistant-form');
     const instructionsInput = document.getElementById('int-instructions-input');
@@ -317,11 +318,13 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
     // Create specifications container after instructions input
     const specificationsContainer = document.createElement('div');
     specificationsContainer.id = 'specifications-container';
+    specificationsContainer.className = 'specifications-container';
     specificationsContainer.style.marginTop = '1rem';
     
     // Insert specifications container after instructions input
     const instructionsContainer = instructionsInput.parentElement;
-    instructionsContainer.parentElement.insertBefore(specificationsContainer, instructionsContainer.nextSibling);
+    const formContainer = document.getElementById('int-assistant-form');
+    formContainer.insertBefore(specificationsContainer, instructionsContainer.nextSibling);
     
     // Initialize specifications based on blockData
     initializeSpecifications();
@@ -371,6 +374,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             // Create specifications sets container
             const setsContainer = document.createElement('div');
             setsContainer.id = 'specifications-sets-container';
+            setsContainer.className = 'specifications-sets-container';
             specificationsContainer.appendChild(setsContainer);
             
             if (paramsDefinition.is_list) {
@@ -410,6 +414,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
     function createParameterSet(paramsStructure, container, specificationData, index, paramsDefinition) {
         const singleParameterSetContainer = document.createElement('div');
         singleParameterSetContainer.className = 'single-parameter-set-container';
+        singleParameterSetContainer.id = 'single-parameter-set-container';
         singleParameterSetContainer.style.marginBottom = '1rem';
         singleParameterSetContainer.style.padding = '1rem';
         singleParameterSetContainer.style.border = '1px solid #e0e0e0';
@@ -457,10 +462,8 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             textarea.placeholder = param.title;
             textarea.style.marginBottom = '1rem';
             
-            // Set value from specification data
-            if (specificationData && specificationData[param.name]) {
-                textarea.value = specificationData[param.name];
-            }
+            // Set value from specification data (this sets the actual content, not placeholder)
+            textarea.value = (specificationData && specificationData[param.name]) ? specificationData[param.name] : '';
             
             // Initialize auto-resize
             initAutoResize(textarea);

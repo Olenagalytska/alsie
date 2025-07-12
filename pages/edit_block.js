@@ -321,10 +321,9 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
     specificationsContainer.className = 'specifications-container';
     specificationsContainer.style.marginTop = '1rem';
     
-    // Insert specifications container after instructions input
-    const instructionsContainer = instructionsInput.parentElement;
+    // Insert specifications container into the form
     const formContainer = document.getElementById('int-assistant-form');
-    formContainer.insertBefore(specificationsContainer, instructionsContainer.nextSibling);
+    formContainer.appendChild(specificationsContainer);
     
     // Initialize specifications based on blockData
     initializeSpecifications();

@@ -1,32 +1,3 @@
-document.addEventListener('DOMContentLoaded', async () => {
-
-  
-//Get the auth token
-let user = await verifyUserAuth();
-  let user_id = user.id;
-  let user_name = user.name;
-  let user_role = user.role;
-
-document.getElementById('back-button')?.addEventListener('click', () => {
-    window.history.back();
-});
-
-const blockData = await initializeBlockData();
-
-if (blockData) {
-  const lesson_id = blockData._lesson.id;
-  
-  
-  document.getElementById('block-name').innerText = blockData.name;
-  initializeBlockForms(blockData, lesson_id);
-
-} else {
-  console.error('Failed to load block data');
-}
-      
-});
-
-
 async function initializeBlockData() {
   let block_id = getUrlParameters('block_id');
   

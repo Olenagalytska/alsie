@@ -325,6 +325,67 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
     const formContainer = document.getElementById('int-assistant-form');
     formContainer.appendChild(specificationsContainer);
     
+    // Function to check if form has changed (defined early to avoid reference errors)
+    const updateFormChangedStatus = () => {
+        if (!blockData) return; // For new blocks, no need to track changes
+        
+        const currentInstructions = instructionsInput.value.trim();
+        const originalInstructions = blockData.int_instructions || '';
+        
+        // Check if specifications have changed
+        let specificationsChanged = false;
+        const currentSpecifications = getSpecificationsData();
+        const originalSpecifications = blockData.specifications ? JSON.stringify(
+            typeof blockData.specifications === 'string' 
+                ? JSON.parse(blockData.specifications) 
+                : blockData.specifications
+        ) : null;
+        
+        if (currentSpecifications !== originalSpecifications) {
+            specificationsChanged = true;
+        }
+        
+        formChanged = currentInstructions !== originalInstructions || specificationsChanged;
+            
+        // Update button style based on changes
+        if (blockData && !formChanged) {
+            submitButton.className = 'button_disabled_m';
+        } else {
+            submitButton.className = 'button_secondary_m';
+        }
+        console.log("Assistant form changed:", formChanged);
+    };
+    
+    function getSpecificationsData() {
+        if (!blockData || !blockData.params_structure) {
+            return null;
+        }
+        
+        try {
+            const paramsStructure = typeof blockData.params_structure === 'string' 
+                ? JSON.parse(blockData.params_structure) 
+                : blockData.params_structure;
+            
+            const specificationsData = specificationsSets.map(set => {
+                const setData = {};
+                paramsStructure.forEach(param => {
+                    if (set.inputs[param.name]) {
+                        setData[param.name] = set.inputs[param.name].value.trim();
+                    }
+                });
+                return setData;
+            }).filter(setData => {
+                // Filter out empty sets
+                return Object.values(setData).some(value => value !== '');
+            });
+            
+            return specificationsData.length > 0 ? JSON.stringify(specificationsData) : null;
+        } catch (error) {
+            console.error('Error getting specifications data:', error);
+            return null;
+        }
+    }
+    
     // Initialize specifications based on blockData
     initializeSpecifications();
     
@@ -522,66 +583,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
         }
     }
     
-    function getSpecificationsData() {
-        if (!blockData || !blockData.params_structure) {
-            return null;
-        }
-        
-        try {
-            const paramsStructure = typeof blockData.params_structure === 'string' 
-                ? JSON.parse(blockData.params_structure) 
-                : blockData.params_structure;
-            
-            const specificationsData = specificationsSets.map(set => {
-                const setData = {};
-                paramsStructure.forEach(param => {
-                    if (set.inputs[param.name]) {
-                        setData[param.name] = set.inputs[param.name].value.trim();
-                    }
-                });
-                return setData;
-            }).filter(setData => {
-                // Filter out empty sets
-                return Object.values(setData).some(value => value !== '');
-            });
-            
-            return specificationsData.length > 0 ? JSON.stringify(specificationsData) : null;
-        } catch (error) {
-            console.error('Error getting specifications data:', error);
-            return null;
-        }
-    }
-    
-    // Function to check if form has changed
-    const updateFormChangedStatus = () => {
-        if (!blockData) return; // For new blocks, no need to track changes
-        
-        const currentInstructions = instructionsInput.value.trim();
-        const originalInstructions = blockData.int_instructions || '';
-        
-        // Check if specifications have changed
-        let specificationsChanged = false;
-        const currentSpecifications = getSpecificationsData();
-        const originalSpecifications = blockData.specifications ? JSON.stringify(
-            typeof blockData.specifications === 'string' 
-                ? JSON.parse(blockData.specifications) 
-                : blockData.specifications
-        ) : null;
-        
-        if (currentSpecifications !== originalSpecifications) {
-            specificationsChanged = true;
-        }
-        
-        formChanged = currentInstructions !== originalInstructions || specificationsChanged;
-            
-        // Update button style based on changes
-        if (blockData && !formChanged) {
-            submitButton.className = 'button_disabled_m';
-        } else {
-            submitButton.className = 'button_secondary_m';
-        }
-        console.log("Assistant form changed:", formChanged);
-    };
+
     
     // Add change listeners
     instructionsInput.addEventListener('input', updateFormChangedStatus);

@@ -315,9 +315,9 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
     }
     
     // Set template selector initially
-    templateNameElement.innerText = blockData._int_template.name || 'fuck';
-    templateDescriptionElement.innerText = blockData._int_template.description || 'fuckfuckfuck';
-    templateSelector.innerHTML = blockData._int_template.name || 'shit';
+    templateNameElement.innerText = blockData._int_template.name || '';
+    templateDescriptionElement.innerText = blockData._int_template.description || '';
+    templateSelector.innerHTML = blockData._int_template.name || '';
     importTemplateButton.className = 'button_disabled_m';
     
     const specificationsContainer = document.getElementById('specifications-container');

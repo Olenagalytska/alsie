@@ -284,7 +284,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
     let formChanged = false;
     
     // Set initial values
-    instructionsInput.value = blockData ? blockData.block_instructions : '';
+    instructionsInput.value = blockData ? blockData.int_instructions : '';
     
     // Initialize auto-resize for textarea
     if (instructionsInput.tagName === 'TEXTAREA') {
@@ -296,7 +296,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
         if (!blockData) return; // For new blocks, no need to track changes
         
         const currentInstructions = instructionsInput.value.trim();
-        const originalInstructions = blockData.block_instructions || '';
+        const originalInstructions = blockData.int_instructions || '';
         
         formChanged = currentInstructions !== originalInstructions;
             
@@ -318,7 +318,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
         descriptionId: 'int-description',
         templateNameId: 'int-template-name',
         blockData: blockData,
-        instructionsField: 'block_instructions',
+        instructionsField: 'int_instructions',
         updateFormChangedStatus: updateFormChangedStatus
     });
     
@@ -338,7 +338,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
         
         const formData = {
             block_id: blockData.id,
-            block_instructions: instructionsInput.value.trim(),
+            int_instructions: instructionsInput.value.trim(),
             template_id: templateImport.getTemplateId() || 12 // Use selected template_id or fallback to 12
         };
         console.log("Submitting Assistant Data:", formData);

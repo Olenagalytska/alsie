@@ -315,15 +315,8 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
     // Disable import button initially
     importTemplateButton.className = 'button_disabled_m';
     
-    // Create specifications container after instructions input
-    const specificationsContainer = document.createElement('div');
-    specificationsContainer.id = 'specifications-container';
-    specificationsContainer.className = 'specifications-container';
-    specificationsContainer.style.marginTop = '1rem';
-    
-    // Insert specifications container into the form
-    const formContainer = document.getElementById('int-assistant-form');
-    formContainer.appendChild(specificationsContainer);
+    // Find existing specifications container
+    const specificationsContainer = document.getElementById('specifications-container');
     
     // Function to check if form has changed (defined early to avoid reference errors)
     const updateFormChangedStatus = () => {
@@ -416,17 +409,15 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             
             // Create specifications header
             const specificationsHeader = document.createElement('div');
-            specificationsHeader.className = 'label-text';
-            specificationsHeader.style.marginBottom = '0.5rem';
+            specificationsHeader.className = 'ebp-section-header';
             specificationsHeader.innerText = paramsDefinition.title || 'Specifications';
             specificationsContainer.appendChild(specificationsHeader);
             
             // Create user description if available
             if (paramsDefinition.user_description) {
                 const userDescription = document.createElement('div');
-                userDescription.style.marginBottom = '1rem';
-                userDescription.style.fontSize = '0.9rem';
-                userDescription.style.color = '#666';
+                userDescription.className = 'body_XS';
+                userDescription.classList.add('textcolor-lighter');
                 userDescription.innerText = paramsDefinition.user_description;
                 specificationsContainer.appendChild(userDescription);
             }
@@ -452,8 +443,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
                 // Add "Add" button for lists
                 const addButton = document.createElement('button');
                 addButton.className = 'button_primary_s';
-                addButton.innerText = 'Add';
-                addButton.style.marginTop = '0.5rem';
+                addButton.innerText = 'Add ' + (paramsDefinition.single_title || '');
                 addButton.addEventListener('click', () => {
                     const newIndex = specificationsSets.length;
                     createParameterSet(paramsStructure, setsContainer, {}, newIndex, paramsDefinition);
@@ -475,20 +465,6 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
         const singleParameterSetContainer = document.createElement('div');
         singleParameterSetContainer.className = 'single-parameter-set-container';
         singleParameterSetContainer.id = 'single-parameter-set-container';
-        singleParameterSetContainer.style.marginBottom = '1rem';
-        singleParameterSetContainer.style.padding = '1rem';
-        singleParameterSetContainer.style.border = '1px solid #e0e0e0';
-        singleParameterSetContainer.style.borderRadius = '4px';
-        
-        // Add set title for lists
-        if (paramsDefinition.is_list) {
-            const setTitle = document.createElement('div');
-            setTitle.className = 'label-text';
-            setTitle.style.marginBottom = '0.5rem';
-            setTitle.style.fontWeight = 'bold';
-            setTitle.innerText = `${paramsDefinition.single_title || 'Item'} ${index + 1}`;
-            singleParameterSetContainer.appendChild(setTitle);
-        }
         
         const parameterSet = {
             container: singleParameterSetContainer,
@@ -496,21 +472,27 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             index: index
         };
         
+        // Add set title for lists
+        if (paramsDefinition.is_list) {
+            const setTitle = document.createElement('div');
+            setTitle.className = 'criterion-header';
+            setTitle.innerText = `${paramsDefinition.single_title || 'Item'} ${index + 1}`;
+            singleParameterSetContainer.appendChild(setTitle);
+        }
+        
         // Create inputs for each parameter in the structure
         paramsStructure.forEach(param => {
             // Create label
             const label = document.createElement('div');
             label.className = 'label-text';
             label.innerText = param.title;
-            label.style.marginBottom = '0.25rem';
             singleParameterSetContainer.appendChild(label);
             
             // Create description if available
             if (param.description) {
                 const description = document.createElement('div');
-                description.style.fontSize = '0.8rem';
-                description.style.color = '#888';
-                description.style.marginBottom = '0.5rem';
+                description.className = 'body_XS';
+                description.classList.add('textcolor-lighter');
                 description.innerText = param.description;
                 singleParameterSetContainer.appendChild(description);
             }
@@ -520,7 +502,6 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             textarea.className = 'text-area-def';
             textarea.rows = 4;
             textarea.placeholder = param.title;
-            textarea.style.marginBottom = '1rem';
             
             // Set value from specification data (this sets the actual content, not placeholder)
             textarea.value = (specificationData && specificationData[param.name]) ? specificationData[param.name] : '';
@@ -537,18 +518,15 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             parameterSet.inputs[param.name] = textarea;
         });
         
-        // Add delete button for list items (except if it's the only one)
-        if (paramsDefinition.is_list && (specificationsSets.length > 0 || index > 0)) {
-            const deleteButton = document.createElement('button');
-            deleteButton.className = 'button_red_s';
-            deleteButton.innerText = 'Delete';
-            deleteButton.style.marginTop = '0.5rem';
-            deleteButton.addEventListener('click', () => {
-                removeParameterSet(parameterSet);
-                updateFormChangedStatus();
-            });
-            singleParameterSetContainer.appendChild(deleteButton);
-        }
+        // Add delete button for all parameter sets
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'button_red_s';
+        deleteButton.innerText = 'Delete';
+        deleteButton.addEventListener('click', () => {
+            removeParameterSet(parameterSet);
+            updateFormChangedStatus();
+        });
+        singleParameterSetContainer.appendChild(deleteButton);
         
         container.appendChild(singleParameterSetContainer);
         specificationsSets.push(parameterSet);

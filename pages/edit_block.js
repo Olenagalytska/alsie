@@ -471,23 +471,31 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
         }
     });
 }
-
-// Updated initializeEvaluationForm function using the reusable template import
+// Updated initializeEvaluationForm function
 async function initializeEvaluationForm(blockData, block_id, lesson_id) {
     const form = document.getElementById('evaluation-form');
     const criteriaContainer = document.getElementById('criteria-container');
     const evaluationInstructionsInput = document.getElementById('eval-instructions-input');
     const submitButton = document.getElementById('eval-submit-button');
+    const templateSelector = document.getElementById('eval-template-selector');
+    const importTemplateButton = document.getElementById('eval-import-template-button');
 
     let formChanged = false;
+    let templateImport = null; // Will be initialized only when needed
 
-    // Set initial values
-    evaluationInstructionsInput.value = blockData ? blockData.evaluation_instructions : '';
+    // Set initial values - show existing instructions or empty field
+    evaluationInstructionsInput.value = blockData ? (blockData.eval_instructions || '') : '';
 
     // Initialize auto-resize for textarea
     if (evaluationInstructionsInput.tagName === 'TEXTAREA') {
         initAutoResize(evaluationInstructionsInput);
     }
+
+    // Clear template selector initially
+    templateSelector.innerHTML = '';
+    
+    // Disable import button initially
+    importTemplateButton.className = 'button_disabled_m';
 
     // Parse existing eval criteria JSON if available
     let existingCriteria = [];
@@ -514,7 +522,7 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
         if (!blockData) return; // For new blocks, no need to track changes
         
         const currentEvaluationInstructions = evaluationInstructionsInput.value.trim();
-        const originalEvaluationInstructions = blockData.evaluation_instructions || '';
+        const originalEvaluationInstructions = blockData.eval_instructions || '';
         
         // Check if criteria have changed
         let criteriaPairsChanged = false;
@@ -560,18 +568,129 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
         console.log("Evaluation form changed:", formChanged);
     };
     
-    // Initialize template import functionality for evaluation
-    const templateImport = await initializeTemplateImport({
-        templateType: 'evaluation',
-        selectorId: 'eval-template-selector',
-        importButtonId: 'eval-import-template-button',
-        instructionsInputId: 'eval-instructions-input',
-        descriptionId: 'eval-description',
-        templateNameId: 'eval-template-name',
-        blockData: blockData,
-        instructionsField: 'evaluation_instructions',
-        updateFormChangedStatus: updateFormChangedStatus
+    // Initialize template import functionality only when selector changes (user interacts with it)
+    let templatesLoaded = false;
+    
+    templateSelector.addEventListener('focus', async function() {
+        if (!templatesLoaded) {
+            console.log('Loading evaluation templates for the first time...');
+            
+            try {
+                // Fetch templates
+                const response = await fetch('https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/templates?type=evaluation', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const templates = await response.json();
+                console.log('Evaluation templates received from API:', templates);
+                
+                // Populate dropdown options
+                templates.forEach(template => {
+                    const option = document.createElement('option');
+                    option.value = template.id;
+                    option.textContent = template.name;
+                    templateSelector.appendChild(option);
+                });
+                
+                // Initialize the template import object
+                templateImport = initializeEvaluationTemplateImportHandler(templates, updateFormChangedStatus);
+                
+                templatesLoaded = true;
+                
+            } catch (error) {
+                console.error('Error fetching evaluation templates:', error);
+            }
+        }
     });
+    
+    // Function to handle evaluation template import
+    function initializeEvaluationTemplateImportHandler(templates, updateFormChangedStatus) {
+        const descriptionParagraph = document.getElementById('eval-description');
+        const templateNameElement = document.getElementById('eval-template-name');
+        
+        let template_id = null;
+        let current_template_id = null;
+        
+        // Handle template selector change to update import button style
+        templateSelector.addEventListener('change', function() {
+            const selectedTemplateId = parseInt(templateSelector.value);
+            
+            if (selectedTemplateId && selectedTemplateId !== current_template_id) {
+                importTemplateButton.className = 'button_inverse_m';
+                
+                // Update description and name preview
+                const selectedTemplate = templates.find(template => template.id === selectedTemplateId);
+                if (selectedTemplate) {
+                    if (descriptionParagraph) {
+                        descriptionParagraph.innerText = selectedTemplate.description || '';
+                    }
+                    if (templateNameElement) {
+                        templateNameElement.innerText = selectedTemplate.name || '';
+                    }
+                }
+            } else {
+                importTemplateButton.className = 'button_disabled_m';
+            }
+        });
+        
+        // Handle import template button click
+        importTemplateButton.addEventListener('click', function() {
+            const selectedTemplateId = parseInt(templateSelector.value);
+            const selectedTemplate = templates.find(template => template.id === selectedTemplateId);
+            
+            if (selectedTemplate) {
+                console.log('Selected evaluation template:', selectedTemplate);
+                
+                // Check if instructions input is not empty and show confirmation
+                if (evaluationInstructionsInput.value.trim() !== '') {
+                    const userConfirmed = confirm("Importing a template will erase the old instructions. Should I proceed with the import?\n\nClick 'OK' to Proceed with Import or 'Cancel' to Cancel Import");
+                    
+                    if (!userConfirmed) {
+                        console.log('Import cancelled by user');
+                        return;
+                    }
+                }
+                
+                // Update form fields
+                evaluationInstructionsInput.value = selectedTemplate.instructions || '';
+                if (descriptionParagraph) {
+                    descriptionParagraph.innerText = selectedTemplate.description || '';
+                }
+                if (templateNameElement) {
+                    templateNameElement.innerText = selectedTemplate.name || '';
+                }
+                template_id = selectedTemplate.id;
+                current_template_id = selectedTemplate.id;
+                
+                // Trigger auto-resize if it's a textarea
+                if (evaluationInstructionsInput.tagName === 'TEXTAREA') {
+                    autoResizeTextarea(evaluationInstructionsInput);
+                }
+                
+                // Reset import button style
+                importTemplateButton.className = 'button_disabled_m';
+                
+                // Update form changed status
+                if (updateFormChangedStatus) {
+                    updateFormChangedStatus();
+                }
+                
+                console.log('Evaluation template imported:', selectedTemplate.name);
+            }
+        });
+        
+        return {
+            getTemplateId: () => template_id,
+            getCurrentTemplateId: () => current_template_id
+        };
+    }
     
     // Function to create a new criterion-points pair
     const createCriterionPair = (criterionNameValue = '', gradingNameValue = '', summaryInstructionsValue = '', gradingInstructionsValue = '', pointsValue = 0, index = criteriaPairs.length) => {
@@ -820,9 +939,9 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
         
         const formData = {
             block_id: blockData.id,
-            evaluation_instructions: evaluationInstructionsInput.value.trim(),
+            eval_instructions: evaluationInstructionsInput.value.trim(),
             criteria_json: JSON.stringify(evalCritJson),
-            template_id: templateImport.getTemplateId() || 12 // Use selected template_id
+            template_id: templateImport ? templateImport.getTemplateId() : null // Only use template_id if a template was imported
         };
 
         console.log("Submitting Evaluation Data:", formData);

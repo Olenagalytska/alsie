@@ -1,337 +1,485 @@
-// ===== COURSE PROGRESS PAGE - MAIN ENTRY POINT =====
 
 
+// ===========================
+// INITIALIZATION FUNCTIONS
+// ===========================
 
-// ===== AUTHENTICATION & PERMISSIONS =====
-
-async function initializeAuthentication(user_id, course_id) {
-    try {
-        // Verify user authentication
-        const user = await verifyUserAuth();
-        
-        // Verify teacher permissions for this course
-        if (user_id) {
-            await verifyTeacherPermissions(user_id, course_id);
-        }
-        
-        return user;
-    } catch (error) {
-        console.error('Authentication failed:', error);
-        throw new Error('Authentication required');
+async function initializeCourseProgress() {
+    // Verify authentication
+    const user = await verifyUserAuth();
+    
+    // Get required parameters
+    const course_id = getUrlParameters('course_id');
+    
+    // Validate required parameters
+    if (!course_id) {
+        console.error('Required URL parameters are missing: course_id');
+        window.location.href = '/';
+        return;
     }
+    
+    // Set up page elements and navigation
+    await setupPageElements(course_id, user.id);
+    
+    // Load and display course data
+    await loadCourseData(course_id);
 }
 
-// ===== PAGE DATA INITIALIZATION =====
+async function setupPageElements(course_id, user_id) {
+    setElementNames({ course_id, lesson_id: null, block_id: null, teacher_id: null });
+    setTeacherCourseMenu(course_id);
+}
 
-async function initializePageData(course_id, user_id) {
+// ===========================
+// DATA LOADING FUNCTIONS
+// ===========================
+
+async function loadCourseData(course_id) {
+    const apiUrl = 'https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/lesson_full';
+    
     try {
-        // Set page element names (course name, user name, etc.)
-        await setElementNames({ 
-            course_id: course_id, 
-            user_id: user_id 
+        const response = await fetch(`${apiUrl}?course_id=${course_id}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
         });
         
-        // Set up teacher course menu navigation
-        setTeacherCourseMenu(course_id);
-        
-        console.log('Page data initialized');
-    } catch (error) {
-        console.error('Error initializing page data:', error);
-        throw error;
-    }
-}
-
-// ===== PROGRESS DISPLAY FUNCTIONS =====
-
-async function initializeProgressDisplay(course_id) {
-    try {
-        // Fetch and display course progress data
-        const progressData = await fetchCourseProgressData(course_id);
-        
-        // Render progress overview
-        renderProgressOverview(progressData.overview);
-        
-        // Render student progress list
-        renderStudentProgressList(progressData.students);
-        
-        // Render progress charts/visualizations
-        if (progressData.analytics) {
-            renderProgressAnalytics(progressData.analytics);
+        if (!response.ok) {
+            throw new Error('Network response was not ok ' + response.statusText);
         }
         
-        console.log('Progress display initialized');
-    } catch (error) {
-        console.error('Error initializing progress display:', error);
-        throw error;
-    }
-}
-
-async function fetchCourseProgressData(course_id) {
-    try {
-        const [overview, students, analytics] = await Promise.all([
-            fetchDataFromApi(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/course/${course_id}/progress-overview`),
-            fetchDataFromApi(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/course/${course_id}/student-progress`),
-            fetchDataFromApi(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/course/${course_id}/analytics`).catch(() => null)
-        ]);
+        const data = await response.json();
+        console.log('Data received:', data);
         
-        return { overview, students, analytics };
+        renderCourseContent(data);
+        
     } catch (error) {
-        console.error('Error fetching course progress data:', error);
-        throw error;
+        console.error('Error fetching course data:', error);
+        displayErrorMessage('Failed to load course data. Please try again.');
     }
 }
 
-function renderProgressOverview(overviewData) {
-    const container = document.getElementById('progress-overview-container');
-    if (!container || !overviewData) return;
-    
-    container.innerHTML = `
-        <div class="progress-stats">
-            <div class="stat-item">
-                <h3>${overviewData.total_students || 0}</h3>
-                <p>Total Students</p>
-            </div>
-            <div class="stat-item">
-                <h3>${overviewData.active_students || 0}</h3>
-                <p>Active Students</p>
-            </div>
-            <div class="stat-item">
-                <h3>${Math.round(overviewData.avg_completion || 0)}%</h3>
-                <p>Average Completion</p>
-            </div>
-        </div>
-    `;
-}
+// ===========================
+// RENDERING FUNCTIONS
+// ===========================
 
-function renderStudentProgressList(studentsData) {
-    const container = document.getElementById('student-progress-container');
-    if (!container || !studentsData) return;
+function renderCourseContent(data) {
+    const mainContainer = document.getElementById('main-container');
     
-    container.innerHTML = '';
+    if (!mainContainer) {
+        console.error('Main container not found');
+        return;
+    }
     
-    studentsData.forEach(student => {
-        const studentElement = createStudentProgressElement(student);
-        container.appendChild(studentElement);
+    // Clear previous content
+    mainContainer.innerHTML = '';
+    
+    // Set course title
+    setCourseTitle(data);
+    
+    // Render each lesson
+    data.forEach(lesson => {
+        renderLesson(lesson, mainContainer);
     });
 }
 
-function createStudentProgressElement(student) {
-    const element = document.createElement('div');
-    element.className = 'student-progress-item';
-    element.innerHTML = `
-        <div class="student-info">
-            <h4>${trimText(student.name, 30)}</h4>
-            <p>${student.email}</p>
-        </div>
-        <div class="progress-info">
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: ${student.completion_percentage || 0}%"></div>
-            </div>
-            <span class="progress-text">${Math.round(student.completion_percentage || 0)}%</span>
-        </div>
-        <div class="last-activity">
-            <span>${formatLastActivity(student.last_activity)}</span>
-        </div>
-    `;
+function setCourseTitle(data) {
+    const courseTitleBlock = document.getElementById('course-name-title');
+    if (courseTitleBlock) {
+        courseTitleBlock.textContent = data[0]?._course.name || 'Unknown Course';
+    }
+}
+
+function renderLesson(lesson, container) {
+    const lessonHeaderContainer = createLessonHeader(lesson);
+    container.appendChild(lessonHeaderContainer);
     
-    // Add click handler to view detailed progress
-    element.addEventListener('click', () => {
-        showStudentDetailedProgress(student.id, student.name);
+    if (lesson.status === "published") {
+        addGradeButton(lessonHeaderContainer, lesson);
+        renderLessonBlocks(lesson, container);
+    }
+}
+
+function createLessonHeader(lesson) {
+    const lessonHeaderContainer = createElement('div', 'li_lesson_header_container');
+    const lessonNameContainer = createElement('div', 'li_lesson_name_container');
+    
+    // Create lesson label and status
+    const labelContainer = createLessonLabelContainer(lesson);
+    
+    // Create lesson name
+    const lessonName = createElement('div', 'home_st_lesson_name');
+    lessonName.innerText = lesson.name;
+    
+    // Assemble lesson header
+    lessonNameContainer.appendChild(labelContainer);
+    lessonNameContainer.appendChild(lessonName);
+    lessonHeaderContainer.appendChild(lessonNameContainer);
+    
+    return lessonHeaderContainer;
+}
+
+function createLessonLabelContainer(lesson) {
+    const labelContainer = createElement('div', 'lesson-label-container');
+    
+    // Create status tag
+    const lessonStatus = createElement('div');
+    lessonStatus.innerText = lesson.status;
+    lessonStatus.classList.add(getStatusTagClass(lesson.status));
+    
+    // Create lesson order label
+    const labelBlockName = createElement('text', 'lesson-label-text');
+    labelBlockName.innerText = `Module ${lesson.order}`;
+    
+    labelContainer.appendChild(lessonStatus);
+    labelContainer.appendChild(labelBlockName);
+    
+    return labelContainer;
+}
+
+function addGradeButton(container, lesson) {
+    const gradeButton = createElement('div', 'button_primary_m');
+    gradeButton.innerText = 'Grade Module';
+    
+    gradeButton.addEventListener('click', () => {
+        console.log('calc grades: ', lesson.id);
+        getLessonGrades(lesson.id);
     });
     
-    removeFocusOutlineFromContainer(element);
+    container.appendChild(gradeButton);
+}
+
+function renderLessonBlocks(lesson, container) {
+    if (!lesson.blocks?.length) {
+        renderEmptyBlocksMessage(container);
+        return;
+    }
+    
+    lesson.blocks.forEach((block, index) => {
+        renderBlock(block, index + 1, container);
+    });
+}
+
+function renderBlock(block, blockOrder, container) {
+    const blockContainer = createBlockContainer(block, blockOrder);
+    const gradesContainer = createGradesContainer(block.id);
+    
+    blockContainer.appendChild(gradesContainer);
+    container.appendChild(blockContainer);
+    
+    // Load grades for this block
+    fetchAndDisplayGrades(block.id, gradesContainer.id);
+}
+
+function createBlockContainer(block, blockOrder) {
+    const blockContainer = createElement('div', 'course-progress-block-container bg-paper');
+    
+    // Block label
+    const labelBlockName = createElement('label', 'label-text');
+    labelBlockName.innerText = `Block ${blockOrder}`;
+    
+    // Block name
+    const blockNameElement = createElement('div', 'li_block_name');
+    blockNameElement.innerText = block.name;
+    
+    blockContainer.appendChild(labelBlockName);
+    blockContainer.appendChild(blockNameElement);
+    
+    return blockContainer;
+}
+
+function createGradesContainer(blockId) {
+    const gradesContainer = createElement('div', 'grades-container');
+    gradesContainer.id = `grades-block-${blockId}`;
+    return gradesContainer;
+}
+
+function renderEmptyBlocksMessage(container) {
+    const emptyBlockContainer = createElement('div', 'empty-block-container');
+    emptyBlockContainer.innerText = "No blocks found in this Module. If you added blocks and you don't see them here, ensure you published the module after adding those blocks.";
+    container.appendChild(emptyBlockContainer);
+}
+
+// ===========================
+// GRADES TABLE FUNCTIONS
+// ===========================
+
+async function fetchAndDisplayGrades(blockId, gradesContainerId) {
+    const apiUrl = 'https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/get_ub_grades';
+    
+    try {
+        const response = await fetch(`${apiUrl}?block_id=${encodeURIComponent(blockId)}&role=student`);
+        const data = await response.json();
+        
+        const gradesContainer = document.getElementById(gradesContainerId);
+        
+        if (data.length === 0) {
+            renderEmptyGradesMessage(gradesContainer);
+            return;
+        }
+        
+        const table = createGradesTable(data, blockId);
+        gradesContainer.innerHTML = '';
+        gradesContainer.appendChild(table);
+        
+    } catch (error) {
+        console.error('Error fetching or displaying grades:', error);
+    }
+}
+
+function renderEmptyGradesMessage(container) {
+    container.className = "empty-block-container";
+    container.innerText = "No grades available for this block. This happens if the module hasn't been published or you haven't added any students to this course";
+}
+
+function createGradesTable(data, blockId) {
+    const table = createElement('table');
+    table.style.width = '100%';
+    table.style.borderCollapse = 'collapse';
+    
+    // Create table header
+    const thead = createTableHeader();
+    const tbody = createTableBody(data, blockId);
+    
+    table.appendChild(thead);
+    table.appendChild(tbody);
+    
+    return table;
+}
+
+function createTableHeader() {
+    const thead = createElement('thead');
+    const headerRow = createElement('tr');
+    headerRow.style.borderBottom = '1px solid #babbca';
+    
+    const headers = [
+        { text: 'Name', width: '20%', align: 'left' },
+        { text: 'Progress', width: '10%', align: 'left' },
+        { text: 'Grade', width: '10%', align: 'left' },
+        { text: 'Feedback', width: '40%', align: 'left' },
+        { text: '', width: '6%', align: 'left' },  // View
+        { text: '', width: '7%', align: 'left' },  // Clear
+        { text: '', width: '7%', align: 'left' }   // Grade
+    ];
+    
+    headers.forEach(header => {
+        const th = createElement('th', 'table-header');
+        th.textContent = header.text;
+        th.style.width = header.width;
+        if (header.align) {
+            th.style.textAlign = header.align;
+        }
+        headerRow.appendChild(th);
+    });
+    
+    thead.appendChild(headerRow);
+    return thead;
+}
+
+function createTableBody(data, blockId) {
+    const tbody = createElement('tbody');
+    
+    data.forEach(item => {
+        const row = createTableRow(item, blockId);
+        tbody.appendChild(row);
+    });
+    
+    return tbody;
+}
+
+function createTableRow(item, blockId) {
+    const row = createElement('tr');
+    
+    // Name cell
+    row.appendChild(createTextCell(item._user.name));
+    
+    // Progress cell
+    row.appendChild(createProgressCell(item.status));
+    
+    // Grade cell
+    row.appendChild(createTextCell(item.grade || ''));
+    
+    // Summary cell
+    row.appendChild(createTextCell(item.work_summary || 'N/A'));
+    
+    // Action buttons
+    row.appendChild(createViewCell(item));
+    row.appendChild(createClearCell(item, blockId));
+    row.appendChild(createGradeCell(item));
+    
+    return row;
+}
+
+function createTextCell(text) {
+    const cell = createElement('td', 'table-row');
+    cell.textContent = text;
+    return cell;
+}
+
+function createProgressCell(status) {
+    const cell = createElement('td', 'table-row');
+    cell.style.padding = '0.5rem';
+    
+    const statusElement = createElement('div');
+    statusElement.textContent = status || "Idle";
+    statusElement.classList.add(getStatusTagClass(status));
+    
+    cell.appendChild(statusElement);
+    return cell;
+}
+
+function createViewCell(item) {
+    const cell = createElement('td', 'table-row');
+    cell.style.padding = '0.5rem';
+    
+    const viewButton = createActionButton('View', 'button_inverse_s', () => {
+        window.location.href = `/lesson-page-teacher-view?block_id=${item.block_id}&user_id=${item._user.id}`;
+    });
+    
+    cell.appendChild(viewButton);
+    return cell;
+}
+
+function createClearCell(item, blockId) {
+    const cell = createElement('td', 'table-row');
+    cell.style.padding = '0.5rem';
+    
+    const clearButton = createActionButton('Clear', 'button_red_s', (e) => {
+        e.preventDefault();
+        clearBlockGrades(item.id, blockId);
+    });
+    
+    cell.appendChild(clearButton);
+    return cell;
+}
+
+function createGradeCell(item) {
+    const cell = createElement('td', 'table-row');
+    cell.style.padding = '0.5rem';
+    
+    const gradeButton = createActionButton('Grade', 'button_primary_s', (e) => {
+        e.preventDefault();
+        gradeBlock(item.id);
+    });
+    
+    cell.appendChild(gradeButton);
+    return cell;
+}
+
+// ===========================
+// API FUNCTIONS
+// ===========================
+
+async function clearBlockGrades(ub_id, block_id) {
+    const apiUrl = 'https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/clear_ub';
+    
+    try {
+        const response = await fetch(`${apiUrl}?ub_id=${ub_id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        
+        const result = await response.json();
+        console.log('Grades cleared:', result);
+        
+        alert('Grades have been cleared for this block.');
+        fetchAndDisplayGrades(block_id, `grades-block-${block_id}`);
+        
+    } catch (error) {
+        console.error('Error clearing grades:', error);
+    }
+}
+
+async function getLessonGrades(lesson_id) {
+    const apiUrl = 'https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/grade_lesson';
+    
+    try {
+        const response = await fetch(`${apiUrl}?lesson_id=${lesson_id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        
+        const result = await response.json();
+        console.log('Grades calculated:', result);
+        
+    } catch (error) {
+        console.error('Error calculating lesson grades:', error);
+    }
+}
+
+async function gradeBlock(ub_id) {
+    console.log('Grading user block:', ub_id);
+    const apiUrl = 'https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/grade_ub';
+    
+    try {
+        const response = await fetch(`${apiUrl}?ub_id=${ub_id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        
+        const result = await response.json();
+        console.log('User Block grades calculated:', result);
+        
+    } catch (error) {
+        console.error('Error grading block:', error);
+    }
+}
+
+// ===========================
+// UTILITY FUNCTIONS
+// ===========================
+
+function createElement(tag, className = '') {
+    const element = document.createElement(tag);
+    if (className) {
+        element.className = className;
+    }
     return element;
 }
 
-function renderProgressAnalytics(analyticsData) {
-    const container = document.getElementById('analytics-container');
-    if (!container || !analyticsData) return;
-    
-    // Create charts or visualizations based on analytics data
-    // This would depend on your charting library (Chart.js, D3, etc.)
-    console.log('Rendering analytics:', analyticsData);
+function createActionButton(text, className, clickHandler) {
+    const button = createElement('div', className);
+    button.textContent = text;
+    button.style.cursor = 'pointer';
+    button.addEventListener('click', clickHandler);
+    return button;
 }
 
-// ===== EVENT HANDLERS =====
-
-async function initializeEventHandlers(course_id) {
-    // Export progress data
-    const exportButton = document.getElementById('export-progress-btn');
-    if (exportButton) {
-        exportButton.addEventListener('click', () => exportProgressData(course_id));
-    }
-    
-    // Refresh progress data
-    const refreshButton = document.getElementById('refresh-progress-btn');
-    if (refreshButton) {
-        refreshButton.addEventListener('click', () => refreshProgressData(course_id));
-    }
-    
-    // Filter controls
-    const filterDropdown = document.getElementById('progress-filter');
-    if (filterDropdown) {
-        filterDropdown.addEventListener('change', (e) => filterProgressData(e.target.value));
-    }
-    
-    // Search functionality
-    const searchInput = document.getElementById('student-search');
-    if (searchInput) {
-        searchInput.addEventListener('input', debounce((e) => searchStudents(e.target.value), 300));
-    }
-}
-
-// ===== UTILITY FUNCTIONS =====
-
-function formatLastActivity(timestamp) {
-    if (!timestamp) return 'Never';
-    
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    
-    return date.toLocaleDateString();
-}
-
-function showStudentDetailedProgress(student_id, student_name) {
-    // Navigate to detailed student progress page or show modal
-    window.location.href = `/teacher/student-progress?student_id=${student_id}&course_id=${getUrlParameters('course_id')}`;
-}
-
-async function exportProgressData(course_id) {
-    try {
-        showLoadingState('Exporting progress data...');
-        
-        const exportData = await fetchDataFromApi(
-            `https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/course/${course_id}/export-progress`
-        );
-        
-        // Create and download CSV file
-        downloadCSV(exportData, `course-${course_id}-progress.csv`);
-        
-        hideLoadingState();
-    } catch (error) {
-        console.error('Error exporting progress data:', error);
-        showErrorMessage('Failed to export progress data');
-        hideLoadingState();
-    }
-}
-
-async function refreshProgressData(course_id) {
-    try {
-        showLoadingState('Refreshing progress data...');
-        await initializeProgressDisplay(course_id);
-        hideLoadingState();
-    } catch (error) {
-        console.error('Error refreshing progress data:', error);
-        showErrorMessage('Failed to refresh progress data');
-        hideLoadingState();
-    }
-}
-
-function filterProgressData(filterValue) {
-    const studentItems = document.querySelectorAll('.student-progress-item');
-    
-    studentItems.forEach(item => {
-        const shouldShow = applyProgressFilter(item, filterValue);
-        item.style.display = shouldShow ? 'flex' : 'none';
-    });
-}
-
-function applyProgressFilter(item, filterValue) {
-    switch (filterValue) {
-        case 'completed':
-            return item.querySelector('.progress-text').textContent.includes('100%');
-        case 'in-progress':
-            const progress = parseInt(item.querySelector('.progress-text').textContent);
-            return progress > 0 && progress < 100;
-        case 'not-started':
-            return item.querySelector('.progress-text').textContent.includes('0%');
+function getStatusTagClass(status) {
+    switch (status) {
+        case 'finished':
+        case 'published':
+            return 'done-tag';
+        case 'started':
+            return 'started-tag';
+        case 'draft':
         default:
-            return true;
+            return 'idle-tag';
     }
 }
 
-function searchStudents(searchTerm) {
-    const studentItems = document.querySelectorAll('.student-progress-item');
-    const term = searchTerm.toLowerCase().trim();
-    
-    studentItems.forEach(item => {
-        const studentName = item.querySelector('h4').textContent.toLowerCase();
-        const studentEmail = item.querySelector('p').textContent.toLowerCase();
-        const shouldShow = !term || studentName.includes(term) || studentEmail.includes(term);
-        
-        item.style.display = shouldShow ? 'flex' : 'none';
-    });
-}
-
-// ===== UI STATE MANAGEMENT =====
-
-function showLoadingState(message = 'Loading...') {
-    const loadingElement = document.getElementById('loading-indicator');
-    if (loadingElement) {
-        loadingElement.textContent = message;
-        loadingElement.style.display = 'block';
+function displayErrorMessage(message) {
+    const mainContainer = document.getElementById('main-container');
+    if (mainContainer) {
+        mainContainer.innerHTML = `<div class="error-message">${message}</div>`;
     }
-}
-
-function hideLoadingState() {
-    const loadingElement = document.getElementById('loading-indicator');
-    if (loadingElement) {
-        loadingElement.style.display = 'none';
-    }
-}
-
-function showErrorMessage(message) {
-    const errorElement = document.getElementById('error-message');
-    if (errorElement) {
-        errorElement.textContent = message;
-        errorElement.style.display = 'block';
-        
-        // Auto-hide after 5 seconds
-        setTimeout(() => {
-            errorElement.style.display = 'none';
-        }, 5000);
-    }
-}
-
-// ===== HELPER UTILITIES =====
-
-function debounce(func, delay) {
-    let timeoutId;
-    return function (...args) {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => func.apply(this, args), delay);
-    };
-}
-
-function downloadCSV(data, filename) {
-    const csvContent = convertToCSV(data);
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    
-    if (link.download !== undefined) {
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', filename);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-}
-
-function convertToCSV(data) {
-    if (!data || !Array.isArray(data) || data.length === 0) {
-        return '';
-    }
-    
-    const headers = Object.keys(data[0]).join(',');
-    const rows = data.map(row => Object.values(row).join(','));
-    
-    return [headers, ...rows].join('\n');
 }

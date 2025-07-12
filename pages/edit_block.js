@@ -23,6 +23,9 @@ async function initializeBlockData() {
 }
 
 
+// ===========================
+// INITIALIZATION BLOCK FORMS
+// ===========================
 
 async function initializeBlockForms(blockData, lesson_id) {
     try {
@@ -105,6 +108,11 @@ async function initializePublicDataForm(blockData, block_id, lesson_id) {
         }
     });
 }
+
+
+// ===========================
+// INITIALIZE TEMPLATE IMPORT
+// ===========================
 
 /**
  * Generic template import functionality that can be used for different template types
@@ -275,7 +283,12 @@ async function initializeTemplateImport(config) {
         getCurrentTemplateId: () => current_template_id
     };
 }
-// Updated initializeAssistantForm function
+
+
+// ===========================
+// INITIALIZE ASSISTANT FORM
+// ===========================
+
 async function initializeAssistantForm(blockData, block_id, lesson_id) {
     const form = document.getElementById('int-assistant-form');
     const instructionsInput = document.getElementById('int-instructions-input');
@@ -285,6 +298,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
     
     let formChanged = false;
     let templateImport = null; // Will be initialized only when needed
+    let specificationsSets = []; // Array to track specification parameter sets
     
     // Set initial values - show existing instructions or empty field
     instructionsInput.value = blockData ? (blockData.int_instructions || '') : '';
@@ -300,6 +314,242 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
     // Disable import button initially
     importTemplateButton.className = 'button_disabled_m';
     
+    // Create specifications container after instructions input
+    const specificationsContainer = document.createElement('div');
+    specificationsContainer.id = 'specifications-container';
+    specificationsContainer.style.marginTop = '1rem';
+    
+    // Insert specifications container after instructions input
+    const instructionsContainer = instructionsInput.parentElement;
+    instructionsContainer.parentElement.insertBefore(specificationsContainer, instructionsContainer.nextSibling);
+    
+    // Initialize specifications based on blockData
+    initializeSpecifications();
+    
+    function initializeSpecifications() {
+        if (!blockData || !blockData.params_structure || !blockData.params_definition) {
+            return; // No specifications to display
+        }
+        
+        try {
+            const paramsStructure = typeof blockData.params_structure === 'string' 
+                ? JSON.parse(blockData.params_structure) 
+                : blockData.params_structure;
+            
+            const paramsDefinition = typeof blockData.params_definition === 'string' 
+                ? JSON.parse(blockData.params_definition) 
+                : blockData.params_definition;
+            
+            let specifications = [];
+            if (blockData.specifications) {
+                specifications = typeof blockData.specifications === 'string' 
+                    ? JSON.parse(blockData.specifications) 
+                    : blockData.specifications;
+            }
+            
+            console.log('Params Structure:', paramsStructure);
+            console.log('Params Definition:', paramsDefinition);
+            console.log('Specifications:', specifications);
+            
+            // Create specifications header
+            const specificationsHeader = document.createElement('div');
+            specificationsHeader.className = 'label-text';
+            specificationsHeader.style.marginBottom = '0.5rem';
+            specificationsHeader.innerText = paramsDefinition.title || 'Specifications';
+            specificationsContainer.appendChild(specificationsHeader);
+            
+            // Create user description if available
+            if (paramsDefinition.user_description) {
+                const userDescription = document.createElement('div');
+                userDescription.style.marginBottom = '1rem';
+                userDescription.style.fontSize = '0.9rem';
+                userDescription.style.color = '#666';
+                userDescription.innerText = paramsDefinition.user_description;
+                specificationsContainer.appendChild(userDescription);
+            }
+            
+            // Create specifications sets container
+            const setsContainer = document.createElement('div');
+            setsContainer.id = 'specifications-sets-container';
+            specificationsContainer.appendChild(setsContainer);
+            
+            if (paramsDefinition.is_list) {
+                // Handle list of parameter sets
+                if (specifications.length > 0) {
+                    // Display existing specifications
+                    specifications.forEach((spec, index) => {
+                        createParameterSet(paramsStructure, setsContainer, spec, index, paramsDefinition);
+                    });
+                } else {
+                    // Create one empty set if no existing specifications
+                    createParameterSet(paramsStructure, setsContainer, {}, 0, paramsDefinition);
+                }
+                
+                // Add "Add" button for lists
+                const addButton = document.createElement('button');
+                addButton.className = 'button_primary_s';
+                addButton.innerText = 'Add';
+                addButton.style.marginTop = '0.5rem';
+                addButton.addEventListener('click', () => {
+                    const newIndex = specificationsSets.length;
+                    createParameterSet(paramsStructure, setsContainer, {}, newIndex, paramsDefinition);
+                    updateFormChangedStatus();
+                });
+                specificationsContainer.appendChild(addButton);
+            } else {
+                // Handle single parameter set
+                const singleSpec = specifications.length > 0 ? specifications[0] : {};
+                createParameterSet(paramsStructure, setsContainer, singleSpec, 0, paramsDefinition);
+            }
+            
+        } catch (error) {
+            console.error('Error initializing specifications:', error);
+        }
+    }
+    
+    function createParameterSet(paramsStructure, container, specificationData, index, paramsDefinition) {
+        const singleParameterSetContainer = document.createElement('div');
+        singleParameterSetContainer.className = 'single-parameter-set-container';
+        singleParameterSetContainer.style.marginBottom = '1rem';
+        singleParameterSetContainer.style.padding = '1rem';
+        singleParameterSetContainer.style.border = '1px solid #e0e0e0';
+        singleParameterSetContainer.style.borderRadius = '4px';
+        
+        // Add set title for lists
+        if (paramsDefinition.is_list) {
+            const setTitle = document.createElement('div');
+            setTitle.className = 'label-text';
+            setTitle.style.marginBottom = '0.5rem';
+            setTitle.style.fontWeight = 'bold';
+            setTitle.innerText = `${paramsDefinition.single_title || 'Item'} ${index + 1}`;
+            singleParameterSetContainer.appendChild(setTitle);
+        }
+        
+        const parameterSet = {
+            container: singleParameterSetContainer,
+            inputs: {},
+            index: index
+        };
+        
+        // Create inputs for each parameter in the structure
+        paramsStructure.forEach(param => {
+            // Create label
+            const label = document.createElement('div');
+            label.className = 'label-text';
+            label.innerText = param.title;
+            label.style.marginBottom = '0.25rem';
+            singleParameterSetContainer.appendChild(label);
+            
+            // Create description if available
+            if (param.description) {
+                const description = document.createElement('div');
+                description.style.fontSize = '0.8rem';
+                description.style.color = '#888';
+                description.style.marginBottom = '0.5rem';
+                description.innerText = param.description;
+                singleParameterSetContainer.appendChild(description);
+            }
+            
+            // Create textarea input
+            const textarea = document.createElement('textarea');
+            textarea.className = 'text-area-def';
+            textarea.rows = 4;
+            textarea.placeholder = param.title;
+            textarea.style.marginBottom = '1rem';
+            
+            // Set value from specification data
+            if (specificationData && specificationData[param.name]) {
+                textarea.value = specificationData[param.name];
+            }
+            
+            // Initialize auto-resize
+            initAutoResize(textarea);
+            
+            // Add change listener
+            textarea.addEventListener('input', updateFormChangedStatus);
+            
+            singleParameterSetContainer.appendChild(textarea);
+            
+            // Store reference to input
+            parameterSet.inputs[param.name] = textarea;
+        });
+        
+        // Add delete button for list items (except if it's the only one)
+        if (paramsDefinition.is_list && (specificationsSets.length > 0 || index > 0)) {
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'button_red_s';
+            deleteButton.innerText = 'Delete';
+            deleteButton.style.marginTop = '0.5rem';
+            deleteButton.addEventListener('click', () => {
+                removeParameterSet(parameterSet);
+                updateFormChangedStatus();
+            });
+            singleParameterSetContainer.appendChild(deleteButton);
+        }
+        
+        container.appendChild(singleParameterSetContainer);
+        specificationsSets.push(parameterSet);
+        
+        // Apply focus outline removal
+        removeFocusOutlineFromContainer(singleParameterSetContainer);
+        
+        return parameterSet;
+    }
+    
+    function removeParameterSet(parameterSetToRemove) {
+        const index = specificationsSets.indexOf(parameterSetToRemove);
+        if (index !== -1) {
+            // Remove from DOM
+            parameterSetToRemove.container.remove();
+            // Remove from array
+            specificationsSets.splice(index, 1);
+            
+            // Update indices and titles for remaining sets
+            specificationsSets.forEach((set, i) => {
+                set.index = i;
+                const titleElement = set.container.querySelector('.label-text');
+                if (titleElement && blockData && blockData.params_definition) {
+                    const paramsDefinition = typeof blockData.params_definition === 'string' 
+                        ? JSON.parse(blockData.params_definition) 
+                        : blockData.params_definition;
+                    if (paramsDefinition.is_list) {
+                        titleElement.innerText = `${paramsDefinition.single_title || 'Item'} ${i + 1}`;
+                    }
+                }
+            });
+        }
+    }
+    
+    function getSpecificationsData() {
+        if (!blockData || !blockData.params_structure) {
+            return null;
+        }
+        
+        try {
+            const paramsStructure = typeof blockData.params_structure === 'string' 
+                ? JSON.parse(blockData.params_structure) 
+                : blockData.params_structure;
+            
+            const specificationsData = specificationsSets.map(set => {
+                const setData = {};
+                paramsStructure.forEach(param => {
+                    if (set.inputs[param.name]) {
+                        setData[param.name] = set.inputs[param.name].value.trim();
+                    }
+                });
+                return setData;
+            }).filter(setData => {
+                // Filter out empty sets
+                return Object.values(setData).some(value => value !== '');
+            });
+            
+            return specificationsData.length > 0 ? JSON.stringify(specificationsData) : null;
+        } catch (error) {
+            console.error('Error getting specifications data:', error);
+            return null;
+        }
+    }
+    
     // Function to check if form has changed
     const updateFormChangedStatus = () => {
         if (!blockData) return; // For new blocks, no need to track changes
@@ -307,7 +557,20 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
         const currentInstructions = instructionsInput.value.trim();
         const originalInstructions = blockData.int_instructions || '';
         
-        formChanged = currentInstructions !== originalInstructions;
+        // Check if specifications have changed
+        let specificationsChanged = false;
+        const currentSpecifications = getSpecificationsData();
+        const originalSpecifications = blockData.specifications ? JSON.stringify(
+            typeof blockData.specifications === 'string' 
+                ? JSON.parse(blockData.specifications) 
+                : blockData.specifications
+        ) : null;
+        
+        if (currentSpecifications !== originalSpecifications) {
+            specificationsChanged = true;
+        }
+        
+        formChanged = currentInstructions !== originalInstructions || specificationsChanged;
             
         // Update button style based on changes
         if (blockData && !formChanged) {
@@ -461,6 +724,13 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             int_instructions: instructionsInput.value.trim(),
             template_id: templateImport ? templateImport.getTemplateId() : null // Only use template_id if a template was imported
         };
+        
+        // Add specifications data if available
+        const specificationsData = getSpecificationsData();
+        if (specificationsData) {
+            formData.specifications = specificationsData;
+        }
+        
         console.log("Submitting Assistant Data:", formData);
         
         await postDataToApi('https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/set_int_instructions', formData);
@@ -471,7 +741,13 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
         }
     });
 }
-// Updated initializeEvaluationForm function
+
+
+
+// ===========================
+// INITIALIZE EVALUATION FORM
+// ===========================
+
 async function initializeEvaluationForm(blockData, block_id, lesson_id) {
     const form = document.getElementById('evaluation-form');
     const criteriaContainer = document.getElementById('criteria-container');

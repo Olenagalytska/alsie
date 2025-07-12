@@ -286,10 +286,9 @@ async function initializeTemplateImport(config) {
 
 
 // ===========================
-// INITIALIZE ASSISTANT FORM
+// INITIALIZE ASSISTANT FORM (FIXED VERSION)
 // ===========================
 
-// Updated initializeAssistantForm function with specifications support
 async function initializeAssistantForm(blockData, block_id, lesson_id) {
     const form = document.getElementById('int-assistant-form');
     const instructionsInput = document.getElementById('int-instructions-input');
@@ -298,10 +297,10 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
     const importTemplateButton = document.getElementById('int-import-template-button');
     
     let formChanged = false;
-    let templateImport = null; // Will be initialized only when needed
-    let specificationsSets = []; // Array to track specification parameter sets
+    let templateImport = null;
+    let specificationsSets = [];
     
-    // Set initial values - show existing instructions or empty field
+    // Set initial values
     instructionsInput.value = blockData ? (blockData.int_instructions || '') : '';
     
     // Initialize auto-resize for textarea
@@ -311,44 +310,11 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
     
     // Clear template selector initially
     templateSelector.innerHTML = '';
-    
-    // Disable import button initially
     importTemplateButton.className = 'button_disabled_m';
     
-    // Find existing specifications container
     const specificationsContainer = document.getElementById('specifications-container');
     
-    // Function to check if form has changed (defined early to avoid reference errors)
-    const updateFormChangedStatus = () => {
-        if (!blockData) return; // For new blocks, no need to track changes
-        
-        const currentInstructions = instructionsInput.value.trim();
-        const originalInstructions = blockData.int_instructions || '';
-        
-        // Check if specifications have changed
-        let specificationsChanged = false;
-        const currentSpecifications = getSpecificationsData();
-        const originalSpecifications = blockData.specifications ? JSON.stringify(
-            typeof blockData.specifications === 'string' 
-                ? JSON.parse(blockData.specifications) 
-                : blockData.specifications
-        ) : null;
-        
-        if (currentSpecifications !== originalSpecifications) {
-            specificationsChanged = true;
-        }
-        
-        formChanged = currentInstructions !== originalInstructions || specificationsChanged;
-            
-        // Update button style based on changes
-        if (blockData && !formChanged) {
-            submitButton.className = 'button_disabled_m';
-        } else {
-            submitButton.className = 'button_primary_m';
-        }
-        console.log("Assistant form changed:", formChanged);
-    };
-    
+    // Fixed getSpecificationsData function
     function getSpecificationsData() {
         if (!blockData || !blockData.params_structure) {
             return null;
@@ -379,20 +345,51 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
         }
     }
     
-    // Initialize specifications based on blockData
+    // Function to check if form has changed
+    const updateFormChangedStatus = () => {
+        if (!blockData) return;
+        
+        const currentInstructions = instructionsInput.value.trim();
+        const originalInstructions = blockData.int_instructions || '';
+        
+        // Check if specifications have changed
+        let specificationsChanged = false;
+        const currentSpecifications = getSpecificationsData();
+        const originalSpecifications = blockData.specifications ? JSON.stringify(
+            typeof blockData.specifications === 'string' 
+                ? JSON.parse(blockData.specifications) 
+                : blockData.specifications
+        ) : null;
+        
+        if (currentSpecifications !== originalSpecifications) {
+            specificationsChanged = true;
+        }
+        
+        formChanged = currentInstructions !== originalInstructions || specificationsChanged;
+            
+        // Update button style based on changes
+        if (blockData && !formChanged) {
+            submitButton.className = 'button_disabled_m';
+        } else {
+            submitButton.className = 'button_primary_m';
+        }
+        console.log("Assistant form changed:", formChanged);
+    };
+    
+    // Initialize specifications
     initializeSpecifications();
     
     function initializeSpecifications() {
-
         const specificationsContainer = document.getElementById('specifications-container');
-        specificationsContainer.innerHTML = '';
-        
         if (!specificationsContainer) {
             console.warn('specifications-container not found in DOM');
             return;
         }
+        
+        specificationsContainer.innerHTML = '';
+        
         if (!blockData || !blockData.params_structure || !blockData.params_definition) {
-            return; // No specifications to display
+            return;
         }
         
         try {
@@ -425,7 +422,6 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             if (paramsDefinition.user_description) {
                 const userDescription = document.createElement('text');
                 userDescription.className = 'field-label';
-                //userDescription.classList.add('textcolor-lighter');
                 userDescription.innerText = paramsDefinition.user_description;
                 specificationsContainer.appendChild(userDescription);
             }
@@ -439,12 +435,10 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             if (paramsDefinition.is_list) {
                 // Handle list of parameter sets
                 if (specifications.length > 0) {
-                    // Display existing specifications
                     specifications.forEach((spec, index) => {
                         createParameterSet(paramsStructure, setsContainer, spec, index, paramsDefinition);
                     });
                 } else {
-                    // Create one empty set if no existing specifications
                     createParameterSet(paramsStructure, setsContainer, {}, 0, paramsDefinition);
                 }
                 
@@ -511,7 +505,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             textarea.rows = 2;
             textarea.placeholder = param.title;
             
-            // Set value from specification data (this sets the actual content, not placeholder)
+            // Set value from specification data
             textarea.value = (specificationData && specificationData[param.name]) ? specificationData[param.name] : '';
             
             // Initialize auto-resize
@@ -556,7 +550,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             // Update indices and titles for remaining sets
             specificationsSets.forEach((set, i) => {
                 set.index = i;
-                const titleElement = set.container.querySelector('.label-text');
+                const titleElement = set.container.querySelector('.criterion-header');
                 if (titleElement && blockData && blockData.params_definition) {
                     const paramsDefinition = typeof blockData.params_definition === 'string' 
                         ? JSON.parse(blockData.params_definition) 
@@ -569,8 +563,6 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
         }
     }
     
-
-    
     // Add change listeners
     instructionsInput.addEventListener('input', updateFormChangedStatus);
     
@@ -581,7 +573,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
         submitButton.className = 'button_primary_m';
     }
     
-    // Initialize template import functionality only when selector changes (user interacts with it)
+    // Initialize template import functionality only when selector changes
     let templatesLoaded = false;
     
     templateSelector.addEventListener('focus', async function() {
@@ -589,7 +581,6 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             console.log('Loading templates for the first time...');
             
             try {
-                // Fetch templates
                 const response = await fetch('https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/templates?type=interview', {
                     method: 'GET',
                     headers: {
@@ -623,7 +614,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
         }
     });
     
-    // Function to handle template import (extracted from the reusable function)
+    // Function to handle template import
     function initializeTemplateImportHandler(templates, updateFormChangedStatus) {
         const descriptionParagraph = document.getElementById('int-description');
         const templateNameElement = document.getElementById('int-template-name');
@@ -705,29 +696,70 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
         };
     }
     
-    // Handle form submission
+    // FIXED FORM SUBMISSION with better error handling
     submitButton.addEventListener('click', async function (e) {
         e.preventDefault();
         
-        const formData = {
-            block_id: blockData.id,
-            int_instructions: instructionsInput.value.trim(),
-            template_id: templateImport ? templateImport.getTemplateId() : null // Only use template_id if a template was imported
-        };
-        
-        // Add specifications data if available
-        const specificationsData = getSpecificationsData();
-        if (specificationsData) {
-            formData.specifications = specificationsData;
-        }
-        
-        console.log("Submitting Assistant Data:", formData);
-        
-        await postDataToApi('https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/set_int_instructions', formData);
-        
-        // Update button style after successful submission if editing existing block
-        if (blockData) {
+        try {
+            // Disable button and show loading state
+            submitButton.disabled = true;
+            const originalText = submitButton.innerText;
+            submitButton.innerText = 'Saving...';
             submitButton.className = 'button_disabled_m';
+            
+            const formData = {
+                block_id: blockData.id,
+                int_instructions: instructionsInput.value.trim(),
+                template_id: templateImport ? templateImport.getTemplateId() : null
+            };
+            
+            // Add specifications data if available
+            const specificationsData = getSpecificationsData();
+            if (specificationsData) {
+                formData.specifications = specificationsData;
+            }
+            
+            console.log("Submitting Assistant Data:", formData);
+            
+            // Use fetch directly with better error handling instead of postDataToApi
+            const response = await fetch('https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/set_int_instructions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            });
+            
+            if (!response.ok) {
+                // Log the response for debugging
+                const errorText = await response.text();
+                console.error('Server response:', errorText);
+                throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+            }
+            
+            const result = await response.json();
+            console.log('Assistant data updated successfully:', result);
+            
+            // Update button style after successful submission
+            if (blockData) {
+                submitButton.className = 'button_disabled_m';
+            } else {
+                submitButton.className = 'button_primary_m';
+            }
+            
+            // Show success message
+            alert('Assistant instructions saved successfully!');
+            
+        } catch (error) {
+            console.error('Error updating assistant data:', error);
+            alert(`Error saving assistant instructions: ${error.message}`);
+            
+            // Reset button to original state
+            submitButton.className = 'button_primary_m';
+        } finally {
+            // Re-enable button and reset text
+            submitButton.disabled = false;
+            submitButton.innerText = originalText || 'Save Changes';
         }
     });
 }

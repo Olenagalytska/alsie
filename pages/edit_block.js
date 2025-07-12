@@ -385,6 +385,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
     function initializeSpecifications() {
 
         const specificationsContainer = document.getElementById('specifications-container');
+        specificationsContainer.innerHTML = '';
         
         if (!specificationsContainer) {
             console.warn('specifications-container not found in DOM');
@@ -422,7 +423,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             
             // Create user description if available
             if (paramsDefinition.user_description) {
-                const userDescription = document.createElement('div');
+                const userDescription = document.createElement('text');
                 userDescription.className = 'body_XS';
                 userDescription.classList.add('textcolor-lighter');
                 userDescription.innerText = paramsDefinition.user_description;
@@ -507,7 +508,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             // Create textarea input
             const textarea = document.createElement('textarea');
             textarea.className = 'text-area-def';
-            textarea.rows = 4;
+            textarea.rows = 2;
             textarea.placeholder = param.title;
             
             // Set value from specification data (this sets the actual content, not placeholder)

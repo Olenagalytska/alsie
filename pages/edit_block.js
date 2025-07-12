@@ -344,7 +344,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
         if (blockData && !formChanged) {
             submitButton.className = 'button_disabled_m';
         } else {
-            submitButton.className = 'button_secondary_m';
+            submitButton.className = 'button_primary_m';
         }
         console.log("Assistant form changed:", formChanged);
     };
@@ -424,8 +424,8 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             // Create user description if available
             if (paramsDefinition.user_description) {
                 const userDescription = document.createElement('text');
-                userDescription.className = 'body_XS';
-                userDescription.classList.add('textcolor-lighter');
+                userDescription.className = 'field-label';
+                //userDescription.classList.add('textcolor-lighter');
                 userDescription.innerText = paramsDefinition.user_description;
                 specificationsContainer.appendChild(userDescription);
             }
@@ -450,7 +450,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
                 
                 // Add "Add" button for lists
                 const addButton = document.createElement('button');
-                addButton.className = 'button_primary_s';
+                addButton.className = 'button_inverse_s';
                 addButton.innerText = 'Add ' + (paramsDefinition.single_title || '');
                 addButton.addEventListener('click', () => {
                     const newIndex = specificationsSets.length;
@@ -578,7 +578,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
     if (blockData) {
         submitButton.className = 'button_disabled_m';
     } else {
-        submitButton.className = 'button_secondary_m';
+        submitButton.className = 'button_primary_m';
     }
     
     // Initialize template import functionality only when selector changes (user interacts with it)
@@ -829,7 +829,7 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
         if (blockData && !formChanged) {
             submitButton.className = 'button_disabled_m';
         } else {
-            submitButton.className = 'button_secondary_m';
+            submitButton.className = 'button_primary_m';
         }
         console.log("Evaluation form changed:", formChanged);
     };
@@ -1185,7 +1185,7 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
     if (blockData) {
         submitButton.className = 'button_disabled_m';
     } else {
-        submitButton.className = 'button_secondary_m';
+        submitButton.className = 'button_primary_m';
     }
 
     // Handle form submission

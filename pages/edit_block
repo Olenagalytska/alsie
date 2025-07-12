@@ -24,11 +24,6 @@ async function initializeBlockData() {
 
 
 
-//---------------
-//---------------
-//---------------
-
-
 async function initializeBlockForms(blockData, lesson_id) {
     try {
         let block_id = null;

@@ -300,8 +300,33 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
     let templateImport = null;
     let specificationsSets = [];
     
-    // Set initial values
+    // Set initial values - with debugging
+    console.log('=== DEBUGGING BLOCK DATA ===');
+    console.log('Full blockData:', blockData);
+    console.log('blockData.int_instructions:', blockData?.int_instructions);
+    console.log('blockData.instructions:', blockData?.instructions);
+    console.log('blockData.assistant_instructions:', blockData?.assistant_instructions);
+    console.log('blockData.interview_instructions:', blockData?.interview_instructions);
+    console.log('All blockData keys:', blockData ? Object.keys(blockData) : 'No blockData');
+    console.log('=== END DEBUG ===');
+    
     instructionsInput.value = blockData ? (blockData.int_instructions || '') : '';
+    
+    // Additional fallback checks for different possible field names
+    if (!instructionsInput.value && blockData) {
+        if (blockData.instructions) {
+            instructionsInput.value = blockData.instructions;
+            console.log('Used blockData.instructions instead');
+        } else if (blockData.assistant_instructions) {
+            instructionsInput.value = blockData.assistant_instructions;
+            console.log('Used blockData.assistant_instructions instead');
+        } else if (blockData.interview_instructions) {
+            instructionsInput.value = blockData.interview_instructions;
+            console.log('Used blockData.interview_instructions instead');
+        }
+    }
+    
+    console.log('Final instructionsInput.value:', instructionsInput.value);
     
     // Initialize auto-resize for textarea
     if (instructionsInput.tagName === 'TEXTAREA') {
@@ -314,9 +339,10 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
     
     const specificationsContainer = document.getElementById('specifications-container');
     
-    // Fixed getSpecificationsData function
+    // Fixed getSpecificationsData function - handles empty blocks
     function getSpecificationsData() {
-        if (!blockData || !blockData.params_structure) {
+        // If no block data or no specifications structure, return null
+        if (!blockData || !blockData.params_structure || specificationsSets.length === 0) {
             return null;
         }
         
@@ -328,7 +354,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             const specificationsData = specificationsSets.map(set => {
                 const setData = {};
                 paramsStructure.forEach(param => {
-                    if (set.inputs[param.name]) {
+                    if (set.inputs && set.inputs[param.name]) {
                         setData[param.name] = set.inputs[param.name].value.trim();
                     }
                 });
@@ -345,33 +371,40 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
         }
     }
     
-    // Function to check if form has changed
+    // Function to check if form has changed - handles empty blocks
     const updateFormChangedStatus = () => {
-        if (!blockData) return;
+        // For new blocks or blocks without data, always show the save button as enabled
+        if (!blockData || !blockData.id) {
+            submitButton.className = 'button_primary_m';
+            console.log("New block - save button enabled");
+            return;
+        }
         
         const currentInstructions = instructionsInput.value.trim();
         const originalInstructions = blockData.int_instructions || '';
         
-        // Check if specifications have changed
+        // Check if specifications have changed (only if block has specifications structure)
         let specificationsChanged = false;
-        const currentSpecifications = getSpecificationsData();
-        const originalSpecifications = blockData.specifications ? JSON.stringify(
-            typeof blockData.specifications === 'string' 
-                ? JSON.parse(blockData.specifications) 
-                : blockData.specifications
-        ) : null;
-        
-        if (currentSpecifications !== originalSpecifications) {
-            specificationsChanged = true;
+        if (blockData.params_structure && blockData.params_definition) {
+            const currentSpecifications = getSpecificationsData();
+            const originalSpecifications = blockData.specifications ? JSON.stringify(
+                typeof blockData.specifications === 'string' 
+                    ? JSON.parse(blockData.specifications) 
+                    : blockData.specifications
+            ) : null;
+            
+            if (currentSpecifications !== originalSpecifications) {
+                specificationsChanged = true;
+            }
         }
         
         formChanged = currentInstructions !== originalInstructions || specificationsChanged;
             
         // Update button style based on changes
-        if (blockData && !formChanged) {
-            submitButton.className = 'button_disabled_m';
-        } else {
+        if (formChanged || !blockData.id) {
             submitButton.className = 'button_primary_m';
+        } else {
+            submitButton.className = 'button_disabled_m';
         }
         console.log("Assistant form changed:", formChanged);
     };
@@ -388,7 +421,9 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
         
         specificationsContainer.innerHTML = '';
         
+        // If no block data or missing specifications structure, just clear and return
         if (!blockData || !blockData.params_structure || !blockData.params_definition) {
+            console.log('No specifications structure found - specifications section will be empty');
             return;
         }
         
@@ -460,6 +495,8 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             
         } catch (error) {
             console.error('Error initializing specifications:', error);
+            // Clear the container on error to prevent broken UI
+            specificationsContainer.innerHTML = '';
         }
     }
     
@@ -566,11 +603,13 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
     // Add change listeners
     instructionsInput.addEventListener('input', updateFormChangedStatus);
     
-    // Set initial button style
-    if (blockData) {
-        submitButton.className = 'button_disabled_m';
-    } else {
+    // Set initial button style - handles empty blocks
+    if (!blockData || !blockData.id) {
+        // For new blocks, always enable the save button
         submitButton.className = 'button_primary_m';
+    } else {
+        // For existing blocks, start with disabled until changes are made
+        submitButton.className = 'button_disabled_m';
     }
     
     // Initialize template import functionality only when selector changes
@@ -621,6 +660,13 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
         
         let template_id = null;
         let current_template_id = null;
+        
+        // Set current template ID if block already has one
+        if (blockData && blockData.int_template_id) {
+            current_template_id = blockData.int_template_id;
+            template_id = blockData.int_template_id;
+            console.log('Block already has template ID:', current_template_id);
+        }
         
         // Handle template selector change to update import button style
         templateSelector.addEventListener('change', function() {
@@ -748,6 +794,11 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             submitButton.innerText = 'Saving...';
             submitButton.className = 'button_disabled_m';
             
+            // Ensure we have a valid block_id
+            if (!blockData || !blockData.id) {
+                throw new Error('Block ID is required for saving assistant instructions');
+            }
+            
             const formData = {
                 block_id: blockData.id,
                 int_instructions: instructionsInput.value.trim(),
@@ -782,7 +833,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             console.log('Assistant data updated successfully:', result);
             
             // Update button style after successful submission
-            if (blockData) {
+            if (blockData && blockData.id) {
                 submitButton.className = 'button_disabled_m';
             } else {
                 submitButton.className = 'button_primary_m';

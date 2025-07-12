@@ -14,6 +14,7 @@ async function initializeBlockData() {
     }
     
     const blockData = await response.json();
+    console.log('BlockData: ', blockData);
     return blockData;
     
   } catch (error) {

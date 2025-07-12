@@ -294,47 +294,29 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
     const instructionsInput = document.getElementById('int-instructions-input');
     const submitButton = document.getElementById('int-submit-button');
     const templateSelector = document.getElementById('int-template-selector');
+    const templateNameElement = document.getElementById('int-template-name');
+    const templateDescriptionElement = document.getElementById('int-description');
     const importTemplateButton = document.getElementById('int-import-template-button');
     
     let formChanged = false;
     let templateImport = null;
     let specificationsSets = [];
     
-    // Set initial values - with debugging
-    console.log('=== DEBUGGING BLOCK DATA ===');
-    console.log('Full blockData:', blockData);
-    console.log('blockData.int_instructions:', blockData?.int_instructions);
-    console.log('blockData.instructions:', blockData?.instructions);
-    console.log('blockData.assistant_instructions:', blockData?.assistant_instructions);
-    console.log('blockData.interview_instructions:', blockData?.interview_instructions);
-    console.log('All blockData keys:', blockData ? Object.keys(blockData) : 'No blockData');
-    console.log('=== END DEBUG ===');
+   
     
     instructionsInput.value = blockData ? (blockData.int_instructions || '') : '';
     
-    // Additional fallback checks for different possible field names
-    if (!instructionsInput.value && blockData) {
-        if (blockData.instructions) {
-            instructionsInput.value = blockData.instructions;
-            console.log('Used blockData.instructions instead');
-        } else if (blockData.assistant_instructions) {
-            instructionsInput.value = blockData.assistant_instructions;
-            console.log('Used blockData.assistant_instructions instead');
-        } else if (blockData.interview_instructions) {
-            instructionsInput.value = blockData.interview_instructions;
-            console.log('Used blockData.interview_instructions instead');
-        }
-    }
-    
-    console.log('Final instructionsInput.value:', instructionsInput.value);
+
     
     // Initialize auto-resize for textarea
     if (instructionsInput.tagName === 'TEXTAREA') {
         initAutoResize(instructionsInput);
     }
     
-    // Clear template selector initially
-    templateSelector.innerHTML = '';
+    // Set template selector initially
+    templateNameElement = blockData._int_template.name || '';
+    templateDescriptionElement = blockData._int_template.description || '';
+    templateSelector.innerHTML = blockData._int_template.name || '';
     importTemplateButton.className = 'button_disabled_m';
     
     const specificationsContainer = document.getElementById('specifications-container');
@@ -443,9 +425,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
                     : blockData.specifications;
             }
             
-            console.log('Params Structure:', paramsStructure);
-            console.log('Params Definition:', paramsDefinition);
-            console.log('Specifications:', specifications);
+            
             
             // Create specifications header
             const specificationsHeader = document.createElement('div');

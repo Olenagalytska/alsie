@@ -383,6 +383,13 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
     initializeSpecifications();
     
     function initializeSpecifications() {
+
+        const specificationsContainer = document.getElementById('specifications-container');
+        
+        if (!specificationsContainer) {
+            console.warn('specifications-container not found in DOM');
+            return;
+        }
         if (!blockData || !blockData.params_structure || !blockData.params_definition) {
             return; // No specifications to display
         }

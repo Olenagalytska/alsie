@@ -420,8 +420,8 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             
             // Create user description if available
             if (paramsDefinition.user_description) {
-                const userDescription = document.createElement('text');
-                userDescription.className = 'field-label';
+                const userDescription = document.createElement('p');
+                userDescription.className = 'body_XS';
                 userDescription.innerText = paramsDefinition.user_description;
                 specificationsContainer.appendChild(userDescription);
             }

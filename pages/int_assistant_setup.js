@@ -3,31 +3,18 @@
 // ===========================
 
 async function initializeAssistantForm(blockData, block_id, lesson_id) {
-    console.log('🚀 initializeAssistantForm called with:', { blockData, block_id, lesson_id });
-    
     const instructionsInput = document.getElementById('int-instructions-input');
     const submitButton = document.getElementById('int-submit-button');
+    const importTemplateButton = document.getElementById('int-import-template-button');
     let specificationsSets = [];
     
-    console.log('📋 Form elements found:', { 
-        instructionsInput: !!instructionsInput, 
-        submitButton: !!submitButton 
-    });
-    
-    if (!instructionsInput) {
-        console.error('❌ Instructions input element not found with ID: int-instructions-input');
-        return;
-    }
-    
-    if (!submitButton) {
-        console.error('❌ Submit button element not found with ID: int-submit-button');
+    if (!instructionsInput || !submitButton) {
         return;
     }
     
     // Fetch templates for the library
     let templates = [];
     try {
-        console.log('📡 Fetching interview templates...');
         const response = await fetch('https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/templates?type=interview', {
             method: 'GET',
             headers: {
@@ -37,28 +24,218 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
         
         if (response.ok) {
             templates = await response.json();
-            console.log('✅ Templates fetched successfully:', templates.length, 'templates');
-        } else {
-            console.warn('⚠️ Failed to fetch templates:', response.status);
         }
     } catch (error) {
-        console.error('❌ Error fetching interview templates:', error);
+        console.error('Error fetching interview templates:', error);
     }
     
-    instructionsInput.value = blockData ? (blockData.int_instructions || '') : '';
-    console.log('📝 Instructions input initialized with value:', instructionsInput.value);
+    // Initialize template handling
+    await initializeTemplateHandling(blockData, templates, block_id, lesson_id);
+    
+    // Only initialize assistant form if template_id exists
+    if (blockData && blockData.template_id) {
+        initializeAssistantFormUI();
+    }
+    
+    // Add event listener for import template button
+    if (importTemplateButton) {
+        importTemplateButton.addEventListener('click', () => {
+            showTemplateForm(templates);
+        });
+    }
+    
+    async function initializeTemplateHandling(blockData, templates, block_id, lesson_id) {
+        const templateForm = document.getElementById('int-template-form');
+        const assistantForm = document.getElementById('int-assistant-form');
+        const evaluationSection = document.getElementById('evaluation-setup-section');
+        
+        if (blockData && blockData.template_id) {
+            // Template exists - show assistant form
+            if (templateForm) templateForm.style.display = 'none';
+            if (assistantForm) assistantForm.style.display = 'block';
+            if (evaluationSection) evaluationSection.style.display = 'block';
+        } else {
+            // No template - show template selection form
+            showTemplateForm(templates);
+        }
+    }
+    
+    function showTemplateForm(templates) {
+        const templateForm = document.getElementById('int-template-form');
+        const assistantForm = document.getElementById('int-assistant-form');
+        const evaluationSection = document.getElementById('evaluation-setup-section');
+        const templateSelector = document.getElementById('int-template-selector');
+        const templateDescription = document.getElementById('int-template-description');
+        const importButton = document.getElementById('import-template-button');
+        
+        // Show/hide sections
+        if (evaluationSection) evaluationSection.style.display = 'none';
+        if (templateForm) templateForm.style.display = 'block';
+        if (assistantForm) assistantForm.style.display = 'none';
+        
+        // Populate dropdown
+        if (templateSelector) {
+            templateSelector.innerHTML = '<option value="">Select a template...</option>';
+            templates.forEach(template => {
+                const option = document.createElement('option');
+                option.value = template.id;
+                option.textContent = template.name;
+                templateSelector.appendChild(option);
+            });
+            
+            // Add event listener for template selection
+            templateSelector.addEventListener('change', function() {
+                const selectedTemplateId = this.value;
+                const selectedTemplate = templates.find(t => t.id == selectedTemplateId);
+                
+                if (selectedTemplate && templateDescription) {
+                    templateDescription.textContent = selectedTemplate.description;
+                }
+                
+                // Enable/disable import button
+                if (importButton) {
+                    if (selectedTemplateId) {
+                        importButton.disabled = false;
+                        importButton.className = 'button_primary_m';
+                    } else {
+                        importButton.disabled = true;
+                        importButton.className = 'button_disabled_m';
+                    }
+                }
+            });
+        }
+        
+        // Initialize import button as disabled
+        if (importButton) {
+            importButton.disabled = true;
+            importButton.className = 'button_disabled_m';
+            
+            // Add event listener for import button
+            importButton.addEventListener('click', async function() {
+                const selectedTemplateId = templateSelector ? templateSelector.value : null;
+                if (!selectedTemplateId || !blockData || !blockData.id) return;
+                
+                try {
+                    importButton.disabled = true;
+                    const originalText = importButton.textContent;
+                    importButton.textContent = 'Importing...';
+                    
+                    // Call import template API
+                    const response = await fetch('https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/import_template', {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            block_id: blockData.id,
+                            template_id: selectedTemplateId
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+                    }
+                    
+                    // Get updated block data from API response
+                    const updatedBlockData = await response.json();
+                    
+                    // Hide template form, show assistant form
+                    if (templateForm) templateForm.style.display = 'none';
+                    if (assistantForm) assistantForm.style.display = 'block';
+                    if (evaluationSection) evaluationSection.style.display = 'block';
+                    
+                    // Re-initialize assistant form with updated data
+                    await initializeAssistantForm(updatedBlockData, block_id, lesson_id);
+                    
+                } catch (error) {
+                    console.error('Error importing template:', error);
+                    alert(`Error importing template: ${error.message}`);
+                } finally {
+                    importButton.disabled = false;
+                    importButton.textContent = originalText;
+                }
+            });
+        }
+    }
+    
+    function initializeAssistantFormUI() {
+        instructionsInput.value = blockData ? (blockData.int_instructions || '') : '';
 
-    if (instructionsInput.tagName === 'TEXTAREA') {
-        initAutoResize(instructionsInput);
-        console.log('📏 Auto-resize initialized for textarea');
+        if (instructionsInput.tagName === 'TEXTAREA') {
+            initAutoResize(instructionsInput);
+        }
+        
+        initializeSpecifications();
+        
+        // Add input event listener
+        instructionsInput.addEventListener('input', updateFormChangedStatus);
+        
+        // Set initial button state
+        submitButton.className = (!blockData || !blockData.id) ? 'button_primary_m' : 'button_disabled_m';
+        
+        // Add click event listener to submit button
+        submitButton.addEventListener('click', async function (e) {
+            e.preventDefault();
+            
+            // Declare originalText outside try block so it's accessible in finally
+            const originalText = submitButton.innerText;
+            
+            try {
+                submitButton.disabled = true;
+                submitButton.innerText = 'Saving...';
+                submitButton.className = 'button_disabled_m';
+                
+                if (!blockData || !blockData.id) {
+                    throw new Error('Block ID is required for saving assistant instructions');
+                }
+                
+                const formData = {
+                    block_id: blockData.id,
+                    int_instructions: instructionsInput.value.trim()
+                };
+                
+                const specificationsData = getSpecificationsData();
+                if (specificationsData) {
+                    formData.specifications = specificationsData;
+                }
+                
+                const response = await fetch('https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/set_int_instructions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+                }
+                
+                const result = await response.json();
+                
+                if (blockData && blockData.id) {
+                    submitButton.className = 'button_disabled_m';
+                } else {
+                    submitButton.className = 'button_primary_m';
+                }
+                
+                alert('Assistant instructions saved successfully!');
+                
+            } catch (error) {
+                console.error('Error updating assistant data:', error);
+                alert(`Error saving assistant instructions: ${error.message}`);
+                submitButton.className = 'button_primary_m';
+            } finally {
+                submitButton.disabled = false;
+                submitButton.innerText = originalText;
+            }
+        });
     }
     
     function getSpecificationsData() {
-        console.log('🔍 Getting specifications data...');
-        console.log('📊 Current specificationsSets:', specificationsSets);
-        
         if (!blockData || !blockData.params_structure || specificationsSets.length === 0) {
-            console.log('ℹ️ No specifications data available');
             return null;
         }
         
@@ -66,8 +243,6 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             const paramsStructure = typeof blockData.params_structure === 'string' 
                 ? JSON.parse(blockData.params_structure) 
                 : blockData.params_structure;
-            
-            console.log('📋 Params structure:', paramsStructure);
             
             const specificationsData = specificationsSets.map(set => {
                 const setData = {};
@@ -81,31 +256,21 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
                 return Object.values(setData).some(value => value !== '');
             });
             
-            console.log('📦 Processed specifications data:', specificationsData);
             return specificationsData.length > 0 ? JSON.stringify(specificationsData) : null;
         } catch (error) {
-            console.error('❌ Error getting specifications data:', error);
+            console.error('Error getting specifications data:', error);
             return null;
         }
     }
     
     const updateFormChangedStatus = () => {
-        console.log('🔄 Updating form changed status...');
-        
         if (!blockData || !blockData.id) {
             submitButton.className = 'button_primary_m';
-            console.log('🆕 No blockData.id - form ready for creation');
             return;
         }
         
         const currentInstructions = instructionsInput.value.trim();
         const originalInstructions = blockData.int_instructions || '';
-        
-        console.log('📝 Instructions comparison:', {
-            current: currentInstructions,
-            original: originalInstructions,
-            changed: currentInstructions !== originalInstructions
-        });
         
         let specificationsChanged = false;
         if (blockData.params_structure && blockData.params_definition) {
@@ -117,37 +282,21 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             ) : null;
             
             specificationsChanged = currentSpecifications !== originalSpecifications;
-            console.log('📊 Specifications comparison:', {
-                current: currentSpecifications,
-                original: originalSpecifications,
-                changed: specificationsChanged
-            });
         }
         
         const formChanged = currentInstructions !== originalInstructions || specificationsChanged;
         submitButton.className = formChanged || !blockData.id ? 'button_primary_m' : 'button_disabled_m';
-        
-        console.log('🎯 Form status updated:', {
-            formChanged,
-            buttonClass: submitButton.className
-        });
     };
     
-    initializeSpecifications();
-    
     function initializeSpecifications() {
-        console.log('📋 Initializing specifications...');
-        
         const specificationsContainer = document.getElementById('specifications-container');
         if (!specificationsContainer) {
-            console.log('ℹ️ No specifications container found');
             return;
         }
         
         specificationsContainer.innerHTML = '';
         
         if (!blockData || !blockData.params_structure || !blockData.params_definition) {
-            console.log('ℹ️ No specifications data in blockData');
             return;
         }
         
@@ -167,22 +316,18 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
                     : blockData.specifications;
             }
             
-            console.log('📊 Specifications initialized:', {
-                paramsStructure,
-                paramsDefinition,
-                specifications
-            });
+            // Find and update existing title element instead of creating new one
+            const paramsTitle = document.getElementById('params-title');
+            if (paramsTitle) {
+                paramsTitle.innerText = paramsDefinition.title || 'Specifications';
+            }
             
-            const specificationsHeader = document.createElement('div');
-            specificationsHeader.className = 'ebp-section-header';
-            specificationsHeader.innerText = paramsDefinition.title || 'Specifications';
-            specificationsContainer.appendChild(specificationsHeader);
-            
-            if (paramsDefinition.user_description) {
-                const userDescription = document.createElement('text');
-                userDescription.className = 'field-label';
-                userDescription.innerText = paramsDefinition.user_description;
-                specificationsContainer.appendChild(userDescription);
+            // Find and update existing description element instead of creating new one
+            const paramsDescription = document.getElementById('params-description');
+            if (paramsDescription && paramsDefinition.user_description) {
+                paramsDescription.innerText = paramsDefinition.user_description;
+            } else if (paramsDescription) {
+                paramsDescription.innerText = '';
             }
             
             const setsContainer = document.createElement('div');
@@ -214,14 +359,12 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             }
             
         } catch (error) {
-            console.error('❌ Error initializing specifications:', error);
+            console.error('Error initializing specifications:', error);
             specificationsContainer.innerHTML = '';
         }
     }
     
     function createParameterSet(paramsStructure, container, specificationData, index, paramsDefinition) {
-        console.log('🏗️ Creating parameter set:', { index, specificationData });
-        
         const singleParameterSetContainer = document.createElement('div');
         singleParameterSetContainer.className = 'single-parameter-set-container';
         
@@ -278,13 +421,10 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
         specificationsSets.push(parameterSet);
         removeFocusOutlineFromContainer(singleParameterSetContainer);
         
-        console.log('✅ Parameter set created and added to specificationsSets');
         return parameterSet;
     }
     
     function removeParameterSet(parameterSetToRemove) {
-        console.log('🗑️ Removing parameter set...');
-        
         const index = specificationsSets.indexOf(parameterSetToRemove);
         if (index !== -1) {
             parameterSetToRemove.container.remove();
@@ -302,105 +442,6 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
                     }
                 }
             });
-            
-            console.log('✅ Parameter set removed. Remaining sets:', specificationsSets.length);
         }
     }
-    
-    // Add input event listener
-    instructionsInput.addEventListener('input', updateFormChangedStatus);
-    console.log('🎧 Event listener added to instructions input');
-    
-    // Set initial button state
-    submitButton.className = (!blockData || !blockData.id) ? 'button_primary_m' : 'button_disabled_m';
-    console.log('🎯 Initial button state set:', submitButton.className);
-    
-    // Add click event listener to submit button
-    submitButton.addEventListener('click', async function (e) {
-        console.log('🔥 SUBMIT BUTTON CLICKED!');
-        
-        e.preventDefault();
-        console.log('🚫 Default prevented');
-        
-        // Declare originalText outside try block so it's accessible in finally
-        const originalText = submitButton.innerText;
-        
-        try {
-            submitButton.disabled = true;
-            submitButton.innerText = 'Saving...';
-            submitButton.className = 'button_disabled_m';
-            
-            console.log('🔄 Button state changed to saving...');
-            console.log('📊 Current blockData:', blockData);
-            
-            if (!blockData || !blockData.id) {
-                throw new Error('Block ID is required for saving assistant instructions');
-            }
-            
-            console.log('📝 Collecting form data...');
-            
-            const formData = {
-                block_id: blockData.id,
-                int_instructions: instructionsInput.value.trim()
-            };
-            
-            console.log('📦 Base form data collected:', formData);
-            
-            const specificationsData = getSpecificationsData();
-            if (specificationsData) {
-                formData.specifications = specificationsData;
-                console.log('📋 Specifications added to form data');
-            } else {
-                console.log('ℹ️ No specifications data to add');
-            }
-            
-            console.log('🚀 Final form data to send:', formData);
-            console.log('🌐 Making API request to:', 'https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/set_int_instructions');
-            
-            const response = await fetch('https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/set_int_instructions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData)
-            });
-            
-            console.log('📡 API response received:', {
-                status: response.status,
-                statusText: response.statusText,
-                ok: response.ok
-            });
-            
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('❌ API error response:', errorText);
-                throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
-            }
-            
-            const result = await response.json();
-            console.log('✅ API success response:', result);
-            
-            if (blockData && blockData.id) {
-                submitButton.className = 'button_disabled_m';
-            } else {
-                submitButton.className = 'button_primary_m';
-            }
-            
-            console.log('🎉 Form submission successful!');
-            alert('Assistant instructions saved successfully!');
-            
-        } catch (error) {
-            console.error('❌ Error during form submission:', error);
-            console.error('❌ Error stack:', error.stack);
-            alert(`Error saving assistant instructions: ${error.message}`);
-            submitButton.className = 'button_primary_m';
-        } finally {
-            submitButton.disabled = false;
-            submitButton.innerText = originalText;
-            console.log('🔄 Button state restored');
-        }
-    });
-    
-    console.log('🎧 Submit button event listener attached successfully');
-    console.log('✅ Form initialization complete');
 }

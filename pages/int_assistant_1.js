@@ -40,6 +40,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
     // Add event listener for import template button
     if (importTemplateButton) {
         importTemplateButton.addEventListener('click', () => {
+            console.log('clicked');
             showTemplateForm(templates);
         });
     }

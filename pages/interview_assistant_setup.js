@@ -105,7 +105,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             });
         }
         
-        
+
         // Initialize import button as disabled
         if (importButton) {
             importButton.disabled = true;
@@ -156,7 +156,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
                     alert(`Error importing template: ${error.message}`);
                 } finally {
                     importButton.disabled = false;
-                    importButton.textContent = originalText;
+                    importButton.textContent = 'Continue';
                 }
             });
         }

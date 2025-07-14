@@ -357,7 +357,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
                 }
                 
                 const addButton = document.createElement('button');
-                addButton.className = 'button_inverse_s';
+                addButton.className = 'button_secondary_m';
                 addButton.innerText = 'Add ' + (paramsDefinition.single_title || '');
                 addButton.addEventListener('click', () => {
                     const newIndex = specificationsSets.length;

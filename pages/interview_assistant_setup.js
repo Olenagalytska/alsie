@@ -37,7 +37,6 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
         initializeAssistantFormUI();
     }
     
-    
     // Add event listener for import template button
     if (importTemplateButton) {
         importTemplateButton.addEventListener('click', () => {
@@ -116,9 +115,11 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
                 const selectedTemplateId = templateSelector ? templateSelector.value : null;
                 if (!selectedTemplateId || !blockData || !blockData.id) return;
                 
+                // Declare originalText outside try block so it's accessible in finally
+                const originalText = importButton.textContent;
+                
                 try {
                     importButton.disabled = true;
-                    const originalText = importButton.textContent;
                     importButton.textContent = 'Importing...';
                     
                     // Call import template API
@@ -164,7 +165,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
         instructionsInput.value = blockData ? (blockData.int_instructions || '') : '';
 
         if (instructionsInput.tagName === 'TEXTAREA') {
-            //initAutoResize(instructionsInput);
+            initAutoResize(instructionsInput);
         }
         
         // Display template name

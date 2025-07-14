@@ -206,11 +206,14 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
     
     // Add button click event listener
     if (addCriterionButton) {
+        console.log('Adding click listener to add criterion button');
         addCriterionButton.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('bing!');
+            console.log('Add criterion button clicked');
             addEmptyPair();
         });
+    } else {
+        console.error('Add criterion button not found! Make sure element with id "add-criterion-button" exists');
     }
     
     evaluationInstructionsInput.addEventListener('input', updateFormChangedStatus);

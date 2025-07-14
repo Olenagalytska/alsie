@@ -33,7 +33,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
     await initializeTemplateHandling(blockData, templates, block_id, lesson_id);
     
     // Only initialize assistant form if template_id exists
-    if (blockData && blockData.template_id) {
+    if (blockData && blockData.int_template_id) {
         initializeAssistantFormUI();
     }
     
@@ -49,7 +49,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
         const assistantForm = document.getElementById('int-assistant-form');
         const evaluationSection = document.getElementById('evaluation-setup-section');
         
-        if (blockData && blockData.template_id) {
+        if (blockData && blockData.int_template_id) {
             // Template exists - show assistant form
             if (templateForm) templateForm.style.display = 'none';
             if (assistantForm) assistantForm.style.display = 'block';
@@ -142,7 +142,8 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
                     
                     // Get updated block data from API response
                     const updatedBlockData = await response.json();
-                    
+                    console.log('Updated block: ', updatedBlockData);
+
                     // Hide template form, show assistant form
                     if (templateForm) templateForm.style.display = 'none';
                     if (assistantForm) assistantForm.style.display = 'block';

@@ -5,7 +5,7 @@
 async function initializeAssistantForm(blockData, block_id, lesson_id) {
     const instructionsInput = document.getElementById('int-instructions-input');
     const submitButton = document.getElementById('int-submit-button');
-    const importTemplateButton = document.getElementById('int-import-template-button');
+    const importTemplateButton = document.getElementById('init-template-import-button');
     let specificationsSets = [];
     
     if (!instructionsInput || !submitButton) {

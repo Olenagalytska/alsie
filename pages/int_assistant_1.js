@@ -99,7 +99,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             console.log('clicked');
             showTemplateForm(templates);
         });
-    }
+    } else console.log('not found');
     
     async function initializeTemplateHandling(blockData, templates, block_id, lesson_id) {
         const templateForm = document.getElementById('int-template-form');

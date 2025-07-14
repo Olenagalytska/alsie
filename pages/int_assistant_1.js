@@ -12,6 +12,62 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
         return;
     }
     
+    // Define updateFormChangedStatus BEFORE any other functions that use it
+    const updateFormChangedStatus = () => {
+        if (!blockData || !blockData.id) {
+            submitButton.className = 'button_primary_m';
+            return;
+        }
+        
+        const currentInstructions = instructionsInput.value.trim();
+        const originalInstructions = blockData.int_instructions || '';
+        
+        let specificationsChanged = false;
+        if (blockData.params_structure && blockData.params_definition) {
+            const currentSpecifications = getSpecificationsData();
+            const originalSpecifications = blockData.specifications ? JSON.stringify(
+                typeof blockData.specifications === 'string' 
+                    ? JSON.parse(blockData.specifications) 
+                    : blockData.specifications
+            ) : null;
+            
+            specificationsChanged = currentSpecifications !== originalSpecifications;
+        }
+        
+        const formChanged = currentInstructions !== originalInstructions || specificationsChanged;
+        submitButton.className = formChanged || !blockData.id ? 'button_primary_m' : 'button_disabled_m';
+    };
+    
+    // Define getSpecificationsData before updateFormChangedStatus uses it
+    function getSpecificationsData() {
+        if (!blockData || !blockData.params_structure || specificationsSets.length === 0) {
+            return null;
+        }
+        
+        try {
+            const paramsStructure = typeof blockData.params_structure === 'string' 
+                ? JSON.parse(blockData.params_structure) 
+                : blockData.params_structure;
+            
+            const specificationsData = specificationsSets.map(set => {
+                const setData = {};
+                paramsStructure.forEach(param => {
+                    if (set.inputs && set.inputs[param.name]) {
+                        setData[param.name] = set.inputs[param.name].value.trim();
+                    }
+                });
+                return setData;
+            }).filter(setData => {
+                return Object.values(setData).some(value => value !== '');
+            });
+            
+            return specificationsData.length > 0 ? JSON.stringify(specificationsData) : null;
+        } catch (error) {
+            console.error('Error getting specifications data:', error);
+            return null;
+        }
+    }
+    
     // Fetch templates for the library
     let templates = [];
     try {
@@ -106,7 +162,6 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             });
         }
         
-
         // Initialize import button as disabled
         if (importButton) {
             importButton.disabled = true;
@@ -244,60 +299,6 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             }
         });
     }
-    
-    function getSpecificationsData() {
-        if (!blockData || !blockData.params_structure || specificationsSets.length === 0) {
-            return null;
-        }
-        
-        try {
-            const paramsStructure = typeof blockData.params_structure === 'string' 
-                ? JSON.parse(blockData.params_structure) 
-                : blockData.params_structure;
-            
-            const specificationsData = specificationsSets.map(set => {
-                const setData = {};
-                paramsStructure.forEach(param => {
-                    if (set.inputs && set.inputs[param.name]) {
-                        setData[param.name] = set.inputs[param.name].value.trim();
-                    }
-                });
-                return setData;
-            }).filter(setData => {
-                return Object.values(setData).some(value => value !== '');
-            });
-            
-            return specificationsData.length > 0 ? JSON.stringify(specificationsData) : null;
-        } catch (error) {
-            console.error('Error getting specifications data:', error);
-            return null;
-        }
-    }
-    
-    const updateFormChangedStatus = () => {
-        if (!blockData || !blockData.id) {
-            submitButton.className = 'button_primary_m';
-            return;
-        }
-        
-        const currentInstructions = instructionsInput.value.trim();
-        const originalInstructions = blockData.int_instructions || '';
-        
-        let specificationsChanged = false;
-        if (blockData.params_structure && blockData.params_definition) {
-            const currentSpecifications = getSpecificationsData();
-            const originalSpecifications = blockData.specifications ? JSON.stringify(
-                typeof blockData.specifications === 'string' 
-                    ? JSON.parse(blockData.specifications) 
-                    : blockData.specifications
-            ) : null;
-            
-            specificationsChanged = currentSpecifications !== originalSpecifications;
-        }
-        
-        const formChanged = currentInstructions !== originalInstructions || specificationsChanged;
-        submitButton.className = formChanged || !blockData.id ? 'button_primary_m' : 'button_disabled_m';
-    };
     
     function initializeSpecifications() {
         const specificationsContainer = document.getElementById('specifications-container');

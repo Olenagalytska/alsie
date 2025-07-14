@@ -163,7 +163,13 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
         instructionsInput.value = blockData ? (blockData.int_instructions || '') : '';
 
         if (instructionsInput.tagName === 'TEXTAREA') {
-            initAutoResize(instructionsInput);
+            //initAutoResize(instructionsInput);
+        }
+        
+        // Display template name
+        const templateNameElement = document.getElementById('int-template-name');
+        if (templateNameElement && blockData && blockData._int_template && blockData._int_template.name) {
+            templateNameElement.textContent = blockData._int_template.name;
         }
         
         initializeSpecifications();

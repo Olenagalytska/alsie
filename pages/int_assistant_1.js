@@ -137,7 +137,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
                     
                     if (!response.ok) {
                         const errorText = await response.text();
-                        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+                        //throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
                     }
                     
                     // Get updated block data from API response

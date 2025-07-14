@@ -322,9 +322,11 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
         e.preventDefault();
         console.log('🚫 Default prevented');
         
+        // Declare originalText outside try block so it's accessible in finally
+        const originalText = submitButton.innerText;
+        
         try {
             submitButton.disabled = true;
-            const originalText = submitButton.innerText;
             submitButton.innerText = 'Saving...';
             submitButton.className = 'button_disabled_m';
             
@@ -394,7 +396,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             submitButton.className = 'button_primary_m';
         } finally {
             submitButton.disabled = false;
-            submitButton.innerText = originalText || 'Save Changes';
+            submitButton.innerText = originalText;
             console.log('🔄 Button state restored');
         }
     });

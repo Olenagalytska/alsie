@@ -223,7 +223,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
         instructionsInput.value = blockData ? (blockData.int_instructions || '') : '';
 
         if (instructionsInput.tagName === 'TEXTAREA') {
-            initAutoResize(instructionsInput);
+            //initAutoResize(instructionsInput);
         }
         
         // Display template name
@@ -339,7 +339,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             if (paramsDescription && paramsDefinition.user_description) {
                 paramsDescription.innerText = paramsDefinition.user_description;
             } else if (paramsDescription) {
-                paramsDescription.innerText = '';
+                paramsDescription.innerText = 'woops!';
             }
             
             const setsContainer = document.createElement('div');

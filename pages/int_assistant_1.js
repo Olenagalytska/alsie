@@ -359,9 +359,11 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
                 const addButton = document.createElement('button');
                 addButton.className = 'button_secondary_m';
                 addButton.innerText = '+ Add ' + (paramsDefinition.single_title || '');
-                addButton.addEventListener('click', () => {
+                addButton.addEventListener('click', (event) => {
+                    event.preventDefault(); // Prevent default form submission behavior
+    
                     const newIndex = specificationsSets.length;
-                    createParameterSet(paramsStructure, setsContainer, {}, newIndex, paramsDefinition);
+                 createParameterSet(paramsStructure, setsContainer, {}, newIndex, paramsDefinition);
                     updateFormChangedStatus();
                 });
                 specificationsContainer.appendChild(addButton);

@@ -3,13 +3,31 @@
 // ===========================
 
 async function initializeAssistantForm(blockData, block_id, lesson_id) {
+    console.log('🚀 initializeAssistantForm called with:', { blockData, block_id, lesson_id });
+    
     const instructionsInput = document.getElementById('int-instructions-input');
     const submitButton = document.getElementById('int-submit-button');
     let specificationsSets = [];
     
+    console.log('📋 Form elements found:', { 
+        instructionsInput: !!instructionsInput, 
+        submitButton: !!submitButton 
+    });
+    
+    if (!instructionsInput) {
+        console.error('❌ Instructions input element not found with ID: int-instructions-input');
+        return;
+    }
+    
+    if (!submitButton) {
+        console.error('❌ Submit button element not found with ID: int-submit-button');
+        return;
+    }
+    
     // Fetch templates for the library
     let templates = [];
     try {
+        console.log('📡 Fetching interview templates...');
         const response = await fetch('https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/templates?type=interview', {
             method: 'GET',
             headers: {
@@ -19,19 +37,28 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
         
         if (response.ok) {
             templates = await response.json();
+            console.log('✅ Templates fetched successfully:', templates.length, 'templates');
+        } else {
+            console.warn('⚠️ Failed to fetch templates:', response.status);
         }
     } catch (error) {
-        console.error('Error fetching interview templates:', error);
+        console.error('❌ Error fetching interview templates:', error);
     }
     
     instructionsInput.value = blockData ? (blockData.int_instructions || '') : '';
+    console.log('📝 Instructions input initialized with value:', instructionsInput.value);
 
     if (instructionsInput.tagName === 'TEXTAREA') {
         initAutoResize(instructionsInput);
+        console.log('📏 Auto-resize initialized for textarea');
     }
     
     function getSpecificationsData() {
+        console.log('🔍 Getting specifications data...');
+        console.log('📊 Current specificationsSets:', specificationsSets);
+        
         if (!blockData || !blockData.params_structure || specificationsSets.length === 0) {
+            console.log('ℹ️ No specifications data available');
             return null;
         }
         
@@ -39,6 +66,8 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             const paramsStructure = typeof blockData.params_structure === 'string' 
                 ? JSON.parse(blockData.params_structure) 
                 : blockData.params_structure;
+            
+            console.log('📋 Params structure:', paramsStructure);
             
             const specificationsData = specificationsSets.map(set => {
                 const setData = {};
@@ -52,21 +81,31 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
                 return Object.values(setData).some(value => value !== '');
             });
             
+            console.log('📦 Processed specifications data:', specificationsData);
             return specificationsData.length > 0 ? JSON.stringify(specificationsData) : null;
         } catch (error) {
-            console.error('Error getting specifications data:', error);
+            console.error('❌ Error getting specifications data:', error);
             return null;
         }
     }
     
     const updateFormChangedStatus = () => {
+        console.log('🔄 Updating form changed status...');
+        
         if (!blockData || !blockData.id) {
             submitButton.className = 'button_primary_m';
+            console.log('🆕 No blockData.id - form ready for creation');
             return;
         }
         
         const currentInstructions = instructionsInput.value.trim();
         const originalInstructions = blockData.int_instructions || '';
+        
+        console.log('📝 Instructions comparison:', {
+            current: currentInstructions,
+            original: originalInstructions,
+            changed: currentInstructions !== originalInstructions
+        });
         
         let specificationsChanged = false;
         if (blockData.params_structure && blockData.params_definition) {
@@ -77,24 +116,38 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
                     : blockData.specifications
             ) : null;
             
-            if (currentSpecifications !== originalSpecifications) {
-                specificationsChanged = true;
-            }
+            specificationsChanged = currentSpecifications !== originalSpecifications;
+            console.log('📊 Specifications comparison:', {
+                current: currentSpecifications,
+                original: originalSpecifications,
+                changed: specificationsChanged
+            });
         }
         
         const formChanged = currentInstructions !== originalInstructions || specificationsChanged;
         submitButton.className = formChanged || !blockData.id ? 'button_primary_m' : 'button_disabled_m';
+        
+        console.log('🎯 Form status updated:', {
+            formChanged,
+            buttonClass: submitButton.className
+        });
     };
     
     initializeSpecifications();
     
     function initializeSpecifications() {
+        console.log('📋 Initializing specifications...');
+        
         const specificationsContainer = document.getElementById('specifications-container');
-        if (!specificationsContainer) return;
+        if (!specificationsContainer) {
+            console.log('ℹ️ No specifications container found');
+            return;
+        }
         
         specificationsContainer.innerHTML = '';
         
         if (!blockData || !blockData.params_structure || !blockData.params_definition) {
+            console.log('ℹ️ No specifications data in blockData');
             return;
         }
         
@@ -113,6 +166,12 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
                     ? JSON.parse(blockData.specifications) 
                     : blockData.specifications;
             }
+            
+            console.log('📊 Specifications initialized:', {
+                paramsStructure,
+                paramsDefinition,
+                specifications
+            });
             
             const specificationsHeader = document.createElement('div');
             specificationsHeader.className = 'ebp-section-header';
@@ -155,12 +214,14 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             }
             
         } catch (error) {
-            console.error('Error initializing specifications:', error);
+            console.error('❌ Error initializing specifications:', error);
             specificationsContainer.innerHTML = '';
         }
     }
     
     function createParameterSet(paramsStructure, container, specificationData, index, paramsDefinition) {
+        console.log('🏗️ Creating parameter set:', { index, specificationData });
+        
         const singleParameterSetContainer = document.createElement('div');
         singleParameterSetContainer.className = 'single-parameter-set-container';
         
@@ -217,10 +278,13 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
         specificationsSets.push(parameterSet);
         removeFocusOutlineFromContainer(singleParameterSetContainer);
         
+        console.log('✅ Parameter set created and added to specificationsSets');
         return parameterSet;
     }
     
     function removeParameterSet(parameterSetToRemove) {
+        console.log('🗑️ Removing parameter set...');
+        
         const index = specificationsSets.indexOf(parameterSetToRemove);
         if (index !== -1) {
             parameterSetToRemove.container.remove();
@@ -238,15 +302,25 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
                     }
                 }
             });
+            
+            console.log('✅ Parameter set removed. Remaining sets:', specificationsSets.length);
         }
     }
     
+    // Add input event listener
     instructionsInput.addEventListener('input', updateFormChangedStatus);
+    console.log('🎧 Event listener added to instructions input');
     
+    // Set initial button state
     submitButton.className = (!blockData || !blockData.id) ? 'button_primary_m' : 'button_disabled_m';
+    console.log('🎯 Initial button state set:', submitButton.className);
     
+    // Add click event listener to submit button
     submitButton.addEventListener('click', async function (e) {
+        console.log('🔥 SUBMIT BUTTON CLICKED!');
+        
         e.preventDefault();
+        console.log('🚫 Default prevented');
         
         try {
             submitButton.disabled = true;
@@ -254,19 +328,32 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             submitButton.innerText = 'Saving...';
             submitButton.className = 'button_disabled_m';
             
+            console.log('🔄 Button state changed to saving...');
+            console.log('📊 Current blockData:', blockData);
+            
             if (!blockData || !blockData.id) {
                 throw new Error('Block ID is required for saving assistant instructions');
             }
+            
+            console.log('📝 Collecting form data...');
             
             const formData = {
                 block_id: blockData.id,
                 int_instructions: instructionsInput.value.trim()
             };
             
+            console.log('📦 Base form data collected:', formData);
+            
             const specificationsData = getSpecificationsData();
             if (specificationsData) {
                 formData.specifications = specificationsData;
+                console.log('📋 Specifications added to form data');
+            } else {
+                console.log('ℹ️ No specifications data to add');
             }
+            
+            console.log('🚀 Final form data to send:', formData);
+            console.log('🌐 Making API request to:', 'https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/set_int_instructions');
             
             const response = await fetch('https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/set_int_instructions', {
                 method: 'POST',
@@ -276,12 +363,20 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
                 body: JSON.stringify(formData)
             });
             
+            console.log('📡 API response received:', {
+                status: response.status,
+                statusText: response.statusText,
+                ok: response.ok
+            });
+            
             if (!response.ok) {
                 const errorText = await response.text();
+                console.error('❌ API error response:', errorText);
                 throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
             }
             
             const result = await response.json();
+            console.log('✅ API success response:', result);
             
             if (blockData && blockData.id) {
                 submitButton.className = 'button_disabled_m';
@@ -289,15 +384,21 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
                 submitButton.className = 'button_primary_m';
             }
             
+            console.log('🎉 Form submission successful!');
             alert('Assistant instructions saved successfully!');
             
         } catch (error) {
-            console.error('Error updating assistant data:', error);
+            console.error('❌ Error during form submission:', error);
+            console.error('❌ Error stack:', error.stack);
             alert(`Error saving assistant instructions: ${error.message}`);
             submitButton.className = 'button_primary_m';
         } finally {
             submitButton.disabled = false;
             submitButton.innerText = originalText || 'Save Changes';
+            console.log('🔄 Button state restored');
         }
     });
+    
+    console.log('🎧 Submit button event listener attached successfully');
+    console.log('✅ Form initialization complete');
 }

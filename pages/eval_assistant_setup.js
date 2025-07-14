@@ -150,6 +150,15 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
         pairContainer.appendChild(secondColumnContainer);
         criterionContainer.appendChild(pairContainer);
         
+        // Create delete button
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete criterion';
+        deleteButton.className = 'button_red_s';
+        deleteButton.type = 'button';
+        console.log('Creating delete button:', deleteButton);
+        criterionContainer.appendChild(deleteButton);
+        console.log('Delete button appended to criterion container');
+        
         // Append to the criteria container
         criteriaContainer.appendChild(criterionContainer);
         
@@ -159,6 +168,7 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
             summary_instructions: summaryInstructionsTextarea,
             grading_instructions: gradingInstructionsTextarea,
             points: pointsInput,
+            deleteButton: deleteButton,
             isEmpty: function() {
                 return this.criterion_name.value.trim() === '' && 
                        this.summary_instructions.value.trim() === '' &&
@@ -175,6 +185,16 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
             
             updateFormChangedStatus();
         };
+        
+        // Add delete button click listener
+        deleteButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Only remove if there's more than one criterion, or if it's not empty
+            if (criteriaPairs.length > 1 || !pairObj.isEmpty()) {
+                removePair(pairObj);
+                updateFormChangedStatus();
+            }
+        });
         
         criterionNameInput.addEventListener('input', managePairs);
         summaryInstructionsTextarea.addEventListener('input', managePairs);
@@ -206,14 +226,10 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
     
     // Add button click event listener
     if (addCriterionButton) {
-        console.log('Adding click listener to add criterion button');
         addCriterionButton.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('Add criterion button clicked');
             addEmptyPair();
         });
-    } else {
-        console.error('Add criterion button not found! Make sure element with id "add-criterion-button" exists');
     }
     
     evaluationInstructionsInput.addEventListener('input', updateFormChangedStatus);

@@ -27,11 +27,8 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
     criteriaContainer.innerHTML = '';
     const criteriaPairs = [];
     
-    // Create "Add another criterion" button
-    const addCriterionButton = document.createElement('button');
-    addCriterionButton.textContent = 'Add another criterion';
-    addCriterionButton.className = 'button_secondary_m';
-    addCriterionButton.type = 'button';
+    // Get the existing "Add another criterion" button
+    const addCriterionButton = document.getElementById('add-criterion-button');
     
     const updateFormChangedStatus = () => {
         if (!blockData) return;
@@ -153,8 +150,8 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
         pairContainer.appendChild(secondColumnContainer);
         criterionContainer.appendChild(pairContainer);
         
-        // Insert before the button
-        criteriaContainer.insertBefore(criterionContainer, addCriterionButton);
+        // Append to the criteria container
+        criteriaContainer.appendChild(criterionContainer);
         
         const pairObj = {
             container: criterionContainer,
@@ -208,10 +205,12 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
     };
     
     // Add button click event listener
-    addCriterionButton.addEventListener('click', function(e) {
-        e.preventDefault();
-        addEmptyPair();
-    });
+    if (addCriterionButton) {
+        addCriterionButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            addEmptyPair();
+        });
+    }
     
     evaluationInstructionsInput.addEventListener('input', updateFormChangedStatus);
     
@@ -230,9 +229,6 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
         // Create one empty criterion if no existing criteria
         addEmptyPair();
     }
-    
-    // Add the button to the container (it will always be at the bottom)
-    criteriaContainer.appendChild(addCriterionButton);
 
     submitButton.className = blockData ? 'button_disabled_m' : 'button_primary_m';
 

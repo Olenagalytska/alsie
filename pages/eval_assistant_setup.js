@@ -208,6 +208,7 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
     if (addCriterionButton) {
         addCriterionButton.addEventListener('click', function(e) {
             e.preventDefault();
+            console.log('bing!');
             addEmptyPair();
         });
     }

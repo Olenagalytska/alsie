@@ -492,7 +492,7 @@ function displayBlock(block, lesson_id, container, course_id) {
   
   // Add to container
   container.appendChild(blockDiv);
-  
+  removeFocusOutlineFromContainer(blockDiv);
   return blockDiv;
 }
 
@@ -507,7 +507,8 @@ function addBlock(prev_block_id, lesson_id, course_id) {
   blockNameInput.classList.add('no-v-margin');
   blockNameInput.type = 'text';
   blockNameInput.placeholder = 'Enter block name';
-  
+    removeFocusOutlineFromContainer(addBlockDiv);
+
   // Create Add Block button
   const addBlockButton = document.createElement('button');
   addBlockButton.className = 'button_inverse_m';

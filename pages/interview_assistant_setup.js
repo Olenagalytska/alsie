@@ -105,6 +105,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             });
         }
         
+        
         // Initialize import button as disabled
         if (importButton) {
             importButton.disabled = true;

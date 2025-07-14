@@ -7,23 +7,6 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
     const evaluationInstructionsInput = document.getElementById('eval-instructions-input');
     const submitButton = document.getElementById('eval-submit-button');
 
-    // Fetch templates for the library
-    let templates = [];
-    try {
-        const response = await fetch('https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/templates?type=evaluation', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (response.ok) {
-            templates = await response.json();
-        }
-    } catch (error) {
-        console.error('Error fetching evaluation templates:', error);
-    }
-
     evaluationInstructionsInput.value = blockData ? (blockData.eval_instructions || '') : '';
 
     if (evaluationInstructionsInput.tagName === 'TEXTAREA') {
@@ -44,6 +27,12 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
     criteriaContainer.innerHTML = '';
     const criteriaPairs = [];
     
+    // Create "Add another criterion" button
+    const addCriterionButton = document.createElement('button');
+    addCriterionButton.textContent = 'Add another criterion';
+    addCriterionButton.className = 'button_secondary_m';
+    addCriterionButton.type = 'button';
+    
     const updateFormChangedStatus = () => {
         if (!blockData) return;
         
@@ -60,14 +49,12 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
                 const pair = nonEmptyPairs[i];
                 const existingPair = existingCriteria[i] || { 
                     criterion_name: '', 
-                    grading_name: '',
                     summary_instructions: '', 
                     grading_instructions: '', 
                     max_points: 0 
                 };
                 
                 if (pair.criterion_name.value.trim() !== existingPair.criterion_name ||
-                    pair.grading_name.value.trim() !== existingPair.grading_name || 
                     pair.summary_instructions.value.trim() !== existingPair.summary_instructions ||
                     pair.grading_instructions.value.trim() !== existingPair.grading_instructions ||
                     (parseInt(pair.points.value, 10) || 0) !== existingPair.max_points) {
@@ -81,7 +68,7 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
         submitButton.className = (blockData && !formChanged) ? 'button_disabled_m' : 'button_primary_m';
     };
     
-    const createCriterionPair = (criterionNameValue = '', gradingNameValue = '', summaryInstructionsValue = '', gradingInstructionsValue = '', pointsValue = 0, index = criteriaPairs.length) => {
+    const createCriterionPair = (criterionNameValue = '', summaryInstructionsValue = '', gradingInstructionsValue = '', pointsValue = 0, index = criteriaPairs.length) => {
         const criterionContainer = document.createElement('div');
         criterionContainer.classList.add('criterion-container');
         
@@ -126,25 +113,7 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
         const secondColumnContainer = document.createElement('div');
         secondColumnContainer.classList.add('labeled-input-container');
         
-        const inputsPairContainer = document.createElement('div');
-        inputsPairContainer.classList.add('inputs-pair');
-        
-        const gradingNameContainer = document.createElement('div');
-        gradingNameContainer.classList.add('labeled-input-container');
-        
-        const gradingNameLabel = document.createElement('div');
-        gradingNameLabel.classList.add('label-text');
-        gradingNameLabel.textContent = 'Grading name';
-        
-        const gradingNameInput = document.createElement('input');
-        gradingNameInput.type = 'text';
-        gradingNameInput.classList.add('input-default');
-        gradingNameInput.placeholder = 'Grading name';
-        gradingNameInput.value = gradingNameValue;
-        
-        gradingNameContainer.appendChild(gradingNameLabel);
-        gradingNameContainer.appendChild(gradingNameInput);
-        
+        // Only max points container now (no grading name)
         const maxPointsContainer = document.createElement('div');
         maxPointsContainer.classList.add('labeled-input-container');
         
@@ -161,10 +130,7 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
         
         maxPointsContainer.appendChild(maxPointsLabel);
         maxPointsContainer.appendChild(pointsInput);
-        
-        inputsPairContainer.appendChild(gradingNameContainer);
-        inputsPairContainer.appendChild(maxPointsContainer);
-        secondColumnContainer.appendChild(inputsPairContainer);
+        secondColumnContainer.appendChild(maxPointsContainer);
         
         const gradingContainer = document.createElement('div');
         gradingContainer.classList.add('labeled-input-container');
@@ -186,18 +152,18 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
         pairContainer.appendChild(criterionNameContainer);
         pairContainer.appendChild(secondColumnContainer);
         criterionContainer.appendChild(pairContainer);
-        criteriaContainer.appendChild(criterionContainer);
+        
+        // Insert before the button
+        criteriaContainer.insertBefore(criterionContainer, addCriterionButton);
         
         const pairObj = {
             container: criterionContainer,
             criterion_name: criterionNameInput,
-            grading_name: gradingNameInput,
             summary_instructions: summaryInstructionsTextarea,
             grading_instructions: gradingInstructionsTextarea,
             points: pointsInput,
             isEmpty: function() {
                 return this.criterion_name.value.trim() === '' && 
-                       this.grading_name.value.trim() === '' &&
                        this.summary_instructions.value.trim() === '' &&
                        this.grading_instructions.value.trim() === '' &&
                        (this.points.value === '' || parseInt(this.points.value, 10) === 0);
@@ -205,13 +171,8 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
         };
         
         const managePairs = () => {
-            const isLastPair = criteriaPairs.indexOf(pairObj) === criteriaPairs.length - 1;
-            
-            if (isLastPair && !pairObj.isEmpty()) {
-                addEmptyPair();
-            }
-            
-            if (pairObj.isEmpty() && criteriaPairs.length > 1 && !isLastPair) {
+            // Auto-remove empty criteria (but not if it's the only one)
+            if (pairObj.isEmpty() && criteriaPairs.length > 1) {
                 removePair(pairObj);
             }
             
@@ -219,7 +180,6 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
         };
         
         criterionNameInput.addEventListener('input', managePairs);
-        gradingNameInput.addEventListener('input', managePairs);
         summaryInstructionsTextarea.addEventListener('input', managePairs);
         gradingInstructionsTextarea.addEventListener('input', managePairs);
         pointsInput.addEventListener('input', managePairs);
@@ -247,22 +207,32 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
         }
     };
     
+    // Add button click event listener
+    addCriterionButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        addEmptyPair();
+    });
+    
     evaluationInstructionsInput.addEventListener('input', updateFormChangedStatus);
     
+    // Load existing criteria or create one empty criterion if none exist
     if (existingCriteria.length > 0) {
         existingCriteria.forEach((criteria, index) => {
             createCriterionPair(
                 criteria.criterion_name || '',
-                criteria.grading_name || '',
                 criteria.summary_instructions || '',
                 criteria.grading_instructions || '',
                 criteria.max_points || 0,
                 index
             );
         });
+    } else {
+        // Create one empty criterion if no existing criteria
+        addEmptyPair();
     }
     
-    addEmptyPair();
+    // Add the button to the container (it will always be at the bottom)
+    criteriaContainer.appendChild(addCriterionButton);
 
     submitButton.className = blockData ? 'button_disabled_m' : 'button_primary_m';
 
@@ -273,7 +243,6 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
             .filter(pair => !pair.isEmpty())
             .map(pair => ({
                 criterion_name: pair.criterion_name.value.trim(),
-                grading_name: pair.grading_name.value.trim(),
                 summary_instructions: pair.summary_instructions.value.trim(),
                 grading_instructions: pair.grading_instructions.value.trim(),
                 max_points: parseInt(pair.points.value, 10) || 0

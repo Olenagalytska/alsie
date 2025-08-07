@@ -174,7 +174,7 @@ function setupLessonSelector(course_id) {
         
         if (selectedLessonId) {
             // Navigate to course progress by module page
-            const targetUrl = `/course-progress-by-module?course_id=${course_id}&lesson_id=${selectedLessonId}`;
+            const targetUrl = `/teacher/course-progress-by-module?course_id=${course_id}&lesson_id=${selectedLessonId}`;
             console.log('Navigating to:', targetUrl);
             window.location.href = targetUrl;
         }

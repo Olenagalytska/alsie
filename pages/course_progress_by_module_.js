@@ -256,13 +256,11 @@ function createGradedBlock(block) {
     container.className = 'pr-grade-row-container-expanded';
     
     // First grade-button-container
-    const firstButtonContainer = document.createElement('div');
-    firstButtonContainer.className = 'pr-block-status-container';
+    const blockStatusContainer = document.createElement('div');
+    blockStatusContainer.className = 'pr-block-status-container';
     
-    const status = document.createElement('div');
-    status.className = 'body_XS';
-    status.textContent = block.status;
-    firstButtonContainer.appendChild(status);
+    const status = createStatusElement(block.status);
+    blockStatusContainer.appendChild(status);
     
     const blockGradesContainer = document.createElement('div');
     blockGradesContainer.className = 'pr-block-grades-container';
@@ -281,8 +279,8 @@ function createGradedBlock(block) {
     });
     
     blockGradesContainer.appendChild(gradeDetailsContainer);
-    firstButtonContainer.appendChild(blockGradesContainer);
-    container.appendChild(firstButtonContainer);
+    blockStatusContainer.appendChild(blockGradesContainer);
+    container.appendChild(blockStatusContainer);
     
     // Second grade-button-container
     const secondButtonContainer = document.createElement('div');
@@ -309,18 +307,17 @@ function createGradedBlock(block) {
     return container;
 }
 
+
 function createUngradedBlock(block, showGradeButton) {
     const container = document.createElement('div');
     container.className = 'pr-grade-row-container';
 
     
-    const buttonContainer = document.createElement('div');
-    buttonContainer.className = 'pr-block-status-container';
+    const blockStatusContainer = document.createElement('div');
+    blockStatusContainer.className = 'pr-block-status-container';
     
-    const status = document.createElement('div');
-    status.className = 'body_XS';
-    status.textContent = block.status;
-    buttonContainer.appendChild(status);
+    const status = createStatusElement(block.status);
+    blockStatusContainer.appendChild(status);
     
     const blockGradesContainer = document.createElement('div');
     blockGradesContainer.className = 'pr-block-grades-container';
@@ -330,8 +327,8 @@ function createUngradedBlock(block, showGradeButton) {
     blockName.textContent = block.block_name;
     blockGradesContainer.appendChild(blockName);
     
-    buttonContainer.appendChild(blockGradesContainer);
-    container.appendChild(buttonContainer);
+    blockStatusContainer.appendChild(blockGradesContainer);
+    container.appendChild(blockStatusContainer);
     
     if (showGradeButton) {
         const secondButtonContainer = document.createElement('div');
@@ -371,7 +368,7 @@ function createCriterionElement(criterion) {
     
     const maxPoints = document.createElement('div');
     maxPoints.className = 'pr-criterion-grade-max-points';
-    maxPoints.textContent = '/' + criterion.max_points || '0';
+    maxPoints.textContent = '/' + criterion.max_points || '-';
     gradeContainer.appendChild(maxPoints);
     
     nameContainer.appendChild(gradeContainer);

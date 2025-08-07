@@ -171,6 +171,7 @@ function setupLessonSelector(course_id) {
 
 function displayLessonTitle(lessons, selectedLessonId) {
     const lessonTitleElement = document.getElementById('lesson-title');
+    const moduleLabelElement = document.getElementById('module-label');
     
     if (!lessonTitleElement) {
         console.error('Lesson title element not found');
@@ -183,8 +184,22 @@ function displayLessonTitle(lessons, selectedLessonId) {
     if (selectedLesson && selectedLesson.name) {
         lessonTitleElement.textContent = selectedLesson.name;
         console.log('Lesson title set to:', selectedLesson.name);
+        
+        // Set module label with order number
+        if (moduleLabelElement) {
+            const orderText = selectedLesson.order || '0';
+            moduleLabelElement.textContent = `Module ${orderText}`;
+            console.log('Module label set to: Module', orderText);
+        } else {
+            console.warn('Module label element not found');
+        }
+        
     } else {
         console.warn('Selected lesson not found or has no name');
         lessonTitleElement.textContent = 'Module not found';
+        
+        if (moduleLabelElement) {
+            moduleLabelElement.textContent = 'Module';
+        }
     }
 }

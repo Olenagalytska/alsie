@@ -334,6 +334,7 @@ function createGradedBlock(block, student_id) {
     const gradeButton = document.createElement('button');
     gradeButton.className = 'button_primary_s';
     gradeButton.textContent = 'Grade';
+    gradeButton.addEventListener('click', () => gradeBlock(block.ub_id));
     secondButtonContainer.appendChild(gradeButton);
 
     const viewButton = document.createElement('button');
@@ -384,7 +385,7 @@ function createUngradedBlock(block, student_id, showGradeButton) {
     if (showGradeButton) {
         // For finished/started blocks - active button
         gradeButton.className = 'button_primary_s';
-        gradeButton.addEventListener('click', () => gradeBlock(block.block_id));
+        gradeButton.addEventListener('click', () => gradeBlock(block.ub_id));
     } else {
         // For idle blocks - disabled button
         gradeButton.className = 'button_disabled_s';

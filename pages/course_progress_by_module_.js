@@ -273,7 +273,7 @@ function createBlockElement(block, student_id) {
     const isFinishedOrInProgress = block.status === 'finished' || block.status === 'started';
     
     if (isGraded) {
-        return createGradedBlock(block);
+        return createGradedBlock(block, student_id);
     } else if (isFinishedOrInProgress) {
         return createUngradedBlock(block, student_id, true);
     } else {

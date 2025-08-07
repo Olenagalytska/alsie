@@ -268,7 +268,7 @@ function createGradedBlock(block) {
     blockGradesContainer.className = 'pr-block-grades-container';
     
     const blockName = document.createElement('div');
-    blockName.className = 'block-name';
+    blockName.className = 'pr-block-name';
     blockName.textContent = block.block_name;
     blockGradesContainer.appendChild(blockName);
     

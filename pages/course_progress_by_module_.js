@@ -229,7 +229,7 @@ function renderStudentProgress(studentsData) {
         gradesMainContainer.className = 'pr-student-grades-main-container';
         
         student.blocks.forEach(block => {
-            const blockElement = createBlockElement(block);
+            const blockElement = createBlockElement(block, student.student_id);
             gradesMainContainer.appendChild(blockElement);
         });
         
@@ -268,7 +268,7 @@ function createStatusElement(status) {
 }
 
 
-function createBlockElement(block) {
+function createBlockElement(block, student_id) {
     const isGraded = block.status === 'finished' && block.grading_output && Array.isArray(block.grading_output) && block.grading_output.length > 0;
     const isFinishedOrInProgress = block.status === 'finished' || block.status === 'started';
     
@@ -285,7 +285,7 @@ function createBlockElement(block) {
 
 
 
-function createGradedBlock(block) {
+function createGradedBlock(block, student_id, showGradeButton) {
     const container = document.createElement('div');
     container.className = 'pr-grade-row-container-expanded';
     
@@ -353,7 +353,7 @@ function createGradedBlock(block) {
 
 
 
-function createUngradedBlock(block, showGradeButton) {
+function createUngradedBlock(block, student_id, showGradeButton) {
     const container = document.createElement('div');
     container.className = 'pr-grade-row-container';
 

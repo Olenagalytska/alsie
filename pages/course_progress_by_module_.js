@@ -330,18 +330,23 @@ function createUngradedBlock(block, showGradeButton) {
     blockStatusContainer.appendChild(blockGradesContainer);
     container.appendChild(blockStatusContainer);
     
+    const secondButtonContainer = document.createElement('div');
+    secondButtonContainer.className = 'pr-grade-button-container';
+
+    const gradeButton = document.createElement('button');
+    gradeButton.textContent = 'Grade';
+    
     if (showGradeButton) {
-        const secondButtonContainer = document.createElement('div');
-        secondButtonContainer.className = 'pr-grade-button-container';
-        
-        const gradeButton = document.createElement('button');
+        // For finished/started blocks - active button
         gradeButton.className = 'button_primary_s';
-        gradeButton.textContent = 'Grade';
-        secondButtonContainer.appendChild(gradeButton);
-        
-        container.appendChild(secondButtonContainer);
+        gradeButton.addEventListener('click', () => gradeBlock(block.block_id));
+    } else {
+        // For idle blocks - disabled button
+        gradeButton.className = 'button_disabled_s';
     }
     
+    secondButtonContainer.appendChild(gradeButton);
+    blockStatusContainer.appendChild(secondButtonContainer);
     
     return container;
 }
@@ -380,4 +385,29 @@ function createCriterionElement(criterion) {
     container.appendChild(summaryText);
     
     return container;
+}
+
+
+async function gradeBlock(ub_id) {
+    console.log('Grading user block:', ub_id);
+    const apiUrl = 'https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/grade_ub';
+    
+    try {
+        const response = await fetch(`${apiUrl}?ub_id=${ub_id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        
+        const result = await response.json();
+        console.log('User Block grades calculated:', result);
+        
+    } catch (error) {
+        console.error('Error grading block:', error);
+    }
 }

@@ -312,9 +312,7 @@ function createGradedBlock(block) {
 function createUngradedBlock(block, showGradeButton) {
     const container = document.createElement('div');
     container.className = 'pr-grade-row-container';
-    
-    const expandedContainer = document.createElement('div');
-    expandedContainer.className = 'pr-grade-row-container-expanded';
+
     
     const buttonContainer = document.createElement('div');
     buttonContainer.className = 'pr-block-status-container';
@@ -333,7 +331,7 @@ function createUngradedBlock(block, showGradeButton) {
     blockGradesContainer.appendChild(blockName);
     
     buttonContainer.appendChild(blockGradesContainer);
-    expandedContainer.appendChild(buttonContainer);
+    container.appendChild(buttonContainer);
     
     if (showGradeButton) {
         const secondButtonContainer = document.createElement('div');
@@ -344,10 +342,10 @@ function createUngradedBlock(block, showGradeButton) {
         gradeButton.textContent = 'Grade';
         secondButtonContainer.appendChild(gradeButton);
         
-        expandedContainer.appendChild(secondButtonContainer);
+        container.appendChild(secondButtonContainer);
     }
     
-    container.appendChild(expandedContainer);
+    
     return container;
 }
 

@@ -97,7 +97,7 @@ async function fetchAndPopulateLessonSelector(course_id) {
 
     try {
         // Show loading state
-        lessonSelector.innerHTML = '<option value="">Loading lessons...</option>';
+        lessonSelector.innerHTML = '<option value="">Loading modules...</option>';
         lessonSelector.disabled = true;
 
         // Fetch lessons from API

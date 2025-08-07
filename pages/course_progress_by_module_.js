@@ -216,17 +216,17 @@ function renderStudentProgress(studentsData) {
     
     studentsData.forEach(student => {
         const studentWrapper = document.createElement('div');
-        studentWrapper.className = 'student-grades-wrapper';
+        studentWrapper.className = 'pr-student-grades-wrapper';
         
         // Student name row
         const nameContainer = document.createElement('div');
-        nameContainer.className = 'grade-row-container';
+        nameContainer.className = 'pr-grade-row-container';
         nameContainer.textContent = student.student_name;
         studentWrapper.appendChild(nameContainer);
         
         // Student grades main container
         const gradesMainContainer = document.createElement('div');
-        gradesMainContainer.className = 'student-grades-main-container';
+        gradesMainContainer.className = 'pr-student-grades-main-container';
         
         student.blocks.forEach(block => {
             const blockElement = createBlockElement(block);
@@ -373,7 +373,7 @@ function createCriterionElement(criterion) {
     
     const maxPoints = document.createElement('div');
     maxPoints.className = 'pr-criterion-grade-max-points';
-    maxPoints.textContent = criterion.max_points || '0';
+    maxPoints.textContent = '/' + criterion.max_points || '0';
     gradeContainer.appendChild(maxPoints);
     
     nameContainer.appendChild(gradeContainer);

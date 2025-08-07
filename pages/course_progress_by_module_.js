@@ -22,7 +22,9 @@ async function initializeProgressPage(course_id) {
             await displayLessonTitle(lessons, selectedLessonId);
 
             const gradeLessonButton = document.getElementById('grade-lesson-button');
-            gradeLessonButton.addEventListener('click', () => gradeLesson(selectedLessonId));
+            if (gradeLessonButton) {
+                gradeLessonButton.addEventListener('click', () => gradeLesson(selectedLessonId));
+            }
             
             // Display student progress
             await displayStudentProgress(course_id, selectedLessonId);

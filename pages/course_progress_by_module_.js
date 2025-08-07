@@ -20,6 +20,9 @@ async function initializeProgressPage(course_id) {
             
             // Display lesson title
             await displayLessonTitle(lessons, selectedLessonId);
+
+            const gradeLessonButton = document.getElementById('grade-lesson-button');
+            gradeLessonButton.addEventListener('click', () => gradeLesson(selectedLessonId));
             
             // Display student progress
             await displayStudentProgress(course_id, selectedLessonId);
@@ -335,7 +338,7 @@ function createGradedBlock(block, student_id) {
     const gradeButton = document.createElement('button');
     gradeButton.className = 'button_primary_s';
     gradeButton.textContent = 'Grade';
-    
+    gradeButton.addEventListener('click', () => gradeBlock(block.ub_id));
     secondButtonContainer.appendChild(gradeButton);
 
     const viewButton = document.createElement('button');
@@ -504,5 +507,29 @@ async function refreshStudentProgress() {
         
     } catch (error) {
         console.error('Error refreshing student progress:', error);
+    }
+}
+
+
+async function gradeLesson(lesson_id) {
+    const apiUrl = 'https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/grade_lesson';
+    
+    try {
+        const response = await fetch(`${apiUrl}?lesson_id=${lesson_id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        
+        const result = await response.json();
+        console.log('Grades calculated:', result);
+        
+    } catch (error) {
+        console.error('Error calculating lesson grades:', error);
     }
 }

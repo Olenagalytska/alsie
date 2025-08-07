@@ -384,3 +384,4 @@ function createCriterionElement(criterion) {
     
     return container;
 }
+>>>>>>> 6e7a26d925be7063a272868b6135f53988c34891

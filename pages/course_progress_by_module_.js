@@ -2,6 +2,7 @@ async function initializeProgressPage(course_id) {
     try {
         // Set up element names and navigation
         await setElementNames({ course_id });
+        setTeacherCourseMenu(course_id);
         
         // Fetch lessons and determine which lesson to display
         const lessons = await fetchLessons(course_id);

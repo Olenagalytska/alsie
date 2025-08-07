@@ -285,7 +285,7 @@ function createBlockElement(block, student_id) {
 
 
 
-function createGradedBlock(block, student_id, showGradeButton) {
+function createGradedBlock(block, student_id) {
     const container = document.createElement('div');
     container.className = 'pr-grade-row-container-expanded';
     

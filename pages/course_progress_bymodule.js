@@ -200,6 +200,7 @@ async function displayStudentProgress(course_id, lesson_id) {
 
         const result = await response.json();
         const studentsData = result.progress_by_module;
+        console.log('Loaded data: ', studentsData);
         renderStudentProgress(studentsData);
         
     } catch (error) {
@@ -252,11 +253,11 @@ function createBlockElement(block) {
 
 function createGradedBlock(block) {
     const container = document.createElement('div');
-    container.className = 'grade-row-container-expanded';
+    container.className = 'pr-grade-row-container-expanded';
     
     // First grade-button-container
     const firstButtonContainer = document.createElement('div');
-    firstButtonContainer.className = 'grade-button-container';
+    firstButtonContainer.className = 'pr-block-status-container';
     
     const status = document.createElement('div');
     status.className = 'body_XS';
@@ -264,7 +265,7 @@ function createGradedBlock(block) {
     firstButtonContainer.appendChild(status);
     
     const blockGradesContainer = document.createElement('div');
-    blockGradesContainer.className = 'block-grades-container';
+    blockGradesContainer.className = 'pr-block-grades-container';
     
     const blockName = document.createElement('div');
     blockName.className = 'block-name';
@@ -272,7 +273,7 @@ function createGradedBlock(block) {
     blockGradesContainer.appendChild(blockName);
     
     const gradeDetailsContainer = document.createElement('div');
-    gradeDetailsContainer.className = 'grade-details-container';
+    gradeDetailsContainer.className = 'pr-grade-details-container';
     
     block.grading_output.forEach(criterion => {
         const criterionElement = createCriterionElement(criterion);
@@ -285,7 +286,7 @@ function createGradedBlock(block) {
     
     // Second grade-button-container
     const secondButtonContainer = document.createElement('div');
-    secondButtonContainer.className = 'grade-button-container';
+    secondButtonContainer.className = 'pr-grade-button-container';
     
     const totalGrade = block.grading_output.reduce((sum, criterion) => sum + (criterion.grade || 0), 0);
     const gradeText = document.createElement('div');
@@ -310,13 +311,13 @@ function createGradedBlock(block) {
 
 function createUngradedBlock(block, showGradeButton) {
     const container = document.createElement('div');
-    container.className = 'grade-row-container';
+    container.className = 'pr-grade-row-container';
     
     const expandedContainer = document.createElement('div');
-    expandedContainer.className = 'grade-row-container-expanded';
+    expandedContainer.className = 'pr-grade-row-container-expanded';
     
     const buttonContainer = document.createElement('div');
-    buttonContainer.className = 'grade-button-container';
+    buttonContainer.className = 'pr-block-status-container';
     
     const status = document.createElement('div');
     status.className = 'body_XS';
@@ -324,10 +325,10 @@ function createUngradedBlock(block, showGradeButton) {
     buttonContainer.appendChild(status);
     
     const blockGradesContainer = document.createElement('div');
-    blockGradesContainer.className = 'block-grades-container';
+    blockGradesContainer.className = 'pr-block-grades-container';
     
     const blockName = document.createElement('div');
-    blockName.className = 'block-name';
+    blockName.className = 'pr-block-name';
     blockName.textContent = block.block_name;
     blockGradesContainer.appendChild(blockName);
     
@@ -336,7 +337,7 @@ function createUngradedBlock(block, showGradeButton) {
     
     if (showGradeButton) {
         const secondButtonContainer = document.createElement('div');
-        secondButtonContainer.className = 'grade-button-container';
+        secondButtonContainer.className = 'pr-grade-button-container';
         
         const gradeButton = document.createElement('button');
         gradeButton.className = 'button_primary_s';
@@ -363,7 +364,7 @@ function createCriterionElement(criterion) {
     nameContainer.appendChild(criterionName);
     
     const gradeContainer = document.createElement('div');
-    gradeContainer.className = 'criterion-grade-container';
+    gradeContainer.className = 'pr-criterion-grade-container';
     
     const grade = document.createElement('div');
     grade.className = 'pr-criterion-grade';
@@ -379,7 +380,7 @@ function createCriterionElement(criterion) {
     container.appendChild(nameContainer);
     
     const summaryText = document.createElement('div');
-    summaryText.className = 'criterion-summary-text';
+    summaryText.className = 'pr-criterion-summary-text';
     summaryText.textContent = (criterion.summary || '') + ' ' + (criterion.grading_comment || '');
     container.appendChild(summaryText);
     

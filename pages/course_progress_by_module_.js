@@ -334,7 +334,7 @@ function createGradedBlock(block, student_id) {
     const gradeButton = document.createElement('button');
     gradeButton.className = 'button_primary_s';
     gradeButton.textContent = 'Grade';
-    gradeButton.addEventListener('click', () => gradeBlock(block.ub_id));
+    
     secondButtonContainer.appendChild(gradeButton);
 
     const viewButton = document.createElement('button');
@@ -464,9 +464,44 @@ async function gradeBlock(ub_id) {
         const result = await response.json();
         console.log('User Block grades calculated:', result);
         
+        // Refresh the student progress display after successful grading
+        await refreshStudentProgress();
+        
     } catch (error) {
         console.error('Error grading block:', error);
+        // Optionally show an error message to the user
+        alert('Error grading block. Please try again.');
     }
 }
 
-
+async function refreshStudentProgress() {
+    try {
+        // Get the current lesson_id from the URL or lesson selector
+        const urlLessonId = getUrlParameters('lesson_id');
+        const lessonSelector = document.getElementById('lesson-selector');
+        const selectedLessonId = urlLessonId || (lessonSelector ? lessonSelector.value : null);
+        
+        if (!selectedLessonId) {
+            console.error('No lesson ID available for refresh');
+            return;
+        }
+        
+        // Get the current course_id from the URL
+        const course_id = getUrlParameters('course_id');
+        
+        if (!course_id) {
+            console.error('No course ID available for refresh');
+            return;
+        }
+        
+        console.log('Refreshing student progress for lesson:', selectedLessonId);
+        
+        // Re-fetch and display the updated student progress
+        await displayStudentProgress(course_id, selectedLessonId);
+        
+        console.log('Student progress refreshed successfully');
+        
+    } catch (error) {
+        console.error('Error refreshing student progress:', error);
+    }
+}

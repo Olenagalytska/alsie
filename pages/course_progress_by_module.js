@@ -1,5 +1,3 @@
-
-
 async function initializeProgressPage(course_id) {
     try {
         // Set up element names and navigation
@@ -18,6 +16,10 @@ async function initializeProgressPage(course_id) {
         // Display progress for the selected lesson
         if (selectedLessonId) {
             console.log('Displaying progress for lesson ID:', selectedLessonId);
+            
+            // Display lesson title
+            await displayLessonTitle(lessons, selectedLessonId);
+            
             // TODO: Call function to display lesson progress
             // await displayLessonProgress(course_id, selectedLessonId);
         }
@@ -165,4 +167,24 @@ function setupLessonSelector(course_id) {
     });
     
     console.log('Lesson selector change handler set up successfully');
+}
+
+function displayLessonTitle(lessons, selectedLessonId) {
+    const lessonTitleElement = document.getElementById('lesson-title');
+    
+    if (!lessonTitleElement) {
+        console.error('Lesson title element not found');
+        return;
+    }
+    
+    // Find the selected lesson in the lessons array
+    const selectedLesson = lessons.find(lesson => lesson.id == selectedLessonId);
+    
+    if (selectedLesson && selectedLesson.name) {
+        lessonTitleElement.textContent = selectedLesson.name;
+        console.log('Lesson title set to:', selectedLesson.name);
+    } else {
+        console.warn('Selected lesson not found or has no name');
+        lessonTitleElement.textContent = 'Module not found';
+    }
 }

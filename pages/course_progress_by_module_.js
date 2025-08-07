@@ -407,8 +407,6 @@ function createUngradedBlock(block, student_id, showGradeButton) {
 }
 
 
-
-
 function createCriterionElement(criterion) {
     const container = document.createElement('div');
     container.className = 'pr-grade-criterion-container';

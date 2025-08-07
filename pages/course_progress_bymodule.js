@@ -187,7 +187,7 @@ function displayLessonTitle(lessons, selectedLessonId) {
 
 async function displayStudentProgress(course_id, lesson_id) {
     try {
-        const response = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/student_progress?course_id=${course_id}&lesson_id=${lesson_id}`, {
+        const response = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/get_progress_by_lesson?lesson_id=${lesson_id}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -198,7 +198,8 @@ async function displayStudentProgress(course_id, lesson_id) {
             throw new Error(`API request failed with status ${response.status}`);
         }
 
-        const studentsData = await response.json();
+        const result = await response.json();
+        const studentsData = result.progress_by_module;
         renderStudentProgress(studentsData);
         
     } catch (error) {

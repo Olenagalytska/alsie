@@ -275,9 +275,9 @@ function createBlockElement(block, student_id) {
     if (isGraded) {
         return createGradedBlock(block);
     } else if (isFinishedOrInProgress) {
-        return createUngradedBlock(block, true);
+        return createUngradedBlock(block, student_id, true);
     } else {
-        return createUngradedBlock(block, false);
+        return createUngradedBlock(block, student_id, false);
     }
 }
 

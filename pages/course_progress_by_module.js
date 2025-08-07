@@ -340,7 +340,7 @@ function createGradedBlock(block, student_id) {
     viewButton.className = 'button_inverse_s';
     viewButton.textContent = 'View';
     viewButton.addEventListener('click', () => {
-        window.location.href = `/lesson-page-teacher-view?block_id=${block.block_id}&user_id=${student_id}`;
+        window.location.href = `lesson-page-teacher-view?block_id=${block.block_id}&user_id=${student_id}`;
     });
 
     secondButtonContainer.appendChild(viewButton);
@@ -396,7 +396,7 @@ function createUngradedBlock(block, student_id, showGradeButton) {
     viewButton.className = 'button_inverse_s';
     viewButton.textContent = 'View';
     viewButton.addEventListener('click', () => {
-        window.location.href = `/lesson-page-teacher-view?block_id=${block.block_id}&user_id=${student_id}`;
+        window.location.href = `lesson-page-teacher-view?block_id=${block.block_id}&user_id=${student_id}`;
     });
 
     secondButtonContainer.appendChild(viewButton);

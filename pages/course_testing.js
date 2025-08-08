@@ -1,4 +1,4 @@
-async function initializeTestChatsPage(course_id) {
+async function initializeTestProgressPage(course_id) {
     try {
         // Set up element names and navigation
         await setElementNames({ course_id });
@@ -12,33 +12,33 @@ async function initializeTestChatsPage(course_id) {
         await populateLessonSelector(lessons, selectedLessonId);
         
         // Set up lesson selector change handler
-        setupLessonSelectorForTests(course_id);
+        setupTestLessonSelector(course_id);
         
-        // Display test chats for the selected lesson
+        // Display progress for the selected lesson
         if (selectedLessonId) {
-            console.log('Displaying test chats for lesson ID:', selectedLessonId);
+            console.log('Displaying test progress for lesson ID:', selectedLessonId);
             
             // Display lesson title
             await displayLessonTitle(lessons, selectedLessonId);
 
-            const gradeAllTestsButton = document.getElementById('grade-all-lesson-button');
-            if (gradeAllTestsButton) {
-                gradeAllTestsButton.addEventListener('click', () => gradeAllTests(selectedLessonId));
+            const gradeLessonButton = document.getElementById('grade-lesson-button');
+            if (gradeLessonButton) {
+                gradeLessonButton.addEventListener('click', () => gradeLesson(selectedLessonId));
             }
             
-            // Display test chats progress
-            await displayTestChats(selectedLessonId);
+            // Display test progress
+            await displayTestProgress(course_id, selectedLessonId);
         }
         
-        console.log('Test chats page initialized successfully');
+        console.log('Test progress page initialized successfully');
         
     } catch (error) {
-        console.error('Error initializing test chats page:', error);
+        console.error('Error initializing test progress page:', error);
         alert('Error loading page. Please try again.');
     }
 }
 
-function setupLessonSelectorForTests(course_id) {
+function setupTestLessonSelector(course_id) {
     const lessonSelector = document.getElementById('lesson-selector');
     
     if (!lessonSelector) {
@@ -52,17 +52,17 @@ function setupLessonSelectorForTests(course_id) {
         console.log('Lesson selected:', selectedLessonId);
         
         if (selectedLessonId) {
-            // Navigate to teacher course testing page by module
-            const targetUrl = `/teacher/course-testing?course_id=${course_id}&lesson_id=${selectedLessonId}`;
+            // Navigate to teacher course testing by module page
+            const targetUrl = `/teacher/course-testing-by-module?course_id=${course_id}&lesson_id=${selectedLessonId}`;
             console.log('Navigating to:', targetUrl);
             window.location.href = targetUrl;
         }
     });
     
-    console.log('Test chats lesson selector change handler set up successfully');
+    console.log('Test lesson selector change handler set up successfully');
 }
 
-async function displayTestChats(lesson_id) {
+async function displayTestProgress(course_id, lesson_id) {
     try {
         const response = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/test_ub?lesson_id=${lesson_id}`, {
             method: 'GET',
@@ -78,19 +78,14 @@ async function displayTestChats(lesson_id) {
         const result = await response.json();
         const blocksData = result.progress_by_module;
         console.log('Loaded test data: ', blocksData);
-        renderTestChats(blocksData);
+        renderTestProgress(blocksData);
         
     } catch (error) {
-        console.error('Error fetching test chats:', error);
-        // Display error message to user
-        const container = document.getElementById('student-progress-container');
-        if (container) {
-            container.innerHTML = '<div class="error-message">Error loading test chats. Please try again.</div>';
-        }
+        console.error('Error fetching test progress:', error);
     }
 }
 
-function renderTestChats(blocksData) {
+function renderTestProgress(blocksData) {
     const container = document.getElementById('student-progress-container');
     if (!container) return;
     
@@ -98,78 +93,71 @@ function renderTestChats(blocksData) {
     
     blocksData.forEach(block => {
         const blockWrapper = document.createElement('div');
-        blockWrapper.className = 'pr-block-wrapper';
+        blockWrapper.className = 'pr-student-grades-wrapper';
         
-        // Block name header
-        const blockHeader = document.createElement('div');
-        blockHeader.className = 'pr-block-header';
+        // Block name row
+        const nameContainer = document.createElement('div');
+        nameContainer.className = 'pr-grade-row-container';
+        nameContainer.textContent = block.block_name;
+        blockWrapper.appendChild(nameContainer);
         
-        const blockName = document.createElement('div');
-        blockName.className = 'pr-block-name';
-        blockName.textContent = block.block_name;
-        blockHeader.appendChild(blockName);
-        
-        const blockInfo = document.createElement('div');
-        blockInfo.className = 'pr-block-info';
-        blockInfo.textContent = `${block.tests.length} test${block.tests.length !== 1 ? 's' : ''}`;
-        blockHeader.appendChild(blockInfo);
-        
-        blockWrapper.appendChild(blockHeader);
-        
-        // Tests container
-        const testsContainer = document.createElement('div');
-        testsContainer.className = 'pr-tests-container';
+        // Block tests main container
+        const testsMainContainer = document.createElement('div');
+        testsMainContainer.className = 'pr-student-grades-main-container';
         
         block.tests.forEach(test => {
             const testElement = createTestElement(test, block.block_id);
-            testsContainer.appendChild(testElement);
+            testsMainContainer.appendChild(testElement);
         });
         
-        blockWrapper.appendChild(testsContainer);
+        blockWrapper.appendChild(testsMainContainer);
         container.appendChild(blockWrapper);
     });
 }
 
-function createTestElement(test) {
-    const hasGrades = test.grading_output && Array.isArray(test.grading_output) && test.grading_output.length > 0;
+function createTestElement(test, block_id) {
+    const isGraded = test.status === 'finished' && test.grading_output && Array.isArray(test.grading_output) && test.grading_output.length > 0;
+    const isFinishedOrInProgress = test.status === 'finished' || test.status === 'started';
     
-    if (hasGrades) {
-        return createGradedTest(test);
+    if (isGraded) {
+        return createGradedTest(test, block_id);
+    } else if (isFinishedOrInProgress) {
+        return createUngradedTest(test, block_id, true);
     } else {
-        return createUngradedTest(test);
+        return createUngradedTest(test, block_id, false);
     }
 }
 
-function createGradedTest(test) {
+function createGradedTest(test, block_id) {
     const container = document.createElement('div');
     container.className = 'pr-grade-row-container-expanded';
     
-    // First grade-button-container
-    const blockStatusContainer = document.createElement('div');
-    blockStatusContainer.className = 'pr-block-status-container';
+    // First test-status-container
+    const testStatusContainer = document.createElement('div');
+    testStatusContainer.className = 'pr-block-status-container';
     
     const status = createStatusElement(test.status);
-    blockStatusContainer.appendChild(status);
+    testStatusContainer.appendChild(status);
     
-    const blockGradesContainer = document.createElement('div');
-    blockGradesContainer.className = 'pr-block-grades-container';
+    const testGradesContainer = document.createElement('div');
+    testGradesContainer.className = 'pr-block-grades-container';
     
-    const blockName = document.createElement('div');
-    blockName.className = 'pr-block-name';
-    blockName.textContent = test.test_name;
-    blockGradesContainer.appendChild(blockName);
+    const testName = document.createElement('div');
+    testName.className = 'pr-block-name';
+    testName.textContent = test.test_name;
+    testGradesContainer.appendChild(testName);
     
     const gradeDetailsContainer = document.createElement('div');
     gradeDetailsContainer.className = 'pr-grade-details-container';
     
     test.grading_output.forEach(criterion => {
-        const criterionElement = createCriterionElement(criterion);
+        const criterionElement = createTestCriterionElement(criterion);
         gradeDetailsContainer.appendChild(criterionElement);
     });
     
-    blockGradesContainer.appendChild(gradeDetailsContainer);
-    blockStatusContainer.appendChild(blockGradesContainer);
-    container.appendChild(blockStatusContainer);
+    testGradesContainer.appendChild(gradeDetailsContainer);
+    testStatusContainer.appendChild(testGradesContainer);
+    container.appendChild(testStatusContainer);
     
     // Second grade-button-container
     const secondButtonContainer = document.createElement('div');
@@ -189,14 +177,14 @@ function createGradedTest(test) {
     const gradeButton = document.createElement('button');
     gradeButton.className = 'button_primary_s';
     gradeButton.textContent = 'Grade';
-    gradeButton.addEventListener('click', () => gradeTest(test.ul_id));
+    gradeButton.addEventListener('click', () => gradeBlock(test.ub_id));
     secondButtonContainer.appendChild(gradeButton);
 
     const viewButton = document.createElement('button');
     viewButton.className = 'button_inverse_s';
     viewButton.textContent = 'View';
     viewButton.addEventListener('click', () => {
-        window.location.href = `test-chat-view?test_id=${test.id}&thread_id=${test.thread_id}`;
+        window.location.href = `lesson-page-teacher-view?block_id=${block_id}&user_id=${test.test_id}`;
     });
 
     secondButtonContainer.appendChild(viewButton);
@@ -206,26 +194,26 @@ function createGradedTest(test) {
     return container;
 }
 
-function createUngradedTest(test) {
+function createUngradedTest(test, block_id, showGradeButton) {
     const container = document.createElement('div');
     container.className = 'pr-grade-row-container';
 
-    const blockStatusContainer = document.createElement('div');
-    blockStatusContainer.className = 'pr-block-status-container';
+    const testStatusContainer = document.createElement('div');
+    testStatusContainer.className = 'pr-block-status-container';
     
     const status = createStatusElement(test.status);
-    blockStatusContainer.appendChild(status);
+    testStatusContainer.appendChild(status);
     
-    const blockGradesContainer = document.createElement('div');
-    blockGradesContainer.className = 'pr-block-grades-container';
+    const testGradesContainer = document.createElement('div');
+    testGradesContainer.className = 'pr-block-grades-container';
     
-    const blockName = document.createElement('div');
-    blockName.className = 'pr-block-name';
-    blockName.textContent = test.test_name;
-    blockGradesContainer.appendChild(blockName);
+    const testName = document.createElement('div');
+    testName.className = 'pr-block-name';
+    testName.textContent = test.test_name;
+    testGradesContainer.appendChild(testName);
     
-    blockStatusContainer.appendChild(blockGradesContainer);
-    container.appendChild(blockStatusContainer);
+    testStatusContainer.appendChild(testGradesContainer);
+    container.appendChild(testStatusContainer);
     
     const secondButtonContainer = document.createElement('div');
     secondButtonContainer.className = 'pr-grade-button-container';
@@ -233,10 +221,10 @@ function createUngradedTest(test) {
     const gradeButton = document.createElement('button');
     gradeButton.textContent = 'Grade';
     
-    if (test.status === 'finished' || test.status === 'started') {
+    if (showGradeButton) {
         // For finished/started tests - active button
         gradeButton.className = 'button_primary_s';
-        gradeButton.addEventListener('click', () => gradeTest(test.ul_id));
+        gradeButton.addEventListener('click', () => gradeBlock(test.ub_id));
     } else {
         // For idle tests - disabled button
         gradeButton.className = 'button_disabled_s';
@@ -248,48 +236,19 @@ function createUngradedTest(test) {
     viewButton.className = 'button_inverse_s';
     viewButton.textContent = 'View';
     viewButton.addEventListener('click', () => {
-        window.location.href = `test-chat-view?test_id=${test.id}&thread_id=${test.thread_id}`;
+        window.location.href = `lesson-page-teacher-view?block_id=${block_id}&user_id=${test.test_id}`;
     });
 
     secondButtonContainer.appendChild(viewButton);
 
-    blockStatusContainer.appendChild(secondButtonContainer);
+    testStatusContainer.appendChild(secondButtonContainer);
     
     return container;
 }
 
-function createTestStatusElement(status) {
-    const statusImg = document.createElement('img');
-    statusImg.className = 'pr-status-icon';
-    
-    switch(status) {
-        case 'finished':
-            statusImg.src = 'https://cdn.prod.website-files.com/6640b571ca9d09ecfa2c2de6/689216c89df353f89d2f162e_Status%3DDone.svg';
-            statusImg.alt = 'Finished';
-            statusImg.title = 'Test completed';
-            break;
-        case 'started':
-            statusImg.src = 'https://cdn.prod.website-files.com/6640b571ca9d09ecfa2c2de6/689216c8060fc4bd6aad4b6b_Status%3DIn%20Progress.svg';
-            statusImg.alt = 'In progress';
-            statusImg.title = 'Test in progress';
-            break;
-        case 'idle':
-            statusImg.src = 'https://cdn.prod.website-files.com/6640b571ca9d09ecfa2c2de6/689216c8b88ac6941a4b04a3_Status%3DIdle.svg';
-            statusImg.alt = 'Not started';
-            statusImg.title = 'Test not started';
-            break;
-        default:
-            statusImg.src = 'https://cdn.prod.website-files.com/6640b571ca9d09ecfa2c2de6/689216c8b88ac6941a4b04a3_Status%3DIdle.svg';
-            statusImg.alt = 'Unknown status';
-            statusImg.title = 'Unknown status';
-    }
-    
-    return statusImg;
-}
-
 function createTestCriterionElement(criterion) {
     const container = document.createElement('div');
-    container.className = 'pr-criterion-container';
+    container.className = 'pr-grade-criterion-container';
     
     const nameContainer = document.createElement('div');
     nameContainer.className = 'pr-criterion-name-container';
@@ -307,103 +266,23 @@ function createTestCriterionElement(criterion) {
     grade.textContent = criterion.grade || '0';
     gradeContainer.appendChild(grade);
     
-    if (criterion.max_points) {
-        const maxPoints = document.createElement('div');
-        maxPoints.className = 'pr-criterion-grade-max-points';
-        maxPoints.textContent = '/' + criterion.max_points;
-        gradeContainer.appendChild(maxPoints);
-    }
+    const maxPoints = document.createElement('div');
+    maxPoints.className = 'pr-criterion-grade-max-points';
+    maxPoints.textContent = '/' + criterion.max_points || '-';
+    gradeContainer.appendChild(maxPoints);
     
     nameContainer.appendChild(gradeContainer);
     container.appendChild(nameContainer);
     
-    if (criterion.summary || criterion.grading_comment) {
-        const summaryText = document.createElement('div');
-        summaryText.className = 'pr-criterion-summary-text';
-        summaryText.textContent = (criterion.summary || '') + ' ' + (criterion.grading_comment || '');
-        container.appendChild(summaryText);
-    }
+    const summaryText = document.createElement('div');
+    summaryText.className = 'pr-criterion-summary-text';
+    summaryText.textContent = (criterion.summary || '') + ' ' + (criterion.grading_comment || '');
+    container.appendChild(summaryText);
     
     return container;
 }
 
-function collapseTest(expandedContainer, test) {
-    // Replace expanded test with collapsed version
-    const collapsedTest = createUngradedTest(test);
-    expandedContainer.parentNode.replaceChild(collapsedTest, expandedContainer);
-    
-    // Add expand functionality to the collapsed test
-    const expandButton = document.createElement('button');
-    expandButton.className = 'button_secondary_s';
-    expandButton.textContent = 'Expand';
-    expandButton.addEventListener('click', () => {
-        const expandedTest = createGradedTest(test);
-        collapsedTest.parentNode.replaceChild(expandedTest, collapsedTest);
-    });
-    
-    const actionsContainer = collapsedTest.querySelector('.pr-test-actions-container');
-    if (actionsContainer) {
-        actionsContainer.insertBefore(expandButton, actionsContainer.firstChild);
-    }
-}
-
-async function gradeTest(ub_id) {
-    console.log('Grading user block:', ub_id);
-    const apiUrl = 'https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/grade_ub';
-    
-    try {
-        const response = await fetch(`${apiUrl}?ub_id=${ub_id}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        
-        const result = await response.json();
-        console.log('User Block grades calculated:', result);
-        
-        // Refresh the test chats display after successful grading
-        await refreshTestChats();
-        
-    } catch (error) {
-        console.error('Error grading block:', error);
-        alert('Error grading block. Please try again.');
-    }
-}
-
-async function gradeAllTests(lesson_id) {
-    console.log('Grading all tests for lesson:', lesson_id);
-    const apiUrl = 'https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/grade_all_lesson_tests';
-    
-    try {
-        const response = await fetch(`${apiUrl}?lesson_id=${lesson_id}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        
-        const result = await response.json();
-        console.log('All tests graded successfully:', result);
-        
-        // Refresh the test chats display after successful grading
-        await refreshTestChats();
-        
-    } catch (error) {
-        console.error('Error grading all tests:', error);
-        alert('Error grading all tests. Please try again.');
-    }
-}
-
-async function refreshTestChats() {
+async function refreshTestProgress() {
     try {
         // Get the current lesson_id from the URL or lesson selector
         const urlLessonId = getUrlParameters('lesson_id');
@@ -415,14 +294,22 @@ async function refreshTestChats() {
             return;
         }
         
-        console.log('Refreshing test chats for lesson:', selectedLessonId);
+        // Get the current course_id from the URL
+        const course_id = getUrlParameters('course_id');
         
-        // Re-fetch and display the updated test chats
-        await displayTestChats(selectedLessonId);
+        if (!course_id) {
+            console.error('No course ID available for refresh');
+            return;
+        }
         
-        console.log('Test chats refreshed successfully');
+        console.log('Refreshing test progress for lesson:', selectedLessonId);
+        
+        // Re-fetch and display the updated test progress
+        await displayTestProgress(course_id, selectedLessonId);
+        
+        console.log('Test progress refreshed successfully');
         
     } catch (error) {
-        console.error('Error refreshing test chats:', error);
+        console.error('Error refreshing test progress:', error);
     }
 }

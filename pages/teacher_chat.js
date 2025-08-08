@@ -53,15 +53,16 @@ class TeacherChat {
     // 3. Get URL parameters
     this.appState.userId = getUrlParameters('user_id');
     this.appState.blockId = getUrlParameters('block_id');
+    this.appState.ubId = getUrlParameters('ub_id');
     
-    if (!this.appState.userId || !this.appState.blockId) {
+    if ((!this.appState.userId || !this.appState.blockId) && (!this.appState.ubId)) {
       throw new Error('Required URL parameters are missing: user_id or block_id');
     }
     
-    console.log('user_id, block_id:', this.appState.userId, this.appState.blockId);
+    console.log('user_id, block_id:', this.appState.userId, this.appState.blockId, this.appState.ubId);
     
     // 4. Fetch user block data
-    this.appState.ubData = await fetchUbData(this.appState.userId, this.appState.blockId);
+    this.appState.ubData = await fetchUbData(this.appState.userId, this.appState.blockId, this.appState.ubId);
     this.appState.ubId = this.appState.ubData.id;
     this.appState.courseId = this.appState.ubData._lesson._course.id;
     this.appState.lessonId = this.appState.ubData._lesson.id;

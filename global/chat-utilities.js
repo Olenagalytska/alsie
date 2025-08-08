@@ -55,8 +55,8 @@ function resetChatForm(userInputElement) {
 // API FUNCTIONS
 // ============================================================================
 
-async function fetchUbData(userId, blockId) {
-  const response = await fetch(`${CHAT_CONFIG.ENDPOINTS.UB_SINGLE}?user_id=${userId}&block_id=${blockId}`, {
+async function fetchUbData(userId, blockId, ubId) {
+  const response = await fetch(`${CHAT_CONFIG.ENDPOINTS.UB_SINGLE}?user_id=${userId}&block_id=${blockId}&ub_id=${ubId}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json'

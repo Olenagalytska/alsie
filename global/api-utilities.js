@@ -108,3 +108,19 @@ async function determineLessonId(lessons) {
     console.warn('No modules available to determine lesson ID');
     return null;
 }
+
+function displayLessonTitle(lessons, selectedLessonId) {
+    const lessonTitleElement = document.getElementById('lesson-title');
+    const moduleLabelElement = document.getElementById('module-label');
+    
+    const selectedLesson = lessons.find(lesson => lesson.id == selectedLessonId);
+    
+    if (lessonTitleElement && selectedLesson) {
+        lessonTitleElement.textContent = selectedLesson.name;
+    }
+    
+    if (moduleLabelElement && selectedLesson) {
+        const orderText = selectedLesson.order || '0';
+        moduleLabelElement.textContent = `Module ${orderText}`;
+    }
+}

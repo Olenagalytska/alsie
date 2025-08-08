@@ -129,21 +129,7 @@ function setupLessonSelector(course_id) {
     console.log('Lesson selector change handler set up successfully');
 }
 
-function displayLessonTitle(lessons, selectedLessonId) {
-    const lessonTitleElement = document.getElementById('lesson-title');
-    const moduleLabelElement = document.getElementById('module-label');
-    
-    const selectedLesson = lessons.find(lesson => lesson.id == selectedLessonId);
-    
-    if (lessonTitleElement && selectedLesson) {
-        lessonTitleElement.textContent = selectedLesson.name;
-    }
-    
-    if (moduleLabelElement && selectedLesson) {
-        const orderText = selectedLesson.order || '0';
-        moduleLabelElement.textContent = `Module ${orderText}`;
-    }
-}
+
 
 function createStatusElement(status) {
     const statusImg = document.createElement('img');

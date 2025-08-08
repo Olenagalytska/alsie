@@ -51,36 +51,40 @@ class TeacherChat {
     this.appState.user = await verifyUserAuth();
     
     // 3. Get URL parameters
-    this.appState.userId = getUrlParameters('user_id');
-    this.appState.blockId = getUrlParameters('block_id');
-    this.appState.ubId = getUrlParameters('ub_id');
+    const userId = getUrlParameters('user_id');
+    const blockId = getUrlParameters('block_id');
+    const ubId = getUrlParameters('ub_id');
     
-    // Check if we have either the required pair OR just ub_id
-    if (!this.appState.ubId && (!this.appState.userId || !this.appState.blockId)) {
-        throw new Error('Required URL parameters are missing: either ub_id OR both user_id and block_id');
-    }
-    
-    console.log('Initial params - user_id, block_id, ub_id:', this.appState.userId, this.appState.blockId, this.appState.ubId);
-    
-    // 4. Fetch user block data
-    // If we only have ub_id, pass null for the other parameters
-    if (this.appState.ubId && (!this.appState.userId || !this.appState.blockId)) {
-        this.appState.ubData = await fetchUbData(null, null, this.appState.ubId);
-        // Extract the missing parameters from the response
+    // 4. Determine which scenario we're in and fetch data accordingly
+    if (ubId) {
+        // Scenario 1: We have ub_id - fetch data directly by ub_id
+        console.log('Fetching by ub_id:', ubId);
+        this.appState.ubData = await fetchUbDataById(ubId);
+        this.appState.ubId = this.appState.ubData.id;
         this.appState.userId = this.appState.ubData.user_id;
         this.appState.blockId = this.appState.ubData.block_id;
+    } else if (userId && blockId) {
+        // Scenario 2: We have user_id and block_id - fetch or create ub record
+        console.log('Fetching by user_id and block_id:', userId, blockId);
+        this.appState.ubData = await fetchUbDataByUserAndBlock(userId, blockId);
+        this.appState.ubId = this.appState.ubData.id;
+        this.appState.userId = userId;
+        this.appState.blockId = blockId;
     } else {
-        // We have user_id and block_id, proceed normally
-        this.appState.ubData = await fetchUbData(this.appState.userId, this.appState.blockId, this.appState.ubId);
+        throw new Error('Invalid URL parameters: provide either ub_id OR both user_id and block_id');
     }
     
-    // Ensure ub_id is set from the response
-    this.appState.ubId = this.appState.ubData.id;
+    // Extract course and lesson IDs from the response
     this.appState.courseId = this.appState.ubData._lesson._course.id;
     this.appState.lessonId = this.appState.ubData._lesson.id;
     
-    console.log('Final ubData:', this.appState.ubData);
-    console.log('Extracted IDs - userId:', this.appState.userId, 'blockId:', this.appState.blockId, 'ubId:', this.appState.ubId);
+    console.log('Initialized with:', {
+        ubId: this.appState.ubId,
+        userId: this.appState.userId,
+        blockId: this.appState.blockId,
+        courseId: this.appState.courseId,
+        lessonId: this.appState.lessonId
+    });
     
     // 5. Setup page elements
     await this.setupTeacherPageElements();

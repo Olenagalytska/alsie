@@ -55,8 +55,58 @@ function resetChatForm(userInputElement) {
 // API FUNCTIONS
 // ============================================================================
 
+// Fetch user block data by ub_id only
+async function fetchUbDataById(ubId) {
+  const response = await fetch(`${CHAT_CONFIG.ENDPOINTS.UB_SINGLE}?ub_id=${ubId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch user block data by ID: ${response.status} ${response.statusText}`);
+  }
+  
+  const ubData = await response.json();
+  console.log('ubData (by ID):', ubData);
+  return ubData;
+}
+
+// Fetch user block data by user_id and block_id
+async function fetchUbDataByUserAndBlock(userId, blockId) {
+  const response = await fetch(`${CHAT_CONFIG.ENDPOINTS.UB_SINGLE}?user_id=${userId}&block_id=${blockId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch user block data by user and block: ${response.status} ${response.statusText}`);
+  }
+  
+  const ubData = await response.json();
+  console.log('ubData (by user & block):', ubData);
+  return ubData;
+}
+
+// Alternative: Keep your existing function but make it smarter
 async function fetchUbData(userId, blockId, ubId) {
-  const response = await fetch(`${CHAT_CONFIG.ENDPOINTS.UB_SINGLE}?user_id=${userId}&block_id=${blockId}&ub_id=${ubId}`, {
+  // Build query parameters dynamically, only including defined values
+  const params = new URLSearchParams();
+  
+  if (ubId) {
+    params.append('ub_id', ubId);
+  }
+  if (userId) {
+    params.append('user_id', userId);
+  }
+  if (blockId) {
+    params.append('block_id', blockId);
+  }
+  
+  const response = await fetch(`${CHAT_CONFIG.ENDPOINTS.UB_SINGLE}?${params.toString()}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json'

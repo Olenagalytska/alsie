@@ -21,7 +21,7 @@ async function initializeTestChatsPage(course_id) {
             // Display lesson title
             await displayLessonTitle(lessons, selectedLessonId);
 
-            const gradeAllTestsButton = document.getElementById('grade-all-tests-button');
+            const gradeAllTestsButton = document.getElementById('grade-all-lesson-button');
             if (gradeAllTestsButton) {
                 gradeAllTestsButton.addEventListener('click', () => gradeAllTests(selectedLessonId));
             }
@@ -83,7 +83,7 @@ async function displayTestChats(lesson_id) {
     } catch (error) {
         console.error('Error fetching test chats:', error);
         // Display error message to user
-        const container = document.getElementById('student-chats-container');
+        const container = document.getElementById('student-progress-container');
         if (container) {
             container.innerHTML = '<div class="error-message">Error loading test chats. Please try again.</div>';
         }
@@ -91,7 +91,7 @@ async function displayTestChats(lesson_id) {
 }
 
 function renderTestChats(blocksData) {
-    const container = document.getElementById('student-chats-container');
+    const container = document.getElementById('student-progress-container');
     if (!container) return;
     
     container.innerHTML = '';

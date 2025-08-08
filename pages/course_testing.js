@@ -83,7 +83,7 @@ async function displayTestChats(lesson_id) {
     } catch (error) {
         console.error('Error fetching test chats:', error);
         // Display error message to user
-        const container = document.getElementById('test-chats-container');
+        const container = document.getElementById('student-chats-container');
         if (container) {
             container.innerHTML = '<div class="error-message">Error loading test chats. Please try again.</div>';
         }
@@ -91,26 +91,26 @@ async function displayTestChats(lesson_id) {
 }
 
 function renderTestChats(blocksData) {
-    const container = document.getElementById('test-chats-container');
+    const container = document.getElementById('student-chats-container');
     if (!container) return;
     
     container.innerHTML = '';
     
     blocksData.forEach(block => {
         const blockWrapper = document.createElement('div');
-        blockWrapper.className = 'tc-block-wrapper';
+        blockWrapper.className = 'pr-block-wrapper';
         
         // Block name header
         const blockHeader = document.createElement('div');
-        blockHeader.className = 'tc-block-header';
+        blockHeader.className = 'pr-block-header';
         
         const blockName = document.createElement('div');
-        blockName.className = 'tc-block-name';
+        blockName.className = 'pr-block-name';
         blockName.textContent = block.block_name;
         blockHeader.appendChild(blockName);
         
         const blockInfo = document.createElement('div');
-        blockInfo.className = 'tc-block-info';
+        blockInfo.className = 'pr-block-info';
         blockInfo.textContent = `${block.tests.length} test${block.tests.length !== 1 ? 's' : ''}`;
         blockHeader.appendChild(blockInfo);
         
@@ -118,7 +118,7 @@ function renderTestChats(blocksData) {
         
         // Tests container
         const testsContainer = document.createElement('div');
-        testsContainer.className = 'tc-tests-container';
+        testsContainer.className = 'pr-tests-container';
         
         block.tests.forEach(test => {
             const testElement = createTestElement(test, block.block_id);
@@ -142,28 +142,28 @@ function createTestElement(test) {
 
 function createGradedTest(test) {
     const container = document.createElement('div');
-    container.className = 'tc-test-container-expanded';
+    container.className = 'pr-test-container-expanded';
     
     // Test header with status and name
     const testHeader = document.createElement('div');
-    testHeader.className = 'tc-test-header';
+    testHeader.className = 'pr-test-header';
     
     const statusContainer = document.createElement('div');
-    statusContainer.className = 'tc-test-status-container';
+    statusContainer.className = 'pr-test-status-container';
     
     const status = createTestStatusElement(test.status);
     statusContainer.appendChild(status);
     
     const testInfo = document.createElement('div');
-    testInfo.className = 'tc-test-info-container';
+    testInfo.className = 'pr-test-info-container';
     
     const testName = document.createElement('div');
-    testName.className = 'tc-test-name';
+    testName.className = 'pr-test-name';
     testName.textContent = test.test_name;
     testInfo.appendChild(testName);
     
     const testType = document.createElement('div');
-    testType.className = 'tc-test-type';
+    testType.className = 'pr-test-type';
     testType.textContent = test.type === 'manual_test' ? 'Manual Test' : 'Auto Test';
     testInfo.appendChild(testType);
     
@@ -172,7 +172,7 @@ function createGradedTest(test) {
     
     // Grades details
     const gradesContainer = document.createElement('div');
-    gradesContainer.className = 'tc-grades-container';
+    gradesContainer.className = 'pr-grades-container';
     
     test.grading_output.forEach(criterion => {
         const criterionElement = createTestCriterionElement(criterion);
@@ -184,11 +184,11 @@ function createGradedTest(test) {
     
     // Action buttons
     const actionsContainer = document.createElement('div');
-    actionsContainer.className = 'tc-test-actions-container';
+    actionsContainer.className = 'pr-test-actions-container';
     
     const totalGrade = test.grading_output.reduce((sum, criterion) => sum + (criterion.grade || 0), 0);
     const gradeText = document.createElement('div');
-    gradeText.className = 'tc-total-grade';
+    gradeText.className = 'pr-total-grade';
     gradeText.textContent = totalGrade.toString();
     actionsContainer.appendChild(gradeText);
     
@@ -201,7 +201,7 @@ function createGradedTest(test) {
     const gradeButton = document.createElement('button');
     gradeButton.className = 'button_primary_s';
     gradeButton.textContent = 'Re-grade';
-    gradeButton.addEventListener('click', () => gradeTest(test.ul_id));
+    gradeButton.addEventListener('click', () => gradeTest(test.lesson_id));
     actionsContainer.appendChild(gradeButton);
 
     const viewButton = document.createElement('button');
@@ -209,7 +209,7 @@ function createGradedTest(test) {
     viewButton.textContent = 'View Chat';
     if (test.thread_id) {
         viewButton.addEventListener('click', () => {
-            window.location.href = `test-chat-view?test_id=${test.id}&thread_id=${test.thread_id}`;
+            window.location.href = `lesson-page-teacher-view?ub_id=${test.id}`;
         });
     } else {
         viewButton.disabled = true;
@@ -224,27 +224,27 @@ function createGradedTest(test) {
 
 function createUngradedTest(test) {
     const container = document.createElement('div');
-    container.className = 'tc-test-container';
+    container.className = 'pr-test-container';
     
     const testHeader = document.createElement('div');
-    testHeader.className = 'tc-test-header';
+    testHeader.className = 'pr-test-header';
     
     const statusContainer = document.createElement('div');
-    statusContainer.className = 'tc-test-status-container';
+    statusContainer.className = 'pr-test-status-container';
     
     const status = createTestStatusElement(test.status);
     statusContainer.appendChild(status);
     
     const testInfo = document.createElement('div');
-    testInfo.className = 'tc-test-info-container';
+    testInfo.className = 'pr-test-info-container';
     
     const testName = document.createElement('div');
-    testName.className = 'tc-test-name';
+    testName.className = 'pr-test-name';
     testName.textContent = test.test_name;
     testInfo.appendChild(testName);
     
     const testType = document.createElement('div');
-    testType.className = 'tc-test-type';
+    testType.className = 'pr-test-type';
     testType.textContent = test.type === 'manual_test' ? 'Manual Test' : 'Auto Test';
     testInfo.appendChild(testType);
     
@@ -253,14 +253,14 @@ function createUngradedTest(test) {
     
     // Action buttons
     const actionsContainer = document.createElement('div');
-    actionsContainer.className = 'tc-test-actions-container';
+    actionsContainer.className = 'pr-test-actions-container';
     
     const gradeButton = document.createElement('button');
     gradeButton.textContent = 'Grade';
     
     if (test.status === 'finished' || test.status === 'started') {
         gradeButton.className = 'button_primary_s';
-        gradeButton.addEventListener('click', () => gradeTest(test.ul_id));
+        gradeButton.addEventListener('click', () => gradeTest(test.lesson_id));
     } else {
         gradeButton.className = 'button_disabled_s';
         gradeButton.disabled = true;
@@ -273,7 +273,7 @@ function createUngradedTest(test) {
     viewButton.textContent = 'View Chat';
     if (test.thread_id && (test.status === 'finished' || test.status === 'started')) {
         viewButton.addEventListener('click', () => {
-            window.location.href = `test-chat-view?test_id=${test.id}&thread_id=${test.thread_id}`;
+            window.location.href = `lesson-page-teacher-view?ub_id=${test.id}`;
         });
     } else {
         viewButton.disabled = true;
@@ -289,7 +289,7 @@ function createUngradedTest(test) {
 
 function createTestStatusElement(status) {
     const statusImg = document.createElement('img');
-    statusImg.className = 'tc-status-icon';
+    statusImg.className = 'pr-status-icon';
     
     switch(status) {
         case 'finished':
@@ -318,27 +318,27 @@ function createTestStatusElement(status) {
 
 function createTestCriterionElement(criterion) {
     const container = document.createElement('div');
-    container.className = 'tc-criterion-container';
+    container.className = 'pr-criterion-container';
     
     const nameContainer = document.createElement('div');
-    nameContainer.className = 'tc-criterion-name-container';
+    nameContainer.className = 'pr-criterion-name-container';
     
     const criterionName = document.createElement('div');
-    criterionName.className = 'tc-criterion-name';
+    criterionName.className = 'pr-criterion-name';
     criterionName.textContent = criterion.criterion_name;
     nameContainer.appendChild(criterionName);
     
     const gradeContainer = document.createElement('div');
-    gradeContainer.className = 'tc-criterion-grade-container';
+    gradeContainer.className = 'pr-criterion-grade-container';
     
     const grade = document.createElement('div');
-    grade.className = 'tc-criterion-grade';
+    grade.className = 'pr-criterion-grade';
     grade.textContent = criterion.grade || '0';
     gradeContainer.appendChild(grade);
     
     if (criterion.max_points) {
         const maxPoints = document.createElement('div');
-        maxPoints.className = 'tc-criterion-grade-max-points';
+        maxPoints.className = 'pr-criterion-grade-max-points';
         maxPoints.textContent = '/' + criterion.max_points;
         gradeContainer.appendChild(maxPoints);
     }
@@ -348,7 +348,7 @@ function createTestCriterionElement(criterion) {
     
     if (criterion.summary || criterion.grading_comment) {
         const summaryText = document.createElement('div');
-        summaryText.className = 'tc-criterion-summary-text';
+        summaryText.className = 'pr-criterion-summary-text';
         summaryText.textContent = (criterion.summary || '') + ' ' + (criterion.grading_comment || '');
         container.appendChild(summaryText);
     }
@@ -370,7 +370,7 @@ function collapseTest(expandedContainer, test) {
         collapsedTest.parentNode.replaceChild(expandedTest, collapsedTest);
     });
     
-    const actionsContainer = collapsedTest.querySelector('.tc-test-actions-container');
+    const actionsContainer = collapsedTest.querySelector('.pr-test-actions-container');
     if (actionsContainer) {
         actionsContainer.insertBefore(expandButton, actionsContainer.firstChild);
     }

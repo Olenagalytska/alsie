@@ -184,7 +184,7 @@ function createGradedTest(test, block_id) {
     viewButton.className = 'button_inverse_s';
     viewButton.textContent = 'View';
     viewButton.addEventListener('click', () => {
-        window.location.href = `lesson-page-teacher-view?block_id=${block_id}&user_id=${test.test_id}`;
+        window.location.href = `lesson-page-teacher-view?block_id=${block_id}&ub_id=${test.test_id}`;
     });
 
     secondButtonContainer.appendChild(viewButton);
@@ -236,7 +236,7 @@ function createUngradedTest(test, block_id, showGradeButton) {
     viewButton.className = 'button_inverse_s';
     viewButton.textContent = 'View';
     viewButton.addEventListener('click', () => {
-        window.location.href = `lesson-page-teacher-view?block_id=${block_id}&user_id=${test.test_id}`;
+        window.location.href = `lesson-page-teacher-view?block_id=${block_id}&ub_id=${test.test_id}`;
     });
 
     secondButtonContainer.appendChild(viewButton);

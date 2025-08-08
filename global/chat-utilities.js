@@ -256,7 +256,7 @@ function setupBasicNavigation(ubData, userId, role = 'student') {
     
     prevButton.addEventListener('click', () => {
       if (ubData._block.prev_id) {
-        const page = role === 'teacher' ? 'teacher/lesson-view' : 'lesson-page';
+        const page = role === 'teacher' ? 'teacher/lesson-page-teacher-view' : 'lesson-page';
         window.location.href = `/${page}?user_id=${userId}&block_id=${ubData._block.prev_id}`;
       } else {
         console.error('No previous lesson available');
@@ -271,7 +271,7 @@ function setupBasicNavigation(ubData, userId, role = 'student') {
     
     nextButton.addEventListener('click', () => {
       if (ubData._block.next_id) {
-        const page = role === 'teacher' ? 'teacher/lesson-view' : 'lesson-page';
+        const page = role === 'teacher' ? 'teacher/lesson-page-teacher-view' : 'lesson-page';
         window.location.href = `/${page}?user_id=${userId}&block_id=${ubData._block.next_id}`;
       } else {
         console.error('No next lesson available');

@@ -39,31 +39,7 @@ async function initializeProgressPage(course_id) {
 }
 
 
-async function determineLessonId(lessons) {
-    // Get lesson_id from URL parameters
-    const urlLessonId = getUrlParameters('lesson_id');
-    
-    if (urlLessonId) {
-        console.log('Using lesson_id from URL:', urlLessonId);
-        return urlLessonId;
-    }
-    
-    // If no lesson_id in URL, find the lesson with the highest order number
-    if (Array.isArray(lessons) && lessons.length > 0) {
-        const lastLesson = lessons.reduce((prev, current) => {
-            // Compare order numbers, defaulting to 0 if order is not defined
-            const prevOrder = prev.order || 0;
-            const currentOrder = current.order || 0;
-            return currentOrder > prevOrder ? current : prev;
-        });
-        
-        console.log('Using last module (highest order):', lastLesson.id, 'with order:', lastLesson.order);
-        return lastLesson.id;
-    }
-    
-    console.warn('No modules available to determine lesson ID');
-    return null;
-}
+
 
 async function populateLessonSelector(lessons, selectedLessonId) {
 

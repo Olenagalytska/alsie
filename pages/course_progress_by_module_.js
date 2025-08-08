@@ -38,28 +38,6 @@ async function initializeProgressPage(course_id) {
     }
 }
 
-async function fetchLessons(course_id) {
-    try {
-        const response = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/get_lesson_list?course_id=${course_id}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`API request failed with status ${response.status}`);
-        }
-
-        const lessons = await response.json();
-        console.log('Lessons fetched:', lessons);
-        return lessons;
-        
-    } catch (error) {
-        console.error('Error fetching lessons:', error);
-        throw error;
-    }
-}
 
 async function determineLessonId(lessons) {
     // Get lesson_id from URL parameters

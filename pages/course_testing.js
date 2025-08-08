@@ -144,139 +144,116 @@ function createGradedTest(test) {
     const container = document.createElement('div');
     container.className = 'pr-grade-row-container-expanded';
     
-    // Test header with status and name
-    const testHeader = document.createElement('div');
-    testHeader.className = 'pr-block-status-container';
+    // First grade-button-container
+    const blockStatusContainer = document.createElement('div');
+    blockStatusContainer.className = 'pr-block-status-container';
     
-    const statusContainer = document.createElement('div');
-    statusContainer.className = 'pr-block-status-container';
+    const status = createStatusElement(test.status);
+    blockStatusContainer.appendChild(status);
     
-    const status = createTestStatusElement(test.status);
-    statusContainer.appendChild(status);
+    const blockGradesContainer = document.createElement('div');
+    blockGradesContainer.className = 'pr-block-grades-container';
     
-    testHeader.appendChild(statusContainer);
+    const blockName = document.createElement('div');
+    blockName.className = 'pr-block-name';
+    blockName.textContent = test.test_name;
+    blockGradesContainer.appendChild(blockName);
     
-    const testNameContainer = document.createElement('div');
-    testNameContainer.className = 'pr-block-grades-container';
-
-    const testName = document.createElement('div');
-    testName.className = 'pr-block-name';
-    testName.textContent = test.test_name;
-    testInfo.appendChild(testName);
-    
-    // Grades details
-    const gradesContainer = document.createElement('div');
-    gradesContainer.className = 'pr-grades-container';
+    const gradeDetailsContainer = document.createElement('div');
+    gradeDetailsContainer.className = 'pr-grade-details-container';
     
     test.grading_output.forEach(criterion => {
-        const criterionElement = createTestCriterionElement(criterion);
-        gradesContainer.appendChild(criterionElement);
+        const criterionElement = createCriterionElement(criterion);
+        gradeDetailsContainer.appendChild(criterionElement);
     });
-    testNameContainer.appendChild(testName);
-    testNameContainer.appendChild(gradesContainer);
-    container.appendChild(testNameContainer);
     
-    // Action buttons
-    const actionsContainer = document.createElement('div');
-    actionsContainer.className = 'pr-grade-button-container';
+    blockGradesContainer.appendChild(gradeDetailsContainer);
+    blockStatusContainer.appendChild(blockGradesContainer);
+    container.appendChild(blockStatusContainer);
+    
+    // Second grade-button-container
+    const secondButtonContainer = document.createElement('div');
+    secondButtonContainer.className = 'pr-grade-button-container';
     
     const totalGrade = test.grading_output.reduce((sum, criterion) => sum + (criterion.grade || 0), 0);
     const gradeText = document.createElement('div');
-    gradeText.className = 'pr-total-grade';
+    gradeText.className = 'body_m';
     gradeText.textContent = totalGrade.toString();
-    actionsContainer.appendChild(gradeText);
+    secondButtonContainer.appendChild(gradeText);
     
     const collapseButton = document.createElement('button');
     collapseButton.className = 'button_secondary_s';
     collapseButton.textContent = 'Collapse';
-    collapseButton.addEventListener('click', () => collapseTest(container, test));
-    actionsContainer.appendChild(collapseButton);
+    secondButtonContainer.appendChild(collapseButton);
     
     const gradeButton = document.createElement('button');
     gradeButton.className = 'button_primary_s';
-    gradeButton.textContent = 'Re-grade';
-    gradeButton.addEventListener('click', () => gradeTest(test.lesson_id));
-    actionsContainer.appendChild(gradeButton);
+    gradeButton.textContent = 'Grade';
+    gradeButton.addEventListener('click', () => gradeTest(test.ul_id));
+    secondButtonContainer.appendChild(gradeButton);
 
     const viewButton = document.createElement('button');
     viewButton.className = 'button_inverse_s';
-    viewButton.textContent = 'View Chat';
-    if (test.thread_id) {
-        viewButton.addEventListener('click', () => {
-            window.location.href = `lesson-page-teacher-view?ub_id=${test.id}`;
-        });
-    } else {
-        viewButton.disabled = true;
-        viewButton.className = 'button_disabled_s';
-    }
-    actionsContainer.appendChild(viewButton);
+    viewButton.textContent = 'View';
+    viewButton.addEventListener('click', () => {
+        window.location.href = `test-chat-view?test_id=${test.id}&thread_id=${test.thread_id}`;
+    });
+
+    secondButtonContainer.appendChild(viewButton);
     
-    container.appendChild(actionsContainer);
+    container.appendChild(secondButtonContainer);
     
     return container;
 }
 
 function createUngradedTest(test) {
     const container = document.createElement('div');
-    container.className = 'pr-test-container';
+    container.className = 'pr-grade-row-container';
+
+    const blockStatusContainer = document.createElement('div');
+    blockStatusContainer.className = 'pr-block-status-container';
     
-    const testHeader = document.createElement('div');
-    testHeader.className = 'pr-test-header';
+    const status = createStatusElement(test.status);
+    blockStatusContainer.appendChild(status);
     
-    const statusContainer = document.createElement('div');
-    statusContainer.className = 'pr-test-status-container';
+    const blockGradesContainer = document.createElement('div');
+    blockGradesContainer.className = 'pr-block-grades-container';
     
-    const status = createTestStatusElement(test.status);
-    statusContainer.appendChild(status);
+    const blockName = document.createElement('div');
+    blockName.className = 'pr-block-name';
+    blockName.textContent = test.test_name;
+    blockGradesContainer.appendChild(blockName);
     
-    const testInfo = document.createElement('div');
-    testInfo.className = 'pr-test-info-container';
+    blockStatusContainer.appendChild(blockGradesContainer);
+    container.appendChild(blockStatusContainer);
     
-    const testName = document.createElement('div');
-    testName.className = 'pr-test-name';
-    testName.textContent = test.test_name;
-    testInfo.appendChild(testName);
-    
-    const testType = document.createElement('div');
-    testType.className = 'pr-test-type';
-    testType.textContent = test.type === 'manual_test' ? 'Manual Test' : 'Auto Test';
-    testInfo.appendChild(testType);
-    
-    statusContainer.appendChild(testInfo);
-    testHeader.appendChild(statusContainer);
-    
-    // Action buttons
-    const actionsContainer = document.createElement('div');
-    actionsContainer.className = 'pr-test-actions-container';
-    
+    const secondButtonContainer = document.createElement('div');
+    secondButtonContainer.className = 'pr-grade-button-container';
+
     const gradeButton = document.createElement('button');
     gradeButton.textContent = 'Grade';
     
     if (test.status === 'finished' || test.status === 'started') {
+        // For finished/started tests - active button
         gradeButton.className = 'button_primary_s';
-        gradeButton.addEventListener('click', () => gradeTest(test.lesson_id));
+        gradeButton.addEventListener('click', () => gradeTest(test.ul_id));
     } else {
+        // For idle tests - disabled button
         gradeButton.className = 'button_disabled_s';
-        gradeButton.disabled = true;
     }
     
-    actionsContainer.appendChild(gradeButton);
+    secondButtonContainer.appendChild(gradeButton);
 
     const viewButton = document.createElement('button');
     viewButton.className = 'button_inverse_s';
-    viewButton.textContent = 'View Chat';
-    if (test.thread_id && (test.status === 'finished' || test.status === 'started')) {
-        viewButton.addEventListener('click', () => {
-            window.location.href = `lesson-page-teacher-view?ub_id=${test.id}`;
-        });
-    } else {
-        viewButton.disabled = true;
-        viewButton.className = 'button_disabled_s';
-    }
-    actionsContainer.appendChild(viewButton);
-    
-    testHeader.appendChild(actionsContainer);
-    container.appendChild(testHeader);
+    viewButton.textContent = 'View';
+    viewButton.addEventListener('click', () => {
+        window.location.href = `test-chat-view?test_id=${test.id}&thread_id=${test.thread_id}`;
+    });
+
+    secondButtonContainer.appendChild(viewButton);
+
+    blockStatusContainer.appendChild(secondButtonContainer);
     
     return container;
 }

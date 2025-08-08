@@ -142,33 +142,27 @@ function createTestElement(test) {
 
 function createGradedTest(test) {
     const container = document.createElement('div');
-    container.className = 'pr-test-container-expanded';
+    container.className = 'pr-grade-row-container-expanded';
     
     // Test header with status and name
     const testHeader = document.createElement('div');
-    testHeader.className = 'pr-test-header';
+    testHeader.className = 'pr-block-status-container';
     
     const statusContainer = document.createElement('div');
-    statusContainer.className = 'pr-test-status-container';
+    statusContainer.className = 'pr-block-status-container';
     
     const status = createTestStatusElement(test.status);
     statusContainer.appendChild(status);
     
-    const testInfo = document.createElement('div');
-    testInfo.className = 'pr-test-info-container';
+    testHeader.appendChild(statusContainer);
     
+    const testNameContainer = document.createElement('div');
+    testNameContainer.className = 'pr-block-grades-container';
+
     const testName = document.createElement('div');
-    testName.className = 'pr-test-name';
+    testName.className = 'pr-block-name';
     testName.textContent = test.test_name;
     testInfo.appendChild(testName);
-    
-    const testType = document.createElement('div');
-    testType.className = 'pr-test-type';
-    testType.textContent = test.type === 'manual_test' ? 'Manual Test' : 'Auto Test';
-    testInfo.appendChild(testType);
-    
-    statusContainer.appendChild(testInfo);
-    testHeader.appendChild(statusContainer);
     
     // Grades details
     const gradesContainer = document.createElement('div');
@@ -178,13 +172,13 @@ function createGradedTest(test) {
         const criterionElement = createTestCriterionElement(criterion);
         gradesContainer.appendChild(criterionElement);
     });
-    
-    testHeader.appendChild(gradesContainer);
-    container.appendChild(testHeader);
+    testNameContainer.appendChild(testName);
+    testNameContainer.appendChild(gradesContainer);
+    container.appendChild(testNameContainer);
     
     // Action buttons
     const actionsContainer = document.createElement('div');
-    actionsContainer.className = 'pr-test-actions-container';
+    actionsContainer.className = 'pr-grade-button-container';
     
     const totalGrade = test.grading_output.reduce((sum, criterion) => sum + (criterion.grade || 0), 0);
     const gradeText = document.createElement('div');

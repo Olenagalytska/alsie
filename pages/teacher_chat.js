@@ -55,19 +55,32 @@ class TeacherChat {
     this.appState.blockId = getUrlParameters('block_id');
     this.appState.ubId = getUrlParameters('ub_id');
     
-    if ((!this.appState.userId || !this.appState.blockId) && (!this.appState.ubId)) {
-      throw new Error('Required URL parameters are missing: user_id or block_id');
+    // Check if we have either the required pair OR just ub_id
+    if (!this.appState.ubId && (!this.appState.userId || !this.appState.blockId)) {
+        throw new Error('Required URL parameters are missing: either ub_id OR both user_id and block_id');
     }
     
-    console.log('user_id, block_id:', this.appState.userId, this.appState.blockId, this.appState.ubId);
+    console.log('Initial params - user_id, block_id, ub_id:', this.appState.userId, this.appState.blockId, this.appState.ubId);
     
     // 4. Fetch user block data
-    this.appState.ubData = await fetchUbData(this.appState.userId, this.appState.blockId, this.appState.ubId);
+    // If we only have ub_id, pass null for the other parameters
+    if (this.appState.ubId && (!this.appState.userId || !this.appState.blockId)) {
+        this.appState.ubData = await fetchUbData(null, null, this.appState.ubId);
+        // Extract the missing parameters from the response
+        this.appState.userId = this.appState.ubData.user_id;
+        this.appState.blockId = this.appState.ubData.block_id;
+    } else {
+        // We have user_id and block_id, proceed normally
+        this.appState.ubData = await fetchUbData(this.appState.userId, this.appState.blockId, this.appState.ubId);
+    }
+    
+    // Ensure ub_id is set from the response
     this.appState.ubId = this.appState.ubData.id;
     this.appState.courseId = this.appState.ubData._lesson._course.id;
     this.appState.lessonId = this.appState.ubData._lesson.id;
     
-    console.log('ubData:', this.appState.ubData);
+    console.log('Final ubData:', this.appState.ubData);
+    console.log('Extracted IDs - userId:', this.appState.userId, 'blockId:', this.appState.blockId, 'ubId:', this.appState.ubId);
     
     // 5. Setup page elements
     await this.setupTeacherPageElements();
@@ -77,7 +90,7 @@ class TeacherChat {
     
     // 7. Load initial chat data
     await refreshChatDisplay(this.appState.ubId, this.elements.mainContainer);
-  }
+}
 
   // ============================================================================
   // TEACHER-SPECIFIC SETUP

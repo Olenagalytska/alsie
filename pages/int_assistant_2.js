@@ -378,83 +378,87 @@ importButton.addEventListener('click', async function() {
     }
     
     function createParameterSet(paramsStructure, container, specificationData, index, paramsDefinition) {
-        const singleParameterSetContainer = document.createElement('div');
-        singleParameterSetContainer.className = 'single-parameter-set-container';
+    const singleParameterSetContainer = document.createElement('div');
+    singleParameterSetContainer.className = 'single-parameter-set-container';
+    
+    const parameterSet = {
+        container: singleParameterSetContainer,
+        inputs: {},
+        index: index
+    };
+    
+    if (paramsDefinition.is_list) {
+        const setTitle = document.createElement('div');
+        setTitle.className = 'criterion-header';
+        setTitle.innerText = `${paramsDefinition.single_title || 'Item'} ${index + 1}`;
+        singleParameterSetContainer.appendChild(setTitle);
+    }
+    
+    paramsStructure.forEach(param => {
+        const label = document.createElement('div');
+        label.className = 'label-text';
+        label.innerText = param.title;
+        singleParameterSetContainer.appendChild(label);
         
-        const parameterSet = {
-            container: singleParameterSetContainer,
-            inputs: {},
-            index: index
-        };
-        
-        if (paramsDefinition.is_list) {
-            const setTitle = document.createElement('div');
-            setTitle.className = 'criterion-header';
-            setTitle.innerText = `${paramsDefinition.single_title || 'Item'} ${index + 1}`;
-            singleParameterSetContainer.appendChild(setTitle);
+        if (param.description) {
+            const description = document.createElement('div');
+            description.className = 'body_XS';
+            description.classList.add('textcolor-lighter');
+            description.innerText = param.description;
+            singleParameterSetContainer.appendChild(description);
         }
         
-        paramsStructure.forEach(param => {
-            const label = document.createElement('div');
-            label.className = 'label-text';
-            label.innerText = param.title;
-            singleParameterSetContainer.appendChild(label);
-            
-            if (param.description) {
-                const description = document.createElement('div');
-                description.className = 'body_XS';
-                description.classList.add('textcolor-lighter');
-                description.innerText = param.description;
-                singleParameterSetContainer.appendChild(description);
-            }
-            
-            const textarea = document.createElement('textarea');
-            textarea.className = 'text-area-def';
-            textarea.rows = 2;
-            textarea.placeholder = param.title;
-            textarea.value = (specificationData && specificationData[param.name]) ? specificationData[param.name] : '';
-            
-            initAutoResize(textarea);
-            textarea.addEventListener('input', updateFormChangedStatus);
-            
-            singleParameterSetContainer.appendChild(textarea);
-            parameterSet.inputs[param.name] = textarea;
-        });
+        const textarea = document.createElement('textarea');
+        textarea.className = 'text-area-def';
+        textarea.rows = 2;
+        textarea.placeholder = param.title;
+        textarea.value = (specificationData && specificationData[param.name]) ? specificationData[param.name] : '';
         
+        initAutoResize(textarea);
+        textarea.addEventListener('input', updateFormChangedStatus);
+        
+        singleParameterSetContainer.appendChild(textarea);
+        parameterSet.inputs[param.name] = textarea;
+    });
+    
+    // Only show delete button if:
+    // 1. is_list is true AND
+    // 2. there are more than 1 parameter sets
+    const shouldShowDeleteButton = paramsDefinition.is_list && specificationsSets.length > 0;
+    
+    if (shouldShowDeleteButton) {
         const deleteButton = document.createElement('button');
         deleteButton.className = 'button_red_s';
         deleteButton.innerText = 'Delete';
         deleteButton.addEventListener('click', () => {
             removeParameterSet(parameterSet);
             updateFormChangedStatus();
+            // After deletion, update delete button visibility for remaining sets
+            updateDeleteButtonsVisibility(paramsDefinition);
         });
         singleParameterSetContainer.appendChild(deleteButton);
-        
-        container.appendChild(singleParameterSetContainer);
-        specificationsSets.push(parameterSet);
-        removeFocusOutlineFromContainer(singleParameterSetContainer);
-        
-        return parameterSet;
+        parameterSet.deleteButton = deleteButton; // Store reference for later updates
     }
     
-    function removeParameterSet(parameterSetToRemove) {
-        const index = specificationsSets.indexOf(parameterSetToRemove);
-        if (index !== -1) {
-            parameterSetToRemove.container.remove();
-            specificationsSets.splice(index, 1);
-            
-            specificationsSets.forEach((set, i) => {
-                set.index = i;
-                const titleElement = set.container.querySelector('.criterion-header');
-                if (titleElement && blockData && blockData.params_definition) {
-                    const paramsDefinition = typeof blockData.params_definition === 'string' 
-                        ? JSON.parse(blockData.params_definition) 
-                        : blockData.params_definition;
-                    if (paramsDefinition.is_list) {
-                        titleElement.innerText = `${paramsDefinition.single_title || 'Item'} ${i + 1}`;
-                    }
-                }
-            });
+    container.appendChild(singleParameterSetContainer);
+    specificationsSets.push(parameterSet);
+    removeFocusOutlineFromContainer(singleParameterSetContainer);
+    
+    // Update delete button visibility for all sets
+    updateDeleteButtonsVisibility(paramsDefinition);
+    
+    return parameterSet;
+}
+}
+
+
+function updateDeleteButtonsVisibility(paramsDefinition) {
+    // Only show delete buttons if is_list is true and there are more than 1 sets
+    const shouldShowDeleteButtons = paramsDefinition.is_list && specificationsSets.length > 1;
+    
+    specificationsSets.forEach(set => {
+        if (set.deleteButton) {
+            set.deleteButton.style.display = shouldShowDeleteButtons ? 'block' : 'none';
         }
-    }
+    });
 }

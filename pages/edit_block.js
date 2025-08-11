@@ -42,6 +42,8 @@ async function initializeBlockForms(blockData, lesson_id) {
     }
 }
 
+
+// Initialite Public Data Form 
 async function initializePublicDataForm(blockData, block_id, lesson_id) {
     const nameInput = document.getElementById('block-name-input');
     const descriptionInput = document.getElementById('description-input');

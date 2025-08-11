@@ -356,6 +356,8 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
                     createParameterSet(paramsStructure, setsContainer, {}, 0, paramsDefinition);
                 }
                 
+
+                
                 const addButton = document.createElement('button');
                 addButton.className = 'button_secondary_m';
                 addButton.innerText = '+ Add ' + (paramsDefinition.single_title || '');

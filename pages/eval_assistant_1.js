@@ -232,6 +232,9 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
         });
     }
     
+
+
+    //Evaluation
     evaluationInstructionsInput.addEventListener('input', updateFormChangedStatus);
     
     // Load existing criteria or create one empty criterion if none exist

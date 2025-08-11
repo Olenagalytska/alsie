@@ -447,9 +447,6 @@ importButton.addEventListener('click', async function() {
     
     return parameterSet;
 }
-}
-
-
 function updateDeleteButtonsVisibility(paramsDefinition) {
     // Only show delete buttons if is_list is true and there are more than 1 sets
     const shouldShowDeleteButtons = paramsDefinition.is_list && specificationsSets.length > 1;
@@ -460,3 +457,7 @@ function updateDeleteButtonsVisibility(paramsDefinition) {
         }
     });
 }
+
+}
+
+

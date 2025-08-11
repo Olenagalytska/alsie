@@ -443,6 +443,8 @@ importButton.addEventListener('click', async function() {
     // Update delete button visibility for all sets
     updateDeleteButtonsVisibility(paramsDefinition);
     
+
+    
     return parameterSet;
 }
 }

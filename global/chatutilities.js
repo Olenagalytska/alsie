@@ -95,6 +95,7 @@ async function fetchUbDataByUserAndBlock(userId, blockId) {
 async function fetchUbData(userId, blockId, ubId) {
   // Build query parameters dynamically, only including defined values
   const params = new URLSearchParams();
+  console.log('Fetch Ub Data:', userId, blockId, ubId);
   
   if (ubId) {
     params.append('ub_id', ubId);

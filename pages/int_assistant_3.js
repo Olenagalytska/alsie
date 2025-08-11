@@ -421,12 +421,8 @@ importButton.addEventListener('click', async function() {
         parameterSet.inputs[param.name] = textarea;
     });
     
-    // Only show delete button if:
-    // 1. is_list is true AND
-    // 2. there are more than 1 parameter sets
-    const shouldShowDeleteButton = paramsDefinition.is_list && specificationsSets.length > 0;
-    
-    if (shouldShowDeleteButton) {
+    // Always create delete button if is_list is true, but control visibility later
+    if (paramsDefinition.is_list) {
         const deleteButton = document.createElement('button');
         deleteButton.className = 'button_red_s';
         deleteButton.innerText = 'Delete';

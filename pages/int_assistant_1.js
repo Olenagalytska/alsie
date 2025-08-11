@@ -168,6 +168,7 @@ async function initializeAssistantForm(blockData, block_id, lesson_id) {
             importButton.className = 'button_disabled_m';
             
             // Add event listener for import button
+// Add event listener for import button
 importButton.addEventListener('click', async function() {
     const selectedTemplateId = templateSelector ? templateSelector.value : null;
     if (!selectedTemplateId || !blockData || !blockData.id) return;
@@ -199,8 +200,28 @@ importButton.addEventListener('click', async function() {
         const updatedBlockData = await response.json();
         console.log('Updated block: ', updatedBlockData);
 
-        // Force page refresh to ensure all UI elements are properly updated
-        window.location.reload();
+        // Try to force page refresh first
+        try {
+            window.location.href = window.location.href;
+            setTimeout(() => window.location.reload(true), 100);
+        } catch (refreshError) {
+            console.warn('Page refresh failed, updating UI manually:', refreshError);
+            
+            // Manual UI update as fallback
+            // Hide template form, show assistant form
+            if (templateForm) templateForm.style.display = 'none';
+            if (assistantForm) assistantForm.style.display = 'block';
+            if (evaluationSection) evaluationSection.style.display = 'block';
+            
+            // Update template name manually
+            const templateNameElement = document.getElementById('int-template-name');
+            if (templateNameElement && updatedBlockData._int_template && updatedBlockData._int_template.name) {
+                templateNameElement.textContent = updatedBlockData._int_template.name;
+            }
+            
+            // Re-initialize assistant form with updated data
+            await initializeAssistantForm(updatedBlockData, block_id, lesson_id);
+        }
         
     } catch (error) {
         console.error('Error importing template:', error);

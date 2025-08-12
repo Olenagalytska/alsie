@@ -138,7 +138,7 @@ function showAddTestForm(blockId, blockWrapper) {
     addTestContainer.className = 'ts-add-test-row-container';
     
     const gradeButtonContainer = document.createElement('div');
-    gradeButtonContainer.className = 'grade-button-container';
+    gradeButtonContainer.className = 'ts-add-test-form-container';
     
     // Empty div with class div24x24
     const div24x24 = document.createElement('div');
@@ -147,8 +147,8 @@ function showAddTestForm(blockId, blockWrapper) {
     
     // Input field
     const testNameInput = document.createElement('input');
-    testNameInput.className = 'input-default';
-    testNameInput.placeholder = 'Enter test name...';
+    testNameInput.className = 'input-default-no-margin';
+    testNameInput.placeholder = 'Enter the test name here';
     gradeButtonContainer.appendChild(testNameInput);
     
     // Add Test button

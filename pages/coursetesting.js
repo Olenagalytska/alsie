@@ -85,6 +85,7 @@ async function displayTestProgress(course_id, lesson_id) {
     }
 }
 
+// Modified renderTestProgress function
 function renderTestProgress(blocksData) {
     const container = document.getElementById('student-progress-container');
     if (!container) return;
@@ -95,10 +96,23 @@ function renderTestProgress(blocksData) {
         const blockWrapper = document.createElement('div');
         blockWrapper.className = 'pr-student-grades-wrapper';
         
-        // Block name row
+        // Block name row with Add Test Chat button
         const nameContainer = document.createElement('div');
         nameContainer.className = 'pr-grade-row-container';
-        nameContainer.textContent = block.block_name;
+        nameContainer.style.display = 'flex';
+        nameContainer.style.justifyContent = 'space-between';
+        nameContainer.style.alignItems = 'center';
+        
+        const blockNameText = document.createElement('span');
+        blockNameText.textContent = block.block_name;
+        nameContainer.appendChild(blockNameText);
+        
+        const addTestButton = document.createElement('button');
+        addTestButton.className = 'button_primary_m';
+        addTestButton.textContent = 'Add Test Chat';
+        addTestButton.addEventListener('click', () => showAddTestForm(block.block_id, blockWrapper));
+        nameContainer.appendChild(addTestButton);
+        
         blockWrapper.appendChild(nameContainer);
         
         // Block tests main container
@@ -113,6 +127,103 @@ function renderTestProgress(blocksData) {
         blockWrapper.appendChild(testsMainContainer);
         container.appendChild(blockWrapper);
     });
+}
+
+// Function to show the add test form
+function showAddTestForm(blockId, blockWrapper) {
+    const testsMainContainer = blockWrapper.querySelector('.pr-student-grades-main-container');
+    
+    // Create the add test form container
+    const addTestContainer = document.createElement('div');
+    addTestContainer.className = 'ts-add-test-row-container';
+    
+    const gradeButtonContainer = document.createElement('div');
+    gradeButtonContainer.className = 'grade-button-container';
+    
+    // Empty div with class div24x24
+    const div24x24 = document.createElement('div');
+    div24x24.className = 'div24x24';
+    gradeButtonContainer.appendChild(div24x24);
+    
+    // Input field
+    const testNameInput = document.createElement('input');
+    testNameInput.className = 'input-default';
+    testNameInput.placeholder = 'Enter test name...';
+    gradeButtonContainer.appendChild(testNameInput);
+    
+    // Add Test button
+    const addButton = document.createElement('button');
+    addButton.className = 'button_inverse_s';
+    addButton.textContent = 'Add Test';
+    addButton.addEventListener('click', () => handleAddTest(blockId, testNameInput, addTestContainer, testsMainContainer));
+    gradeButtonContainer.appendChild(addButton);
+    
+    // Close button with icon
+    const closeButton = document.createElement('button');
+    closeButton.className = 'iconbutton_secondary_s';
+    closeButton.innerHTML = '<span class="material-symbols-outlined">close</span>';
+    closeButton.addEventListener('click', () => addTestContainer.remove());
+    gradeButtonContainer.appendChild(closeButton);
+    
+    addTestContainer.appendChild(gradeButtonContainer);
+    
+    // Insert at the beginning of testsMainContainer
+    testsMainContainer.insertBefore(addTestContainer, testsMainContainer.firstChild);
+}
+
+// Function to handle adding a new test
+async function handleAddTest(blockId, inputElement, formContainer, testsMainContainer) {
+    const testName = inputElement.value.trim();
+    
+    // Validate test name
+    if (!testName) {
+        inputElement.style.borderColor = '#B91F21';
+        return;
+    }
+    
+    // Reset border color if validation passes
+    inputElement.style.borderColor = '';
+    
+    try {
+        // Call API to create test
+        const response = await fetch('https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/test_ub', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                block_id: blockId,
+                test_name: testName
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`API request failed with status ${response.status}`);
+        }
+        
+        const newTest = await response.json();
+        console.log('Test created successfully:', newTest);
+        
+        // Create UI element for the new test
+        const newTestElement = createTestElement(newTest, blockId);
+        
+        // Remove the form
+        formContainer.remove();
+        
+        // Add the new test at the top of the list (after any remaining forms)
+        const firstNonFormElement = Array.from(testsMainContainer.children)
+            .find(child => !child.classList.contains('ts-add-test-row-container'));
+        
+        if (firstNonFormElement) {
+            testsMainContainer.insertBefore(newTestElement, firstNonFormElement);
+        } else {
+            testsMainContainer.appendChild(newTestElement);
+        }
+        
+    } catch (error) {
+        console.error('Error creating test:', error);
+        alert('Error creating test. Please try again.');
+    }
 }
 
 function createTestElement(test, block_id) {

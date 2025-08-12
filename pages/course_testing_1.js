@@ -293,7 +293,7 @@ function createGradedTest(test, block_id) {
 
     const viewButton = document.createElement('button');
     viewButton.className = 'button_inverse_s';
-    viewButton.textContent = 'View';
+    viewButton.innerHTML = '<span class="material-symbols-outlined">visibility</span>';
     viewButton.addEventListener('click', () => {
         console.log('test id:', test.id);
         window.location.href = `lesson-page-teacher-view?block_id=${block_id}&ub_id=${test.id}`;

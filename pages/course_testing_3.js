@@ -292,7 +292,7 @@ function createGradedTest(test, block_id) {
     secondButtonContainer.appendChild(gradeButton);
 
     const viewButton = document.createElement('button');
-    viewButton.className = 'button_inverse_s';
+    viewButton.className = 'iconbutton_inverse_m';
     viewButton.innerHTML = '<span class="material-symbols-outlined">visibility</span>';
     viewButton.addEventListener('click', () => {
         console.log('test id:', test.id);
@@ -345,7 +345,7 @@ function createUngradedTest(test, block_id, showGradeButton) {
     secondButtonContainer.appendChild(gradeButton);
 
     const viewButton = document.createElement('button');
-    viewButton.className = 'button_inverse_s';
+    viewButton.className = 'iconbutton_inverse_m';
     viewButton.innerHTML = '<span class="material-symbols-outlined">visibility</span>';
     viewButton.addEventListener('click', () => {
         console.log('test id:', test.id);

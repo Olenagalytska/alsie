@@ -300,13 +300,14 @@ function createGradedTest(test, block_id) {
     
     testGradesContainer.appendChild(gradeDetailsContainer);
     testStatusContainer.appendChild(testGradesContainer);
-    container.appendChild(testStatusContainer);
 
     testGradesContainer.addEventListener('click', () => {
         console.log('test id:', test.id);
         window.location.href = `lesson-page-teacher-view?block_id=${block_id}&ub_id=${test.id}`;
     });
     
+    container.appendChild(testStatusContainer);
+
     // Second grade-button-container
     const secondButtonContainer = document.createElement('div');
     secondButtonContainer.className = 'pr-grade-button-container';
@@ -367,7 +368,6 @@ function createUngradedTest(test, block_id, showGradeButton) {
 
     testGradesContainer.appendChild(gradeDetailsContainer);
     testStatusContainer.appendChild(testGradesContainer);
-    container.appendChild(testStatusContainer);
 
     testGradesContainer.addEventListener('click', () => {
         console.log('test id:', test.id);

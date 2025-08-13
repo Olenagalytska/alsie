@@ -324,7 +324,7 @@ function createGradedTest(test, block_id) {
     secondButtonContainer.appendChild(gradeButton);
 
     const viewButton = document.createElement('button');
-    viewButton.className = 'button_transparent';
+    viewButton.className = 'iconbutton_transp_m';
     viewButton.innerHTML = '<span class="material-symbols-outlined">arrow_right_alt</span>';
     viewButton.addEventListener('click', () => {
         console.log('test id:', test.id);
@@ -384,7 +384,7 @@ function createUngradedTest(test, block_id, showGradeButton) {
     secondButtonContainer.appendChild(gradeButton);
 
     const viewButton = document.createElement('button');
-    viewButton.className = 'iconbutton_inverse_s';
+    viewButton.className = 'iconbutton_transp_m;
     viewButton.innerHTML = '<span class="material-symbols-outlined">arrow_right_alt</span>';
     viewButton.addEventListener('click', () => {
         console.log('test id:', test.id);
@@ -394,7 +394,7 @@ function createUngradedTest(test, block_id, showGradeButton) {
     
     // ADD DELETE BUTTON HERE
     const deleteButton = document.createElement('button');
-    deleteButton.className = 'button_red_s';
+    deleteButton.className = 'button_red_m';
     deleteButton.innerHTML = '<span class="material-symbols-outlined">delete</span>';
     deleteButton.addEventListener('click', () => deleteTest(test.id, container));
     secondButtonContainer.appendChild(deleteButton);

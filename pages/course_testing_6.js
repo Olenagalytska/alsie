@@ -312,11 +312,6 @@ function createGradedTest(test, block_id) {
     gradeText.textContent = totalGrade.toString();
     secondButtonContainer.appendChild(gradeText);
     
-    const collapseButton = document.createElement('button');
-    collapseButton.className = 'button_secondary_s';
-    collapseButton.textContent = 'Collapse';
-    secondButtonContainer.appendChild(collapseButton);
-    
     const gradeButton = document.createElement('button');
     gradeButton.className = 'button_primary_s';
     gradeButton.textContent = 'Grade';
@@ -324,7 +319,7 @@ function createGradedTest(test, block_id) {
     secondButtonContainer.appendChild(gradeButton);
 
     const viewButton = document.createElement('button');
-    viewButton.className = 'iconbutton_transp_m';
+    viewButton.className = 'iconbutton_transp_s';
     viewButton.innerHTML = '<span class="material-symbols-outlined">arrow_right_alt</span>';
     viewButton.addEventListener('click', () => {
         console.log('test id:', test.id);
@@ -334,7 +329,7 @@ function createGradedTest(test, block_id) {
     
     // ADD DELETE BUTTON HERE
     const deleteButton = document.createElement('button');
-    deleteButton.className = 'button_red_s';
+    deleteButton.className = 'icon_red_s';
     deleteButton.innerHTML = '<span class="material-symbols-outlined">delete</span>';
     deleteButton.addEventListener('click', () => deleteTest(test.id, container));
     secondButtonContainer.appendChild(deleteButton);
@@ -384,7 +379,7 @@ function createUngradedTest(test, block_id, showGradeButton) {
     secondButtonContainer.appendChild(gradeButton);
 
     const viewButton = document.createElement('button');
-    viewButton.className = 'iconbutton_transp_m;
+    viewButton.className = 'iconbutton_transp_s;
     viewButton.innerHTML = '<span class="material-symbols-outlined">arrow_right_alt</span>';
     viewButton.addEventListener('click', () => {
         console.log('test id:', test.id);
@@ -394,7 +389,7 @@ function createUngradedTest(test, block_id, showGradeButton) {
     
     // ADD DELETE BUTTON HERE
     const deleteButton = document.createElement('button');
-    deleteButton.className = 'button_red_m';
+    deleteButton.className = 'icon_red_s';
     deleteButton.innerHTML = '<span class="material-symbols-outlined">delete</span>';
     deleteButton.addEventListener('click', () => deleteTest(test.id, container));
     secondButtonContainer.appendChild(deleteButton);

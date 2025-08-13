@@ -320,7 +320,7 @@ function createGradedTest(test, block_id) {
 
     const viewButton = document.createElement('button');
     viewButton.className = 'iconbutton_transp_s';
-    viewButton.innerHTML = '<span class="material-symbols-outlined">arrow_right_alt</span>';
+    viewButton.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 1.2rem;">arrow_right_alt</span>';
     viewButton.addEventListener('click', () => {
         console.log('test id:', test.id);
         window.location.href = `lesson-page-teacher-view?block_id=${block_id}&ub_id=${test.id}`;
@@ -329,8 +329,8 @@ function createGradedTest(test, block_id) {
     
     // ADD DELETE BUTTON HERE
     const deleteButton = document.createElement('button');
-    deleteButton.className = 'icon_red_s';
-    deleteButton.innerHTML = '<span class="material-symbols-outlined">delete</span>';
+    deleteButton.className = 'icon_red_transp_s';
+    deleteButton.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 1.2rem;">delete</span>';
     deleteButton.addEventListener('click', () => deleteTest(test.id, container));
     secondButtonContainer.appendChild(deleteButton);
     

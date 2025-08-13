@@ -321,7 +321,7 @@ function createGradedTest(test, block_id) {
     const gradeButton = document.createElement('button');
     gradeButton.className = 'button_primary_s';
     gradeButton.textContent = 'Grade';
-    gradeButton.addEventListener('click', () => gradeBlock(test.id));
+    gradeButton.addEventListener('click', () => gradeTestBlock(test.id));
     secondButtonContainer.appendChild(gradeButton);
 
     const viewButton = document.createElement('button');
@@ -382,7 +382,7 @@ function createUngradedTest(test, block_id, showGradeButton) {
     if (showGradeButton) {
         // For finished/started tests - active button
         gradeButton.className = 'button_primary_s';
-        gradeButton.addEventListener('click', () => gradeBlock(test.id));
+        gradeButton.addEventListener('click', () => gradeTestBlock(test.id));
     } else {
         // For idle tests - disabled button
         gradeButton.className = 'button_disabled_s';
@@ -445,6 +445,35 @@ function createTestCriterionElement(criterion) {
     container.appendChild(summaryText);
     
     return container;
+}
+
+async function gradeTestBlock(ub_id) {
+    console.log('Grading user block:', ub_id);
+    const apiUrl = 'https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/grade_ub';
+    
+    try {
+        const response = await fetch(`${apiUrl}?ub_id=${ub_id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        
+        const result = await response.json();
+        console.log('User Block grades calculated:', result);
+        
+        // Refresh the student progress display after successful grading
+        await refreshTestProgress();
+        
+    } catch (error) {
+        console.error('Error grading block:', error);
+        // Optionally show an error message to the user
+        alert('Error grading block. Please try again.');
+    }
 }
 
 async function refreshTestProgress() {

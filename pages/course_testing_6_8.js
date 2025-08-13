@@ -321,7 +321,7 @@ function createGradedTest(test, block_id) {
     const gradeButton = document.createElement('button');
     gradeButton.className = 'button_primary_s';
     gradeButton.textContent = 'Grade';
-    gradeButton.addEventListener('click', () => gradeBlock(test.ub_id));
+    gradeButton.addEventListener('click', () => gradeBlock(test.id));
     secondButtonContainer.appendChild(gradeButton);
 
     const viewButton = document.createElement('button');
@@ -382,7 +382,7 @@ function createUngradedTest(test, block_id, showGradeButton) {
     if (showGradeButton) {
         // For finished/started tests - active button
         gradeButton.className = 'button_primary_s';
-        gradeButton.addEventListener('click', () => gradeBlock(test.ub_id));
+        gradeButton.addEventListener('click', () => gradeBlock(test.id));
     } else {
         // For idle tests - disabled button
         gradeButton.className = 'button_disabled_s';

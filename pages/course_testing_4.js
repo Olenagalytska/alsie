@@ -292,7 +292,7 @@ function createGradedTest(test, block_id) {
     secondButtonContainer.appendChild(gradeButton);
 
     const viewButton = document.createElement('button');
-    viewButton.className = 'iconbutton_transp_s';
+    viewButton.className = 'button_transparent';
     viewButton.innerHTML = '<span class="material-symbols-outlined">arrow_right_alt</span>';
     viewButton.addEventListener('click', () => {
         console.log('test id:', test.id);

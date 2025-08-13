@@ -449,7 +449,7 @@ function createTestCriterionElement(criterion) {
 
 async function gradeTestBlock(ub_id, gradeButton) {
     console.log('Grading user block:', ub_id);
-    gradeButton.textContent = 'Wait...'
+    gradeButton.textContent = 'Wait...';
     const apiUrl = 'https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/grade_ub';
     
     try {

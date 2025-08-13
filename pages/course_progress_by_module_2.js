@@ -187,7 +187,7 @@ function createGradedBlock(block, student_id) {
     return container;
 }
 
-
+f
 
 
 function createUngradedBlock(block, student_id, showGradeButton) {
@@ -389,10 +389,12 @@ async function refreshStudentProgress() {
 }
 
 
-async function gradeLesson(lesson_id) {
+async function gradeLesson(lesson_id, gradeLessonButton) {
     const apiUrl = 'https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/grade_lesson';
     
     try {
+        gradeLessonButton.textContent = 'Grading...';
+        alert('Grading process started. Feel free to leave the page in a few seconds. Grading will continue on the background');
         const response = await fetch(`${apiUrl}?lesson_id=${lesson_id}`, {
             method: 'POST',
             headers: {
@@ -405,7 +407,8 @@ async function gradeLesson(lesson_id) {
         }
         
         const result = await response.json();
-        console.log('Grades calculated:', result);
+        //console.log('Grades calculated:', result);
+        refreshStudentProgress();
         
     } catch (error) {
         console.error('Error calculating lesson grades:', error);

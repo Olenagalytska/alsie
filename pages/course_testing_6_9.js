@@ -288,8 +288,14 @@ function createGradedTest(test, block_id) {
     const testName = document.createElement('div');
     testName.className = 'pr-block-name';
     testName.textContent = test.test_name;
+    testName.addEventListener('click', () => {
+        console.log('test id:', test.id);
+        window.location.href = `lesson-page-teacher-view?block_id=${block_id}&ub_id=${test.id}`;
+    });
     testGradesContainer.appendChild(testName);
     
+
+
     const gradeDetailsContainer = document.createElement('div');
     gradeDetailsContainer.className = 'pr-grade-details-container';
     
@@ -300,11 +306,6 @@ function createGradedTest(test, block_id) {
     
     testGradesContainer.appendChild(gradeDetailsContainer);
     testStatusContainer.appendChild(testGradesContainer);
-
-    testGradesContainer.addEventListener('click', () => {
-        console.log('test id:', test.id);
-        window.location.href = `lesson-page-teacher-view?block_id=${block_id}&ub_id=${test.id}`;
-    });
     
     container.appendChild(testStatusContainer);
 
@@ -362,14 +363,13 @@ function createUngradedTest(test, block_id, showGradeButton) {
     const testName = document.createElement('div');
     testName.className = 'pr-block-name';
     testName.textContent = test.test_name;
-    testGradesContainer.appendChild(testName);
-    
-    testStatusContainer.appendChild(testGradesContainer);
-
-    testGradesContainer.addEventListener('click', () => {
+    testName.addEventListener('click', () => {
         console.log('test id:', test.id);
         window.location.href = `lesson-page-teacher-view?block_id=${block_id}&ub_id=${test.id}`;
     });
+    testGradesContainer.appendChild(testName);
+    
+    testStatusContainer.appendChild(testGradesContainer);
 
     container.appendChild(testStatusContainer);
     

@@ -128,6 +128,10 @@ function createGradedBlock(block, student_id) {
     const blockName = document.createElement('div');
     blockName.className = 'pr-block-name';
     blockName.textContent = block.block_name;
+    blockName.addEventListener('click', () => {
+        console.log('test id:', test.id);
+        window.location.href = `lesson-page-teacher-view?&ub_id=${block.ub_id}`;
+    });
     blockGradesContainer.appendChild(blockName);
     
     const gradeDetailsContainer = document.createElement('div');
@@ -197,6 +201,10 @@ function createUngradedBlock(block, student_id, showGradeButton) {
     const blockName = document.createElement('div');
     blockName.className = 'pr-block-name';
     blockName.textContent = block.block_name;
+    blockName.addEventListener('click', () => {
+        console.log('test id:', test.id);
+        window.location.href = `lesson-page-teacher-view?&ub_id=${block.ub_id}`;
+    });
     blockGradesContainer.appendChild(blockName);
     
     blockStatusContainer.appendChild(blockGradesContainer);

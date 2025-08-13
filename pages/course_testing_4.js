@@ -160,7 +160,7 @@ function showAddTestForm(blockId, blockWrapper) {
     
     // Close button with icon
     const closeButton = document.createElement('button');
-    closeButton.className = 'iconbutton_secondary_s';
+    closeButton.className = 'iconbutton_transp_s';
     closeButton.innerHTML = '<span class="material-symbols-outlined">close</span>';
     closeButton.addEventListener('click', () => addTestContainer.remove());
     gradeButtonContainer.appendChild(closeButton);
@@ -292,7 +292,7 @@ function createGradedTest(test, block_id) {
     secondButtonContainer.appendChild(gradeButton);
 
     const viewButton = document.createElement('button');
-    viewButton.className = 'iconbutton_inverse_s';
+    viewButton.className = 'iconbutton_transp_s';
     viewButton.innerHTML = '<span class="material-symbols-outlined">arrow_right_alt</span>';
     viewButton.addEventListener('click', () => {
         console.log('test id:', test.id);

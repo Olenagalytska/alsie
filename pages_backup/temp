@@ -1,0 +1,21 @@
+<!-- Global JavaScript Utilities -->
+<script src="https://gitcdn.xyz/repo/Olenagalytska/alsie/main/global/api-utilities.js"></script>
+<script src="https://gitcdn.xyz/repo/Olenagalytska/alsie/main/global/auth-utilities.js"></script>
+<script src="https://gitcdn.xyz/repo/Olenagalytska/alsie/main/global/chat-display.js"></script>
+<script src="https://gitcdn.xyz/repo/Olenagalytska/alsie/main/global/chatutilities.js"></script>
+<script src="https://gitcdn.xyz/repo/Olenagalytska/alsie/main/global/gen-utilities.js"></script>
+<script src="https://gitcdn.xyz/repo/Olenagalytska/alsie/main/global/lesson-display-utilities.js"></script>
+<script src="https://gitcdn.xyz/repo/Olenagalytska/alsie/main/global/navigation-utilities.js"></script>
+<script src="https://gitcdn.xyz/repo/Olenagalytska/alsie/main/global/ui-utilities.js"></script>
+
+<!-- Page-Specific Files -->
+<script src="https://gitcdn.xyz/repo/Olenagalytska/alsie/main/pages/course_progress_by_module_.js"></script>
+<script src="https://gitcdn.xyz/repo/Olenagalytska/alsie/main/pages/course_settings.js"></script>
+<script src="https://gitcdn.xyz/repo/Olenagalytska/alsie/main/pages/course_students.js"></script>
+<script src="https://gitcdn.xyz/repo/Olenagalytska/alsie/main/pages/coursecontent.js"></script>
+<script src="https://gitcdn.xyz/repo/Olenagalytska/alsie/main/pages/course_testing_4.js"></script>
+<script src="https://gitcdn.xyz/repo/Olenagalytska/alsie/main/pages/edit_block.js"></script>
+<script src="https://gitcdn.xyz/repo/Olenagalytska/alsie/main/pages/eval_assistant_1.js"></script>
+<script src="https://gitcdn.xyz/repo/Olenagalytska/alsie/main/pages/int_assistant_5.js"></script>
+<script src="https://gitcdn.xyz/repo/Olenagalytska/alsie/main/pages/student_chat.js"></script>
+<script src="https://gitcdn.xyz/repo/Olenagalytska/alsie/main/pages/teacher_chat.js"></script>

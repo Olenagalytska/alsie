@@ -390,7 +390,7 @@ function createUngradedTest(test, block_id, showGradeButton) {
     // ADD DELETE BUTTON HERE
     const deleteButton = document.createElement('button');
     deleteButton.className = 'icon_red_s';
-    deleteButton.innerHTML = '<span class="material-symbols-outlined">delete</span>';
+    deleteButton.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 1rem;">delete</span>';
     deleteButton.addEventListener('click', () => deleteTest(test.id, container));
     secondButtonContainer.appendChild(deleteButton);
 

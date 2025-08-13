@@ -409,7 +409,7 @@ importButton.addEventListener('click', async function() {
         }
         
         const textarea = document.createElement('textarea');
-        textarea.className = 'text-area-def';
+        textarea.className = 'text-area-invis';
         //textarea.rows = 2;
         textarea.placeholder = param.title;
         textarea.value = (specificationData && specificationData[param.name]) ? specificationData[param.name] : '';

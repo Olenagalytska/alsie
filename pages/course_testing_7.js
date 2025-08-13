@@ -322,7 +322,7 @@ function createGradedTest(test, block_id) {
     const gradeButton = document.createElement('button');
     gradeButton.className = 'button_primary_s';
     gradeButton.textContent = 'Grade';
-    gradeButton.addEventListener('click', () => gradeTestBlock(test.id));
+    gradeButton.addEventListener('click', () => gradeTestBlock(test.id, gradeButton));
     secondButtonContainer.appendChild(gradeButton);
 
     const viewButton = document.createElement('button');
@@ -382,7 +382,7 @@ function createUngradedTest(test, block_id, showGradeButton) {
     if (showGradeButton) {
         // For finished/started tests - active button
         gradeButton.className = 'button_primary_s';
-        gradeButton.addEventListener('click', () => gradeTestBlock(test.id));
+        gradeButton.addEventListener('click', () => gradeTestBlock(test.id, gradeButton));
     } else {
         // For idle tests - disabled button
         gradeButton.className = 'button_disabled_s';
@@ -447,8 +447,9 @@ function createTestCriterionElement(criterion) {
     return container;
 }
 
-async function gradeTestBlock(ub_id) {
+async function gradeTestBlock(ub_id, gradeButton) {
     console.log('Grading user block:', ub_id);
+    gradeButton.textContent = 'Wait...'
     const apiUrl = 'https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/grade_ub';
     
     try {

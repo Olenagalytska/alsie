@@ -504,8 +504,8 @@ function addBlock(prev_block_id, lesson_id, course_id) {
   
   // Create input for block name
   const blockNameInput = document.createElement('input');
-  blockNameInput.className = 'input-default';
-  blockNameInput.classList.add('no-v-margin');
+  blockNameInput.className = 'input-default-no-margin';
+  //blockNameInput.classList.add('no-v-margin');
   blockNameInput.type = 'text';
   blockNameInput.placeholder = 'Enter block name';
     removeFocusOutlineFromContainer(addBlockDiv);
@@ -616,8 +616,8 @@ function addBlockToFirstPosition(lesson_id, course_id, lessonElement) {
   
   // Create input for block name
   const blockNameInput = document.createElement('input');
-  blockNameInput.className = 'input-default';
-  blockNameInput.classList.add('no-v-margin');
+  blockNameInput.className = 'input-default-no-margin';
+  //blockNameInput.classList.add('no-v-margin');
   blockNameInput.type = 'text';
   blockNameInput.placeholder = 'Enter block name';
   

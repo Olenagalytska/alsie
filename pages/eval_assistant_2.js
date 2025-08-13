@@ -98,7 +98,7 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
         
         const summaryInstructionsTextarea = document.createElement('textarea');
         summaryInstructionsTextarea.classList.add('text-area-def');
-        summaryInstructionsTextarea.rows = 4;
+        //summaryInstructionsTextarea.rows = 4;
         summaryInstructionsTextarea.placeholder = 'Summary Instructions';
         summaryInstructionsTextarea.value = summaryInstructionsValue;
         
@@ -138,7 +138,7 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
         
         const gradingInstructionsTextarea = document.createElement('textarea');
         gradingInstructionsTextarea.classList.add('text-area-def');
-        gradingInstructionsTextarea.rows = 4;
+        //gradingInstructionsTextarea.rows = 4;
         gradingInstructionsTextarea.placeholder = 'Grading Instructions';
         gradingInstructionsTextarea.value = gradingInstructionsValue;
         

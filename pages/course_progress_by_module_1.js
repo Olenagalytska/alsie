@@ -178,7 +178,7 @@ function createGradedBlock(block, student_id) {
     // ADD Clear BUTTON HERE
     const clearButton = document.createElement('button');
     clearButton.className = 'icon_red_transp_s';
-    clearButton.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 1.2rem;">mop</span>';
+    clearButton.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 1.2rem;">ink_eraser</span>';
     clearButton.addEventListener('click', () => clearBlock(test.id, container));
     secondButtonContainer.appendChild(clearButton);
 
@@ -246,7 +246,7 @@ function createUngradedBlock(block, student_id, showGradeButton) {
     // ADD Clear BUTTON HERE
     const clearButton = document.createElement('button');
     clearButton.className = 'icon_red_transp_s';
-    clearButton.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 1.2rem;">mop</span>';
+    clearButton.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 1.2rem;">ink_eraser</span>';
     clearButton.addEventListener('click', () => clearBlock(test.id, container));
     secondButtonContainer.appendChild(clearButton);
 

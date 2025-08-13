@@ -150,6 +150,7 @@ function displayLesson(lesson, course_id) {
     lessonNameInput.addEventListener('input', checkForChanges);
     lessonDescriptionInput.addEventListener('input', checkForChanges);
 
+    
     // Assemble lesson header
     lessonNameContainer.appendChild(labelContainer);
     lessonNameContainer.appendChild(lessonNameInput);

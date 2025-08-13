@@ -220,7 +220,7 @@ importButton.addEventListener('click', async function() {
         instructionsInput.value = blockData ? (blockData.int_instructions || '') : '';
 
         if (instructionsInput.tagName === 'TEXTAREA') {
-            //initAutoResize(instructionsInput);
+            autoResizeTextarea(instructionsInput);
         }
         
         // Display template name
@@ -414,7 +414,7 @@ importButton.addEventListener('click', async function() {
         textarea.placeholder = param.title;
         textarea.value = (specificationData && specificationData[param.name]) ? specificationData[param.name] : '';
         
-        initAutoResize(textarea);
+        autoResizeTextarea(textarea);
         textarea.addEventListener('input', updateFormChangedStatus);
         
         singleParameterSetContainer.appendChild(textarea);

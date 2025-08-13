@@ -239,6 +239,38 @@ function createTestElement(test, block_id) {
     }
 }
 
+// Function to handle test deletion
+async function deleteTest(testId, testElement) {
+    // Show confirmation dialog
+    const confirmDelete = confirm('Are you sure you want to delete this test? This action cannot be undone.');
+    
+    if (!confirmDelete) {
+        return; // User cancelled
+    }
+    
+    try {
+        const response = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/test_ub?ub_id=${testId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Delete request failed with status ${response.status}`);
+        }
+        
+        // Remove the test element from the DOM
+        testElement.remove();
+        console.log('Test deleted successfully:', testId);
+        
+    } catch (error) {
+        console.error('Error deleting test:', error);
+        alert('The deletion did not happen. Please try again.');
+    }
+}
+
+// Modified createGradedTest function (add delete button after view button)
 function createGradedTest(test, block_id) {
     const container = document.createElement('div');
     container.className = 'pr-grade-row-container-expanded';
@@ -298,14 +330,21 @@ function createGradedTest(test, block_id) {
         console.log('test id:', test.id);
         window.location.href = `lesson-page-teacher-view?block_id=${block_id}&ub_id=${test.id}`;
     });
-
     secondButtonContainer.appendChild(viewButton);
+    
+    // ADD DELETE BUTTON HERE
+    const deleteButton = document.createElement('button');
+    deleteButton.className = 'button_red_s';
+    deleteButton.innerHTML = '<span class="material-symbols-outlined">delete</span>';
+    deleteButton.addEventListener('click', () => deleteTest(test.id, container));
+    secondButtonContainer.appendChild(deleteButton);
     
     container.appendChild(secondButtonContainer);
     
     return container;
 }
 
+// Modified createUngradedTest function (add delete button after view button)
 function createUngradedTest(test, block_id, showGradeButton) {
     const container = document.createElement('div');
     container.className = 'pr-grade-row-container';
@@ -351,8 +390,14 @@ function createUngradedTest(test, block_id, showGradeButton) {
         console.log('test id:', test.id);
         window.location.href = `lesson-page-teacher-view?block_id=${block_id}&ub_id=${test.id}`;
     });
-
     secondButtonContainer.appendChild(viewButton);
+    
+    // ADD DELETE BUTTON HERE
+    const deleteButton = document.createElement('button');
+    deleteButton.className = 'button_red_s';
+    deleteButton.innerHTML = '<span class="material-symbols-outlined">delete</span>';
+    deleteButton.addEventListener('click', () => deleteTest(test.id, container));
+    secondButtonContainer.appendChild(deleteButton);
 
     testStatusContainer.appendChild(secondButtonContainer);
     

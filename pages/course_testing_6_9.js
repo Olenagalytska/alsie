@@ -330,7 +330,7 @@ function createGradedTest(test, block_id) {
     viewButton.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 1.2rem;">arrow_right_alt</span>';
     viewButton.addEventListener('click', () => {
         console.log('test id:', test.id);
-        window.location.href = `lesson-page-teacher-view?block_id=${block_id}&ub_id=${test.id}`;
+        window.location.href = `lesson-page-teacher-view?ub_id=${test.id}`;
     });
     secondButtonContainer.appendChild(viewButton);
     

@@ -156,10 +156,7 @@ function createGradedBlock(block, student_id) {
     gradeText.textContent = totalGrade.toString();
     secondButtonContainer.appendChild(gradeText);
     
-    const collapseButton = document.createElement('button');
-    collapseButton.className = 'button_secondary_s';
-    collapseButton.textContent = 'Collapse';
-    secondButtonContainer.appendChild(collapseButton);
+    
     
     const gradeButton = document.createElement('button');
     gradeButton.className = 'button_primary_s';
@@ -168,14 +165,23 @@ function createGradedBlock(block, student_id) {
     secondButtonContainer.appendChild(gradeButton);
 
     const viewButton = document.createElement('button');
-    viewButton.className = 'button_inverse_s';
-    viewButton.textContent = 'View';
+    viewButton.className = 'iconbutton_transp_s';
+    viewButton.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 1.2rem;">arrow_right_alt</span>';
+    
     viewButton.addEventListener('click', () => {
         window.location.href = `lesson-page-teacher-view?block_id=${block.block_id}&user_id=${student_id}`;
     });
 
     secondButtonContainer.appendChild(viewButton);
     
+
+    // ADD Clear BUTTON HERE
+    const clearButton = document.createElement('button');
+    clearButton.className = 'icon_red_transp_s';
+    clearButton.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 1.2rem;">mop</span>';
+    clearButton.addEventListener('click', () => clearBlock(test.id, container));
+    secondButtonContainer.appendChild(clearButton);
+
     container.appendChild(secondButtonContainer);
     
     return container;
@@ -228,13 +234,22 @@ function createUngradedBlock(block, student_id, showGradeButton) {
     secondButtonContainer.appendChild(gradeButton);
 
     const viewButton = document.createElement('button');
-    viewButton.className = 'button_inverse_s';
-    viewButton.textContent = 'View';
+    viewButton.className = 'iconbutton_transp_s';
+    viewButton.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 1.2rem;">arrow_right_alt</span>';
+    
     viewButton.addEventListener('click', () => {
         window.location.href = `lesson-page-teacher-view?block_id=${block.block_id}&user_id=${student_id}`;
     });
 
     secondButtonContainer.appendChild(viewButton);
+
+    // ADD Clear BUTTON HERE
+    const clearButton = document.createElement('button');
+    clearButton.className = 'icon_red_transp_s';
+    clearButton.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 1.2rem;">mop</span>';
+    clearButton.addEventListener('click', () => clearBlock(test.id, container));
+    secondButtonContainer.appendChild(clearButton);
+
 
     blockStatusContainer.appendChild(secondButtonContainer);
     
@@ -307,6 +322,39 @@ async function gradeBlock(ub_id) {
         alert('Error grading block. Please try again.');
     }
 }
+
+// Function to handle test deletion
+async function clearBlock(ub_id) {
+    // Show confirmation dialog
+    const confirmDelete = confirm('Are you sure you want to clear this chat? This action will remove all the chat messages, and grades, and this cannot be undone.');
+    
+    if (!confirmDelete) {
+        return; // User cancelled
+    }
+    
+    try {
+        const response = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/clear_ub?ub_id=${ub_id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Clear request failed with status ${response.status}`);
+        }
+        
+        // Refresh the student progress display after successful grading
+        await refreshStudentProgress();
+        
+        console.log('Chat cleared successfully:', testId);
+        
+    } catch (error) {
+        console.error('Error clearing chat:', error);
+        alert('The clearing did not happen. Please try again.');
+    }
+}
+
 
 async function refreshStudentProgress() {
     try {

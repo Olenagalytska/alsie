@@ -379,7 +379,7 @@ function createUngradedTest(test, block_id, showGradeButton) {
     secondButtonContainer.appendChild(gradeButton);
 
     const viewButton = document.createElement('button');
-    viewButton.className = 'iconbutton_transp_s;
+    viewButton.className = 'iconbutton_transp_s';
     viewButton.innerHTML = '<span class="material-symbols-outlined">arrow_right_alt</span>';
     viewButton.addEventListener('click', () => {
         console.log('test id:', test.id);

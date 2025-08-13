@@ -155,29 +155,33 @@ function setupLessonSelector(course_id) {
 
 
 function createStatusElement(status) {
-    const statusImg = document.createElement('img');
-    statusImg.className = 'status-icon';
+    const statusImg = document.createElement('div');
+    statusImg.className = 'status-circle-idle';
     
     switch(status) {
         case 'finished':
-            statusImg.src = 'https://cdn.prod.website-files.com/6640b571ca9d09ecfa2c2de6/689216c89df353f89d2f162e_Status%3DDone.svg';
+            //statusImg.src = 'https://cdn.prod.website-files.com/6640b571ca9d09ecfa2c2de6/689216c89df353f89d2f162e_Status%3DDone.svg';
             statusImg.alt = 'Finished';
             statusImg.title = 'Finished';
+            statusImg.className = 'status-circle-done'
             break;
         case 'started':
-            statusImg.src = 'https://cdn.prod.website-files.com/6640b571ca9d09ecfa2c2de6/689216c8060fc4bd6aad4b6b_Status%3DIn%20Progress.svg';
+            //statusImg.src = 'https://cdn.prod.website-files.com/6640b571ca9d09ecfa2c2de6/689216c8060fc4bd6aad4b6b_Status%3DIn%20Progress.svg';
             statusImg.alt = 'In progress';
             statusImg.title = 'In progress';
+            statusImg.className = 'status-circle-progress'
             break;
         case 'idle':
-            statusImg.src = 'https://cdn.prod.website-files.com/6640b571ca9d09ecfa2c2de6/689216c8b88ac6941a4b04a3_Status%3DIdle.svg';
+            //statusImg.src = 'https://cdn.prod.website-files.com/6640b571ca9d09ecfa2c2de6/689216c8b88ac6941a4b04a3_Status%3DIdle.svg';
             statusImg.alt = 'Not started';
             statusImg.title = 'Not started';
+            statusImg.className = 'status-circle-idle'
             break;
         default:
-            statusImg.src = 'https://cdn.prod.website-files.com/6640b571ca9d09ecfa2c2de6/689216c8b88ac6941a4b04a3_Status%3DIdle.svg';
+            //statusImg.src = 'https://cdn.prod.website-files.com/6640b571ca9d09ecfa2c2de6/689216c8b88ac6941a4b04a3_Status%3DIdle.svg';
             statusImg.alt = 'Unknown status';
             statusImg.title = 'Unknown status';
+            statusImg.className = 'status-circle-idle'
     }
     
     return statusImg;

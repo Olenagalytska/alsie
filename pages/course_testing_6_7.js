@@ -345,7 +345,7 @@ function createGradedTest(test, block_id) {
     return container;
 }
 
-// Modified createUngradedTest function (add delete button after view button)
+// Corrected createUngradedTest function
 function createUngradedTest(test, block_id, showGradeButton) {
     const container = document.createElement('div');
     container.className = 'pr-grade-row-container';
@@ -364,9 +364,6 @@ function createUngradedTest(test, block_id, showGradeButton) {
     testName.textContent = test.test_name;
     testGradesContainer.appendChild(testName);
     
-    testStatusContainer.appendChild(testGradesContainer);
-
-    testGradesContainer.appendChild(gradeDetailsContainer);
     testStatusContainer.appendChild(testGradesContainer);
 
     testGradesContainer.addEventListener('click', () => {

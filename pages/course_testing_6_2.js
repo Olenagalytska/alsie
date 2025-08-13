@@ -380,7 +380,7 @@ function createUngradedTest(test, block_id, showGradeButton) {
 
     const viewButton = document.createElement('button');
     viewButton.className = 'iconbutton_transp_s';
-    viewButton.innerHTML = '<span class="material-symbols-outlined">arrow_right_alt</span>';
+    viewButton.innerHTML = '<span class="material-icon-16">arrow_right_alt</span>';
     viewButton.addEventListener('click', () => {
         console.log('test id:', test.id);
         window.location.href = `lesson-page-teacher-view?block_id=${block_id}&ub_id=${test.id}`;

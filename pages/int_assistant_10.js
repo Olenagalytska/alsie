@@ -410,7 +410,7 @@ importButton.addEventListener('click', async function() {
         
         const textarea = document.createElement('textarea');
         textarea.className = 'text-area-default';
-        //textarea.rows = 2;
+        textarea.rows = 2;
         textarea.placeholder = param.title;
         textarea.value = (specificationData && specificationData[param.name]) ? specificationData[param.name] : '';
         

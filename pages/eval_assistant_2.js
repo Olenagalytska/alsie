@@ -97,8 +97,8 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
         summaryLabel.textContent = 'Summary instructions';
         
         const summaryInstructionsTextarea = document.createElement('textarea');
-        summaryInstructionsTextarea.classList.add('text-area-def');
-        //summaryInstructionsTextarea.rows = 4;
+        summaryInstructionsTextarea.classList.add('text-area-default');
+        summaryInstructionsTextarea.rows = 4;
         summaryInstructionsTextarea.placeholder = 'Summary Instructions';
         summaryInstructionsTextarea.value = summaryInstructionsValue;
         
@@ -137,8 +137,8 @@ async function initializeEvaluationForm(blockData, block_id, lesson_id) {
         gradingLabel.textContent = 'Grading instructions';
         
         const gradingInstructionsTextarea = document.createElement('textarea');
-        gradingInstructionsTextarea.classList.add('text-area-def');
-        //gradingInstructionsTextarea.rows = 4;
+        gradingInstructionsTextarea.classList.add('text-area-default');
+        gradingInstructionsTextarea.rows = 4;
         gradingInstructionsTextarea.placeholder = 'Grading Instructions';
         gradingInstructionsTextarea.value = gradingInstructionsValue;
         

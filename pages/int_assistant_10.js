@@ -403,7 +403,7 @@ importButton.addEventListener('click', async function() {
         if (param.description) {
             const description = document.createElement('div');
             description.className = 'body_XS';
-            description.classList.add('textcolor-lighter');
+            description.classList.add('textcolor-grey');
             description.innerText = param.description;
             singleParameterSetContainer.appendChild(description);
         }

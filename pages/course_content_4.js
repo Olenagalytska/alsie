@@ -443,7 +443,7 @@ function displayBlock(block, lesson_id, container, course_id) {
   
   // Create Delete button
   const deleteButton = document.createElement('button');
-  deleteButton.className = 'icon_red_s';
+  deleteButton.className = 'icon_red_m';
   deleteButton.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 1.2rem;">delete</span>';
 
   //deleteButton.innerText = 'Delete';
@@ -458,7 +458,7 @@ function displayBlock(block, lesson_id, container, course_id) {
   
   // Create Move button
   const moveButton = document.createElement('button');
-  moveButton.className = 'iconbutton_secondary_s';
+  moveButton.className = 'iconbutton_secondary_m';
   moveButton.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 1.2rem;">swap_vert</span>';
   //moveButton.innerText = 'Move';
   moveButton.addEventListener('click', (e) => {

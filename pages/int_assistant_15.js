@@ -413,7 +413,7 @@ importButton.addEventListener('click', async function() {
         textarea.placeholder = param.title;
         textarea.value = (specificationData && specificationData[param.name]) ? specificationData[param.name] : '';
         
-        autoResizeTextarea(textarea);
+        initAutoResize(textarea);
         textarea.addEventListener('input', updateFormChangedStatus);
         
         singleParameterSetContainer.appendChild(textarea);

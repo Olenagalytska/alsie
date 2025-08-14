@@ -9,7 +9,7 @@ function trimText(text, n) {
 // Auto-resize textarea functionality
 function autoResizeTextarea(textarea) {
   textarea.style.height = 'auto';
-  textarea.style.height = (32 + textarea.scrollHeight) + 'px';
+  textarea.style.height = (64 + textarea.scrollHeight) + 'px';
 }
 
 function initAutoResize(textarea) {

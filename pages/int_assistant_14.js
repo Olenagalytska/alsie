@@ -396,14 +396,13 @@ importButton.addEventListener('click', async function() {
     
     paramsStructure.forEach(param => {
         const label = document.createElement('div');
-        label.className = 'label-text';
+        label.className = 'eb-criterion-name';
         label.innerText = param.title;
         singleParameterSetContainer.appendChild(label);
         
         if (param.description) {
             const description = document.createElement('div');
-            description.className = 'label-text';
-            description.classList.add('textcolor-grey');
+            description.className = 'eb-criterion-description';
             description.innerText = param.description;
             singleParameterSetContainer.appendChild(description);
         }

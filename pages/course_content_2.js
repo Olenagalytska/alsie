@@ -294,14 +294,14 @@ function displayEmptyLessonForm(course_id, order) {
 
     // Create menu buttons
     const cancelButton = document.createElement('button');
-    cancelButton.className = 'button_secondary_s';
+    cancelButton.className = 'button_secondary_m';
     cancelButton.innerText = 'Cancel';
     cancelButton.addEventListener('click', () => {
         lessonContentWrapper.remove();
     });
 
     const addModuleButton = document.createElement('button');
-    addModuleButton.className = 'button_inverse_s';
+    addModuleButton.className = 'button_inverse_m';
     addModuleButton.innerText = 'Add Module';
     addModuleButton.addEventListener('click', async () => {
         const lessonName = lessonNameInput.value.trim();
@@ -443,8 +443,10 @@ function displayBlock(block, lesson_id, container, course_id) {
   
   // Create Delete button
   const deleteButton = document.createElement('button');
-  deleteButton.className = 'button_red_s';
-  deleteButton.innerText = 'Delete';
+  deleteButton.className = 'icon_red_s';
+  deleteButton.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 1.2rem;">delete</span>';
+
+  //deleteButton.innerText = 'Delete';
   deleteButton.addEventListener('click', (e) => {
     e.stopPropagation(); // Prevent triggering block name click
     
@@ -456,8 +458,9 @@ function displayBlock(block, lesson_id, container, course_id) {
   
   // Create Move button
   const moveButton = document.createElement('button');
-  moveButton.className = 'button_secondary_s';
-  moveButton.innerText = 'Move';
+  moveButton.className = 'iconbutton_secondary_s';
+  moveButton.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 1.2rem;">swap_vert</span>';
+  //moveButton.innerText = 'Move';
   moveButton.addEventListener('click', (e) => {
     e.stopPropagation(); // Prevent triggering block name click
     console.log('Move button clicked for block:', block.id);
@@ -466,8 +469,8 @@ function displayBlock(block, lesson_id, container, course_id) {
   
   // Create Add button
   const addButton = document.createElement('button');
-  addButton.className = 'button_primary_s';
-  addButton.innerText = 'Add';
+  addButton.className = 'iconbutton_primary_s';
+  addButton.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 1.2rem;">add_row_below</span>';
   addButton.addEventListener('click', (e) => {
     e.stopPropagation(); // Prevent triggering block name click
     addBlock(block.id, lesson_id, course_id); // Call the addBlock function
@@ -508,22 +511,29 @@ function addBlock(prev_block_id, lesson_id, course_id) {
   //blockNameInput.classList.add('no-v-margin');
   blockNameInput.type = 'text';
   blockNameInput.placeholder = 'Enter block name';
-    removeFocusOutlineFromContainer(addBlockDiv);
+
+  removeFocusOutlineFromContainer(blockNameInput);
 
   // Create Add Block button
   const addBlockButton = document.createElement('button');
   addBlockButton.className = 'button_inverse_m';
   addBlockButton.innerText = 'Add Block';
-  
+
+
+
+
   // Create Cancel button with SVG
   const cancelButton = document.createElement('button');
-  cancelButton.className = 'iconbutton_secondary_s';
+  cancelButton.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 1.2rem;">close</span>';
+
+  cancelButton.className = 'iconbutton_secondary_m';
   
   // Create and configure the SVG image
+  /*
   const cancelIcon = document.createElement('img');
   cancelIcon.src = 'https://cdn.prod.website-files.com/6640b571ca9d09ecfa2c2de6/685c52a6d22aaec1335578d4_Close%20Primary.svg';
   cancelIcon.alt = 'Cancel';
-  cancelButton.appendChild(cancelIcon);
+  cancelButton.appendChild(cancelIcon);*/
   
   // Add cancel functionality
   cancelButton.addEventListener('click', () => {

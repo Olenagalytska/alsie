@@ -128,9 +128,9 @@ class TeacherChat {
     setupBasicNavigation(ubData, userId, 'teacher');
     
     // Setup teacher-specific navigation
-    document.getElementById('course-home-button')?.addEventListener('click', () => {
+    document.getElementById('back-button')?.addEventListener('click', () => {
       console.log('course home clicked!');
-      window.location.href = `/teacher/course-progress?course_id=${ubData._lesson._course.id}`;
+      window.location.href = `/teacher/course-testing?course_id=${ubData._lesson._course.id}`;
     });
     
     document.getElementById('course-name')?.addEventListener('click', () => {

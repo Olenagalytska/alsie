@@ -86,7 +86,7 @@ class TeacherChat {
         courseId: this.appState.courseId,
         lessonId: this.appState.lessonId,
         threadId: this.appState.ubData.thread_id,
-        assistantId: this.appState.ubData._block.int_assistant_id
+        assistantId: this.appState.ubData._block.assistant_id
     });
     
     // 5. Setup page elements

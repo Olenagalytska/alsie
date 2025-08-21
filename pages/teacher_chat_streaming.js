@@ -1,49 +1,7 @@
-// In your GitHub JS layer - add this endpoint
-app.post('/api/stream-assistant', async (req, res) => {
-  const { thread_id, assistant_id, message } = req.body;
-  
-  // Set headers for Server-Sent Events
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  
-  try {
-    // Add message to thread
-    await openai.beta.threads.messages.create(thread_id, {
-      role: "user",
-      content: message
-    });
-    
-    // Start streaming run
-    const stream = await openai.beta.threads.runs.create(thread_id, {
-      assistant_id: assistant_id,
-      stream: true
-    });
-    
-    for await (const event of stream) {
-      if (event.event === 'thread.message.delta') {
-        const delta = event.data.delta;
-        if (delta.content && delta.content[0] && delta.content[0].text) {
-          const text = delta.content[0].text.value;
-          res.write(`data: ${JSON.stringify({ type: 'text', content: text })}\n\n`);
-        }
-      } else if (event.event === 'thread.message.completed') {
-        res.write(`data: ${JSON.stringify({ type: 'complete' })}\n\n`);
-        break;
-      }
-    }
-    
-    res.end();
-  } catch (error) {
-    res.write(`data: ${JSON.stringify({ type: 'error', error: error.message })}\n\n`);
-    res.end();
-  }
-});
-
 // ============================================================================
 // TEACHER CHAT CLASS - WITH STREAMING SUPPORT
 // ============================================================================
+// This file should be hosted on your GitHub servers and loaded in Webflow
 
 class TeacherChat {
   constructor() {
@@ -315,8 +273,24 @@ class TeacherChat {
 // Global instance for external access if needed
 window.teacherChat = null;
 
+// Expose the TeacherChat class globally
+window.TeacherChat = TeacherChat;
+
 // Main initialization function to be called from Webflow
 window.initializeTeacherChat = async function() {
-  window.teacherChat = new TeacherChat();
-  return await window.teacherChat.initialize();
+  try {
+    console.log('Creating TeacherChat instance...');
+    window.teacherChat = new TeacherChat();
+    
+    console.log('Initializing TeacherChat...');
+    const result = await window.teacherChat.initialize();
+    
+    console.log('TeacherChat initialization result:', result);
+    return result;
+  } catch (error) {
+    console.error('Error in initializeTeacherChat:', error);
+    return false;
+  }
 };
+
+console.log('TeacherChat class loaded successfully');

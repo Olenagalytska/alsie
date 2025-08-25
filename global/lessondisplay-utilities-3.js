@@ -68,12 +68,12 @@ function displayLessonTitle(lessons, selectedLessonId) {
         const statusText = selectedLesson.status || 'Unknown status';
         switch(selectedLesson.status) {
         case 'draft':
-            moduleStatusElement.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 0.8rem;">visibility_off</span> Draft';
-            moduleStatusElement.className = 'idle-tag';
+            moduleStatusElement.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 0.8rem;">visibility_off</span>  Draft';
+            moduleStatusElement.className = 'draft-tag';
             break;
 
         case 'published':
-            moduleStatusElement.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 0.8rem;">visibility</span> Published';
+            moduleStatusElement.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 0.8rem;">visibility</span>  Published';
             moduleStatusElement.className = 'published-tag';
             break;
     }
@@ -168,27 +168,6 @@ function setupLessonSelector(course_id) {
     
     console.log('Lesson selector change handler set up successfully');
 }
-
-function createLessonStatusElement(status) {
-    const statusTag = document.createElement('div');
-    statusTag.className = 'idle-tag';
-
-    switch(status) {
-        case 'draft':
-            //statusImg.src = 'https://cdn.prod.website-files.com/6640b571ca9d09ecfa2c2de6/689216c89df353f89d2f162e_Status%3DDone.svg';
-            statusTag.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 1.2rem;">visibility_off</span>Draft';
-            statusTag.className = 'idle-tag';
-            break;
-
-        case 'draft':
-            //statusImg.src = 'https://cdn.prod.website-files.com/6640b571ca9d09ecfa2c2de6/689216c89df353f89d2f162e_Status%3DDone.svg';
-            statusTag.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 1.2rem;">visibility</span>Draft';
-            statusTag.className = 'published-tag';
-            break;
-    }
-    return statusTag;
-    }
-
 
 
 

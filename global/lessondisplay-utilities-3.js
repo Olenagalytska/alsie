@@ -68,12 +68,12 @@ function displayLessonTitle(lessons, selectedLessonId) {
         const statusText = selectedLesson.status || 'Unknown status';
         switch(selectedLesson.status) {
         case 'draft':
-            moduleStatusElement.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 0.8rem;">visibility_off</span>  Draft';
+            moduleStatusElement.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 0.8rem; margin-right: 0.4rem;">visibility_off</span>  Draft';
             moduleStatusElement.className = 'draft-tag';
             break;
 
         case 'published':
-            moduleStatusElement.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 0.8rem;">visibility</span>  Published';
+            moduleStatusElement.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 0.8rem; margin-right: 0.4rem;">visibility</span>  Published';
             moduleStatusElement.className = 'published-tag';
             break;
     }

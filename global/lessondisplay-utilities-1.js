@@ -51,7 +51,8 @@ async function determineLessonId(lessons) {
 function displayLessonTitle(lessons, selectedLessonId) {
     const lessonTitleElement = document.getElementById('lesson-title');
     const moduleLabelElement = document.getElementById('module-label');
-    
+    const moduleStatusElement = document.getElementById('module-status');
+
     const selectedLesson = lessons.find(lesson => lesson.id == selectedLessonId);
     
     if (lessonTitleElement && selectedLesson) {
@@ -61,6 +62,11 @@ function displayLessonTitle(lessons, selectedLessonId) {
     if (moduleLabelElement && selectedLesson) {
         const orderText = selectedLesson.order || '0';
         moduleLabelElement.textContent = `Module ${orderText}`;
+    }
+
+     if (moduleStatusElement && selectedLesson) {
+        const statusText = selectedLesson.status || 'Unknown status';
+        moduleStatusElement.textContent = statusText;
     }
 }
 

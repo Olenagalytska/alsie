@@ -303,7 +303,8 @@ async function gradeBlock(ub_id) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
-            }
+            },
+            keepalive: true  // This ensures the request continues even if user leaves page
         });
         
         if (!response.ok) {
@@ -313,13 +314,17 @@ async function gradeBlock(ub_id) {
         const result = await response.json();
         console.log('User Block grades calculated:', result);
         
-        // Refresh the student progress display after successful grading
-        await refreshStudentProgress();
+        // Only refresh if the user is still on the page
+        if (document.visibilityState === 'visible') {
+            await refreshStudentProgress();
+        }
         
     } catch (error) {
         console.error('Error grading block:', error);
-        // Optionally show an error message to the user
-        alert('Error grading block. Please try again.');
+        // Only show alert if user is still on page
+        if (document.visibilityState === 'visible') {
+            alert('Error grading block. Please try again.');
+        }
     }
 }
 
@@ -395,11 +400,13 @@ async function gradeLesson(lesson_id, gradeLessonButton) {
     try {
         gradeLessonButton.textContent = 'Grading...';
         alert('Grading process started. Feel free to leave the page in a few seconds. Grading will continue on the background');
+        
         const response = await fetch(`${apiUrl}?lesson_id=${lesson_id}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
-            }
+            },
+            keepalive: true  // This ensures the request continues even if user leaves page
         });
         
         if (!response.ok) {
@@ -408,9 +415,20 @@ async function gradeLesson(lesson_id, gradeLessonButton) {
         
         const result = await response.json();
         //console.log('Grades calculated:', result);
-        refreshStudentProgress();
+        
+        // Only refresh and update button if user is still on the page
+        if (document.visibilityState === 'visible') {
+            refreshStudentProgress();
+            // You might want to reset the button text here too
+            gradeLessonButton.textContent = 'Grade Lesson'; // or whatever the original text was
+        }
         
     } catch (error) {
         console.error('Error calculating lesson grades:', error);
+        
+        // Only update button if user is still on the page
+        if (document.visibilityState === 'visible') {
+            gradeLessonButton.textContent = 'Grade Lesson'; // Reset button on error
+        }
     }
 }

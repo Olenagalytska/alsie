@@ -23,7 +23,7 @@ async function initializeTestProgressPage(course_id) {
 
             const gradeLessonButton = document.getElementById('grade-lesson-button');
             if (gradeLessonButton) {
-                gradeLessonButton.addEventListener('click', () => gradeLesson(selectedLessonId, gradeLessonButton));
+                gradeLessonButton.addEventListener('click', () => gradeLessonTests(selectedLessonId, gradeLessonButton));
             }
             
             // Display test progress
@@ -506,5 +506,46 @@ async function refreshTestProgress() {
         
     } catch (error) {
         console.error('Error refreshing test progress:', error);
+    }
+}
+
+
+
+async function gradeLessonTests(lesson_id, gradeLessonButton) {
+    const apiUrl = 'https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/grade_lesson_tests';
+    
+    try {
+        gradeLessonButton.textContent = 'Grading...';
+        alert('Grading process started. Feel free to leave the page in a few seconds. Grading will continue on the background');
+        
+        const response = await fetch(`${apiUrl}?lesson_id=${lesson_id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            keepalive: true  // This ensures the request continues even if user leaves page
+        });
+        
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        
+        const result = await response.json();
+        //console.log('Grades calculated:', result);
+        
+        // Only refresh and update button if user is still on the page
+        if (document.visibilityState === 'visible') {
+            refreshTestProgress();
+            // You might want to reset the button text here too
+            gradeLessonButton.textContent = 'Grade Lesson'; // or whatever the original text was
+        }
+        
+    } catch (error) {
+        console.error('Error calculating lesson grades:', error);
+        
+        // Only update button if user is still on the page
+        if (document.visibilityState === 'visible') {
+            gradeLessonButton.textContent = 'Grade Lesson'; // Reset button on error
+        }
     }
 }

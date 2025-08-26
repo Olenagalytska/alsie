@@ -228,7 +228,7 @@ function displayLesson(lesson, course_id) {
     lessonContentWrapper.appendChild(lessonContentContainer);
     lessonContentWrapper.appendChild(lessonMenuContainer);
     
-    removeFocusOutlineFromContainer(lessonContentWrapper);
+    //removeFocusOutlineFromContainer(lessonContentWrapper);
 
     return lessonContentWrapper; // Return the content container to match original behavior
 }
@@ -363,7 +363,7 @@ function displayEmptyLessonForm(course_id, order) {
         lessonNameInput.focus();
     }, 100);
     
-    removeFocusOutlineFromContainer(lessonContentWrapper);
+    //removeFocusOutlineFromContainer(lessonContentWrapper);
 
     return lessonContentWrapper;
 }
@@ -496,7 +496,7 @@ function displayBlock(block, lesson_id, container, course_id) {
   
   // Add to container
   container.appendChild(blockDiv);
-  removeFocusOutlineFromContainer(blockDiv);
+  //removeFocusOutlineFromContainer(blockDiv);
   return blockDiv;
 }
 
@@ -512,7 +512,7 @@ function addBlock(prev_block_id, lesson_id, course_id) {
   blockNameInput.type = 'text';
   blockNameInput.placeholder = 'Enter block name';
 
-  removeFocusOutlineFromContainer(blockNameInput);
+  //removeFocusOutlineFromContainer(blockNameInput);
 
   // Create Add Block button
   const addBlockButton = document.createElement('button');

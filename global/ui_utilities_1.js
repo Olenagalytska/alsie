@@ -82,15 +82,15 @@ function addGlobalFocusStyles() {
 
   
 function removeFocusOutline(element) {
-  element.style.outline = 'none';
-  element.style.setProperty('outline', 'none', 'important');
+  //element.style.outline = 'none';
+  //element.style.setProperty('outline', 'none', 'important');
   
   // Optional: Add the same focus styling that Webflow uses
-  element.addEventListener('focus', function() {
-    this.style.outline = 'none';
+  //element.addEventListener('focus', function() {
+    //this.style.outline = 'none';
     // You can add custom focus styling here if needed
     // this.style.borderColor = '#your-color';
-  });
+  //});
 }
 
 /**

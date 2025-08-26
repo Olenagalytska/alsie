@@ -23,7 +23,7 @@ async function initializeTestProgressPage(course_id) {
 
             const gradeLessonButton = document.getElementById('grade-lesson-button');
             if (gradeLessonButton) {
-                gradeLessonButton.addEventListener('click', () => gradeLesson(selectedLessonId));
+                gradeLessonButton.addEventListener('click', () => gradeLesson(selectedLessonId, gradeLessonButton));
             }
             
             // Display test progress

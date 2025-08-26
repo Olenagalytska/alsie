@@ -57,7 +57,7 @@ function addGlobalFocusStyles() {
     .w-select:focus {
       outline: none !important;
       box-shadow: none !important;
-      border: 1px solid #ccc !important; /* Keep a subtle border so users know it's focused */
+      border: none !important; /* Keep a subtle border so users know it's focused */
     }
     
     /* Alternative: Custom focus styling (uncomment if you want custom focus instead of none) */

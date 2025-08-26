@@ -118,7 +118,7 @@ function displayLesson(lesson, course_id) {
     
     // Create lesson description
     const lessonDescriptionInput = document.createElement('textarea');
-    lessonDescriptionInput.className = 'text-area-invis';
+    lessonDescriptionInput.className = 'text-area-default';
     //lessonDescriptionInput.classList.add('no-v-margin');
     lessonDescriptionInput.placeholder = 'Add module description here';
     lessonDescriptionInput.value = lesson.description;
@@ -278,7 +278,7 @@ function displayEmptyLessonForm(course_id, order) {
     
     // Create lesson description
     const lessonDescriptionInput = document.createElement('textarea');
-    lessonDescriptionInput.className = 'text-area-def';
+    lessonDescriptionInput.className = 'text-area-default';
     //lessonDescriptionInput.classList.add('no-v-margin');
     lessonDescriptionInput.placeholder = 'Add module description here';
     lessonDescriptionInput.value = '';

@@ -227,14 +227,22 @@ async function handleAddTest(blockId, inputElement, formContainer, testsMainCont
 }
 
 function createTestElement(test, block_id) {
-    const isGraded = test.status === 'finished' && test.grading_output && Array.isArray(test.grading_output) && test.grading_output.length > 0;
-    const isFinishedOrInProgress = test.status === 'finished' || test.status === 'started';
-    
-    if (isGraded) {
-        return createGradedTest(test, block_id);
-    } else if (isFinishedOrInProgress) {
-        return createUngradedTest(test, block_id, true);
+    if (test.status === 'idle') {
+        // Idle tests - show disabled Grade button
+        return createUngradedTest(test, block_id, false);
+    } else if (test.status === 'finished' || test.status === 'started') {
+        // Check if grading output exists
+        const hasGradingOutput = test.grading_output && Array.isArray(test.grading_output) && test.grading_output.length > 0;
+        
+        if (hasGradingOutput) {
+            // Test is graded - show criteria and grades (can be either 'finished' OR 'started')
+            return createGradedTest(test, block_id);
+        } else {
+            // Test is ready to be graded but hasn't been graded yet - show active Grade button
+            return createUngradedTest(test, block_id, true);
+        }
     } else {
+        // Any other status - treat as not ready for grading
         return createUngradedTest(test, block_id, false);
     }
 }

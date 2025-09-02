@@ -102,9 +102,9 @@ class StudentChat {
     setupBlockContent(this.appState.ubData);
     
     // Hide form if block is finished
-    if (this.appState.ubData.status === "finished") {
+    if (this.appState.ubData.status === "finished" || this.appState.ubData.status === "blocked") {
       this.elements.form.style.display = "none";
-    }
+}
   }
 
   setupStudentNavigation() {

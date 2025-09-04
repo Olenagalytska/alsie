@@ -139,7 +139,25 @@ class StudentChat {
     this.elements.submitButton.addEventListener('click', (event) => {
       this.handleStudentSubmit(event);
     });
+
+    // Handle Enter key press in the input field
+  this.elements.userInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      // Check if Shift+Enter was pressed (for multi-line input)
+      if (event.shiftKey) {
+        // Allow default behavior (new line)
+        return;
+      }
+      
+      // Prevent default Enter behavior (form submission)
+      event.preventDefault();
+      
+      // Trigger the same submit handler
+      this.handleStudentSubmit(event);
+    }
+  });
   }
+
 
   // ============================================================================
   // STUDENT EVENT HANDLERS

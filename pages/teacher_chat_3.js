@@ -150,6 +150,23 @@ class TeacherChat {
     this.elements.submitButton.addEventListener('click', (event) => {
       this.handleTeacherSubmit(event);
     });
+
+    // Handle Enter key press in the input field
+  this.elements.userInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      // Check if Shift+Enter was pressed (for multi-line input)
+      if (event.shiftKey) {
+        // Allow default behavior (new line)
+        return;
+      }
+      
+      // Prevent default Enter behavior (form submission)
+      event.preventDefault();
+      
+      // Trigger the same submit handler
+      this.handleTeacherSubmit(event);
+    }
+  });
     
     // Setup generate button if it exists
     if (this.elements.generateButton) {

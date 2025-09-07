@@ -198,6 +198,13 @@ function createStatusElement(status) {
             statusImg.className = 'status-circle-idle';
             statusImg.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 1.2rem;">radio_button_unchecked</span>';
             break;
+            case 'blocked':
+            //statusImg.src = 'https://cdn.prod.website-files.com/6640b571ca9d09ecfa2c2de6/689216c8b88ac6941a4b04a3_Status%3DIdle.svg';
+            statusImg.alt = 'Blocked';
+            statusImg.title = 'Blocked';
+            statusImg.className = 'status-circle-blocked';
+            statusImg.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 1.2rem;">block</span>';
+            break;
         default:
             //statusImg.src = 'https://cdn.prod.website-files.com/6640b571ca9d09ecfa2c2de6/689216c8b88ac6941a4b04a3_Status%3DIdle.svg';
             statusImg.alt = 'Unknown status';

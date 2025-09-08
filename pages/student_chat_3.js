@@ -61,8 +61,15 @@ class StudentChat {
     if (!this.appState.userId || !this.appState.blockId) {
       throw new Error('Required URL parameters are missing: user_id or block_id');
     }
+
+     // 4. Security check: Compare authenticated user ID with URL user ID
+  if (this.appState.user.id != this.appState.userId) {
+    console.warn('User ID mismatch detected. Redirecting to home page.');
+    window.location.href = '/';
+    return; // Stop execution here
+  }
     
-    console.log('user_id, block_id:', this.appState.userId, this.appState.blockId);
+    //console.log('user_id, block_id:', this.appState.userId, this.appState.blockId);
     
     // 4. Fetch user block data
     this.appState.ubData = await fetchUbData(this.appState.userId, this.appState.blockId);
@@ -70,7 +77,7 @@ class StudentChat {
     this.appState.courseId = this.appState.ubData._lesson._course.id;
     this.appState.lessonId = this.appState.ubData._lesson.id;
     
-    console.log('ubData:', this.appState.ubData);
+    //console.log('ubData:', this.appState.ubData);
     
     // 5. Setup page elements
     await this.setupStudentPageElements();

@@ -719,20 +719,3 @@ async startStreamingResponse(userInput) {
     }
   }
 }
-
-
-// ============================================================================
-// AUTO-INITIALIZATION
-// ============================================================================
-
-document.addEventListener('DOMContentLoaded', async () => {
-  const studentChat = new StudentChat();
-  const initialized = await studentChat.initialize();
-  
-  if (!initialized) {
-    console.error('Failed to initialize student chat application');
-    // TODO: Add user-friendly error message
-  } else {
-    console.log('Student chat application initialized successfully');
-  }
-});

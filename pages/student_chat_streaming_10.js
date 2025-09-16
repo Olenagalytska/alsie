@@ -1,4 +1,9 @@
 // ============================================================================
+// WEBFLOW STUDENT CHAT PAGE SCRIPT - RESTRUCTURED
+// ============================================================================
+// Place this code in the Webflow page settings under "Before </body> tag"
+
+// ============================================================================
 // STUDENT CHAT CLASS DEFINITION
 // ============================================================================
 
@@ -358,14 +363,16 @@ class StudentChat {
     const aiContainer = document.createElement('div');
     aiContainer.className = 'ai_content_container';
     
+    // Create alsie avatar element with proper ID
+    const alsieAvatar = document.createElement('div');
+    alsieAvatar.id = 'alsie-avatar';
+    alsieAvatar.className = 'alsie-avatar';
+    
     const aiBubble = document.createElement('div');
     aiBubble.className = 'ai_bubble';
     
     const aiText = document.createElement('div');
     aiText.className = 'ai_text w-richtext';
-
-    const alsieAvatar = document.createElement('div');
-    aiText.className = 'alsie-avatar';
     
     // Parse markdown to HTML
     try {
@@ -455,21 +462,21 @@ class StudentChat {
       // 1. Add user message to chat
       this.createUserMessage(userInputValue);
       
-      // 3. Reset form
+      // 2. Reset form
       this.elements.userInput.value = '';
       
-      // 4. Create AI message container for streaming
+      // 3. Create AI message container for streaming
       this.appState.currentStreamingMessage = this.createAssistantMessage('');
-
-      // 2. Set loading state
-      //this.setUILoadingState(true);
+      
+      // 4. Set loading state to TRUE (start avatar rotation)
+      this.setUILoadingState(true, this.elements.mainContainer);
       
       // 5. Start streaming
       await this.startStreamingResponse(userInputValue);
       
     } catch (error) {
       console.error('Error handling chat submit:', error);
-      this.setUILoadingState(false);
+      this.setUILoadingState(false, this.elements.mainContainer);
       // TODO: Add proper error handling UI
     }
   }
@@ -506,11 +513,8 @@ class StudentChat {
           break;
         }
 
-        // Hide waiting bubble on first chunk
-        if (isFirstChunk) {
-          this.setUILoadingState(false);
-          isFirstChunk = false;
-        }
+        // Keep loading state TRUE during streaming (avatar keeps rotating)
+        // Don't set to false on first chunk anymore
 
         // Decode chunk and add to buffer
         const chunk = decoder.decode(value, { stream: true });
@@ -535,9 +539,12 @@ class StudentChat {
       // Final update after stream completion
       this.finalizeStreamingMessage();
 
+      // IMPORTANT: Set loading state to FALSE when streaming is completely done
+      this.setUILoadingState(false, this.elements.mainContainer);
+
     } catch (error) {
       console.error('Error during streaming:', error);
-      this.setUILoadingState(false);
+      this.setUILoadingState(false, this.elements.mainContainer);
       // TODO: Add proper error handling UI
     }
   }
@@ -678,32 +685,34 @@ class StudentChat {
   // UI STATE MANAGEMENT
   // ============================================================================
 
-setUILoadingState(isLoading, container) {
-  const { userInput, chatInputContainer, submitButton, waitingBubble } = this.elements;
-  const alsieAvatar = container.querySelector('#alsie-avatar');
-  
-  if (isLoading) {
-    userInput.style.opacity = '0.5';
-    userInput.disabled = true;
-    chatInputContainer.className = 'chat-input-container-disabled';
-    submitButton.className = 'icon-button-disabled';
-    waitingBubble.style.display = 'flex';
+  setUILoadingState(isLoading, container) {
+    const { userInput, chatInputContainer, submitButton, waitingBubble } = this.elements;
+    const alsieAvatar = container.querySelector('#alsie-avatar');
     
-    // Set alsie-avatar to rotating state
-    if (alsieAvatar) {
-      alsieAvatar.className = 'alsie-avatar rotating';
-    }
-  } else {
-    userInput.style.opacity = '1';
-    userInput.disabled = false;
-    chatInputContainer.className = 'chat-input-container';
-    submitButton.className = 'icon-button';
-    waitingBubble.style.display = 'none';
-    
-    // Set alsie-avatar to normal state
-    if (alsieAvatar) {
-      alsieAvatar.className = 'alsie-avatar';
+    if (isLoading) {
+      userInput.style.opacity = '0.5';
+      userInput.disabled = true;
+      chatInputContainer.className = 'chat-input-container-disabled';
+      submitButton.className = 'icon-button-disabled';
+      waitingBubble.style.display = 'flex';
+      
+      // Set alsie-avatar to rotating state
+      if (alsieAvatar) {
+        alsieAvatar.className = 'alsie-avatar rotating';
+        console.log('Avatar rotation started');
+      }
+    } else {
+      userInput.style.opacity = '1';
+      userInput.disabled = false;
+      chatInputContainer.className = 'chat-input-container';
+      submitButton.className = 'icon-button';
+      waitingBubble.style.display = 'none';
+      
+      // Set alsie-avatar to normal state
+      if (alsieAvatar) {
+        alsieAvatar.className = 'alsie-avatar';
+        console.log('Avatar rotation stopped');
+      }
     }
   }
-}
 }

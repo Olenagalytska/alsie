@@ -38,6 +38,10 @@
 }
 
 .alsie-avatar {
+  transition: transform 0.3s ease; 
+}
+
+.alsie-avatar.rotating {
   animation: rotate 2s linear infinite;
   transform-origin: center;
 }

@@ -678,41 +678,31 @@ class StudentChat {
   // UI STATE MANAGEMENT
   // ============================================================================
 
-setUILoadingState(isLoading) {
-  const { userInput, chatInputContainer, submitButton } = this.elements;
+setUILoadingState(isLoading, container) {
+  const { userInput, chatInputContainer, submitButton, waitingBubble } = this.elements;
+  const alsieAvatar = container.querySelector('#alsie-avatar');
   
   if (isLoading) {
-    // Disable input controls
-    //userInput.style.opacity = '0.5';
+    userInput.style.opacity = '0.5';
     userInput.disabled = true;
     chatInputContainer.className = 'chat-input-container-disabled';
     submitButton.className = 'icon-button-disabled';
+    waitingBubble.style.display = 'flex';
+    
+    // Set alsie-avatar to rotating state
+    if (alsieAvatar) {
+      alsieAvatar.className = 'alsie-avatar rotating';
+    }
   } else {
-    // Enable input controls
-    //userInput.style.opacity = '1';
+    userInput.style.opacity = '1';
     userInput.disabled = false;
     chatInputContainer.className = 'chat-input-container';
     submitButton.className = 'icon-button';
-  }
-
-  // Handle alsie-avatar rotation for the current streaming message
-  if (this.appState.currentStreamingMessage) {
-    // Find the container that holds the current streaming message
-    const messageContainer = this.appState.currentStreamingMessage.closest('.ai_content_container');
+    waitingBubble.style.display = 'none';
     
-    if (messageContainer) {
-      // Find the alsie-avatar within this specific message container
-      const alsieAvatar = messageContainer.querySelector('.alsie-avatar');
-      
-      if (alsieAvatar) {
-        if (isLoading) {
-          // Set avatar to rotating state
-          alsieAvatar.className = 'alsie-avatar rotating';
-        } else {
-          // Set avatar back to normal state
-          alsieAvatar.className = 'alsie-avatar';
-        }
-      }
+    // Set alsie-avatar to normal state
+    if (alsieAvatar) {
+      alsieAvatar.className = 'alsie-avatar';
     }
   }
 }

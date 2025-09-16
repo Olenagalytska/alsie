@@ -129,7 +129,7 @@ function createGradedBlock(block, student_id) {
     blockName.className = 'pr-block-name';
     blockName.textContent = block.block_name;
     blockName.addEventListener('click', () => {
-        console.log('test id:', test.id);
+        console.log('test id:', block.ub_id);
         window.location.href = `lesson-page-teacher-view?&ub_id=${block.ub_id}`;
     });
     blockGradesContainer.appendChild(blockName);
@@ -179,7 +179,7 @@ function createGradedBlock(block, student_id) {
     const clearButton = document.createElement('button');
     clearButton.className = 'icon_red_transp_s';
     clearButton.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 1.2rem;">delete_history</span>';
-    clearButton.addEventListener('click', () => clearBlock(test.id, container));
+    clearButton.addEventListener('click', () => clearBlock(block.ub_id));
     secondButtonContainer.appendChild(clearButton);
 
     container.appendChild(secondButtonContainer);
@@ -208,7 +208,7 @@ function createUngradedBlock(block, student_id, showGradeButton) {
     blockName.className = 'pr-block-name';
     blockName.textContent = block.block_name;
     blockName.addEventListener('click', () => {
-        console.log('test id:', test.id);
+        console.log('test id:', block.ub_id);
         window.location.href = `lesson-page-teacher-view?&ub_id=${block.ub_id}`;
     });
     blockGradesContainer.appendChild(blockName);
@@ -247,7 +247,7 @@ function createUngradedBlock(block, student_id, showGradeButton) {
     const clearButton = document.createElement('button');
     clearButton.className = 'icon_red_transp_s';
     clearButton.innerHTML = '<span class="material-symbols-outlined" style = "font-size: 1.2rem;">delete_history</span>';
-    clearButton.addEventListener('click', () => clearBlock(test.id, container));
+    clearButton.addEventListener('click', () => clearBlock(block.ub_id));
     secondButtonContainer.appendChild(clearButton);
 
 

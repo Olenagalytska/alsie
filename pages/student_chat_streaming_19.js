@@ -714,6 +714,7 @@ class StudentChat {
 
   // Handle alsie-avatar rotation for the current streaming message
   if (this.appState.currentStreamingMessage) {
+    console.log('currentstreamingmessage container found');
     // Find the container that holds the current streaming message
     const messageContainer = this.appState.currentStreamingMessage.closest('.ai_content_container');
     
@@ -726,7 +727,7 @@ class StudentChat {
         console.log('alsie avalar found');
         if (isLoading) {
           // Set avatar to rotating state
-          alsieAvatar.className = 'alsie-avatar rotating';
+          alsieAvatar.className = 'alsie-avatar';
         } else {
           // Set avatar back to normal state
           console.log('setting avalar to default state');

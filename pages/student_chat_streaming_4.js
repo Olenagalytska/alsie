@@ -359,57 +359,61 @@ class StudentChat {
     this.scrollToBottom();
   }
 
-  createAssistantMessage(text) {
-    const aiContainer = document.createElement('div');
-    aiContainer.className = 'ai_content_container';
-    
-    // Create alsie avatar element with proper ID
-    const alsieAvatar = document.createElement('div');
-    alsieAvatar.id = 'alsie-avatar';
-    alsieAvatar.className = 'alsie-avatar';
-    
-    const aiBubble = document.createElement('div');
-    aiBubble.className = 'ai_bubble';
-    
-    const aiText = document.createElement('div');
-    aiText.className = 'ai_text w-richtext';
-    
-    // Parse markdown to HTML
-    try {
-      if (typeof marked !== 'undefined') {
-        marked.setOptions({
-          breaks: true,
-          gfm: true,
-          sanitize: false
+createAssistantMessage(text) {
+  const aiContainer = document.createElement('div');
+  aiContainer.className = 'ai_content_container';
+  
+  // Create alsie avatar element with class (not ID since there can be multiple)
+  const alsieAvatar = document.createElement('div');
+  alsieAvatar.className = 'alsie-avatar';
+  // Add a data attribute to identify streaming avatars
+  alsieAvatar.setAttribute('data-avatar-type', 'message');
+  
+  const aiBubble = document.createElement('div');
+  aiBubble.className = 'ai_bubble';
+  
+  const aiText = document.createElement('div');
+  aiText.className = 'ai_text w-richtext';
+  
+  // Parse markdown to HTML
+  try {
+    if (typeof marked !== 'undefined') {
+      marked.setOptions({
+        breaks: true,
+        gfm: true,
+        sanitize: false
+      });
+      
+      aiText.innerHTML = marked.parse(text);
+      
+      // Add syntax highlighting if available
+      if (typeof Prism !== 'undefined') {
+        aiText.querySelectorAll('pre code').forEach((block) => {
+          Prism.highlightElement(block);
         });
-        
-        aiText.innerHTML = marked.parse(text);
-        
-        // Add syntax highlighting if available
-        if (typeof Prism !== 'undefined') {
-          aiText.querySelectorAll('pre code').forEach((block) => {
-            Prism.highlightElement(block);
-          });
-        }
-      } else {
-        console.warn('Marked library not loaded, displaying plain text');
-        aiText.textContent = text;
       }
-    } catch (error) {
-      console.error('Error parsing markdown:', error);
+    } else {
+      console.warn('Marked library not loaded, displaying plain text');
       aiText.textContent = text;
     }
-    
-    aiBubble.appendChild(aiText);
-    aiContainer.appendChild(alsieAvatar);
-    aiContainer.appendChild(aiBubble);
-    this.elements.mainContainer.appendChild(aiContainer);
-    
-    this.setupCodeBlocks(aiContainer);
-    this.scrollToBottom();
-    
-    return aiText; // Return reference for streaming updates
+  } catch (error) {
+    console.error('Error parsing markdown:', error);
+    aiText.textContent = text;
   }
+  
+  aiBubble.appendChild(aiText);
+  aiContainer.appendChild(alsieAvatar);
+  aiContainer.appendChild(aiBubble);
+  this.elements.mainContainer.appendChild(aiContainer);
+  
+  this.setupCodeBlocks(aiContainer);
+  this.scrollToBottom();
+  
+  // Store reference to the current streaming avatar
+  this.appState.currentStreamingAvatar = alsieAvatar;
+  
+  return aiText; // Return reference for streaming updates
+}
 
   setupCodeBlocks(container) {
     const codeBlocks = container.querySelectorAll('pre code');
@@ -450,104 +454,104 @@ class StudentChat {
   // ============================================================================
 
   async handleStudentSubmit(event) {
-    event.preventDefault();
-    
-    const userInputValue = this.elements.userInput.value.trim();
-    
-    if (!userInputValue) {
-      return;
-    }
-
-    try {
-      // 1. Add user message to chat
-      this.createUserMessage(userInputValue);
-      
-      // 2. Reset form
-      this.elements.userInput.value = '';
-      
-      // 3. Create AI message container for streaming
-      this.appState.currentStreamingMessage = this.createAssistantMessage('');
-      
-      // 4. Set loading state to TRUE (start avatar rotation)
-      this.setUILoadingState(true, this.elements.mainContainer);
-      
-      // 5. Start streaming
-      await this.startStreamingResponse(userInputValue);
-      
-    } catch (error) {
-      console.error('Error handling chat submit:', error);
-      this.setUILoadingState(false, this.elements.mainContainer);
-      // TODO: Add proper error handling UI
-    }
+  event.preventDefault();
+  
+  const userInputValue = this.elements.userInput.value.trim();
+  
+  if (!userInputValue) {
+    return;
   }
 
-  async startStreamingResponse(userInput) {
-    try {
-      const params = new URLSearchParams({
-        ub_id: this.appState.ubId,
-        input: userInput
-      });
-      
-      const response = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/ub_chat_stream?${params.toString()}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+  try {
+    // 1. Add user message to chat
+    this.createUserMessage(userInputValue);
+    
+    // 2. Reset form
+    this.elements.userInput.value = '';
+    
+    // 3. Create AI message container for streaming
+    this.appState.currentStreamingMessage = this.createAssistantMessage('');
+    
+    // 4. Set loading state to TRUE (start avatar rotation on the current streaming avatar)
+    this.setUILoadingState(true);
+    
+    // 5. Start streaming
+    await this.startStreamingResponse(userInputValue);
+    
+  } catch (error) {
+    console.error('Error handling chat submit:', error);
+    this.setUILoadingState(false);
+    // TODO: Add proper error handling UI
+  }
+}
 
-      if (!response.ok) {
-        throw new Error(`Streaming API failed: ${response.status} ${response.statusText}`);
+async startStreamingResponse(userInput) {
+  try {
+    const params = new URLSearchParams({
+      ub_id: this.appState.ubId,
+      input: userInput
+    });
+    
+    const response = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/ub_chat_stream?${params.toString()}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Streaming API failed: ${response.status} ${response.statusText}`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let accumulatedText = '';
+    let isFirstChunk = true;
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      
+      if (done) {
+        console.log('Stream completed');
+        break;
       }
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let accumulatedText = '';
-      let isFirstChunk = true;
-      let buffer = '';
+      // Keep loading state TRUE during streaming (avatar keeps rotating)
+      // Don't set to false on first chunk anymore
 
-      while (true) {
-        const { done, value } = await reader.read();
-        
-        if (done) {
-          console.log('Stream completed');
-          break;
-        }
-
-        // Keep loading state TRUE during streaming (avatar keeps rotating)
-        // Don't set to false on first chunk anymore
-
-        // Decode chunk and add to buffer
-        const chunk = decoder.decode(value, { stream: true });
-        buffer += chunk;
-        
-        // Process complete SSE messages
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || ''; // Keep incomplete line in buffer
-        
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.substring(6); // Remove 'data: ' prefix
-            if (data.trim()) { // Only process non-empty data
-              accumulatedText += data;
-              // Update the streaming message
-              this.updateStreamingMessage(accumulatedText);
-            }
+      // Decode chunk and add to buffer
+      const chunk = decoder.decode(value, { stream: true });
+      buffer += chunk;
+      
+      // Process complete SSE messages
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || ''; // Keep incomplete line in buffer
+      
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.substring(6); // Remove 'data: ' prefix
+          if (data.trim()) { // Only process non-empty data
+            accumulatedText += data;
+            // Update the streaming message
+            this.updateStreamingMessage(accumulatedText);
           }
         }
       }
-
-      // Final update after stream completion
-      this.finalizeStreamingMessage();
-
-      // IMPORTANT: Set loading state to FALSE when streaming is completely done
-      this.setUILoadingState(false, this.elements.mainContainer);
-
-    } catch (error) {
-      console.error('Error during streaming:', error);
-      this.setUILoadingState(false, this.elements.mainContainer);
-      // TODO: Add proper error handling UI
     }
+
+    // Final update after stream completion
+    this.finalizeStreamingMessage();
+
+    // IMPORTANT: Set loading state to FALSE when streaming is completely done
+    this.setUILoadingState(false);
+
+  } catch (error) {
+    console.error('Error during streaming:', error);
+    this.setUILoadingState(false);
+    // TODO: Add proper error handling UI
   }
+}
 
   updateStreamingMessage(text) {
     if (this.appState.currentStreamingMessage) {
@@ -579,57 +583,58 @@ class StudentChat {
     }
   }
 
-  finalizeStreamingMessage() {
-    // Final markdown rendering once the complete message is received
-    if (this.appState.currentStreamingMessage && this.appState.currentStreamingRawText) {
-      const container = this.appState.currentStreamingMessage.closest('.ai_content_container');
-      
-      // Use the stored raw accumulated text (preserves original newlines and formatting)
-      const finalText = this.appState.currentStreamingRawText;
-      
-      console.log('Final raw text for rendering:', JSON.stringify(finalText)); // Debug log
-      
-      // Re-render the complete message with proper markdown parsing
-      try {
-        if (typeof marked !== 'undefined' && finalText) {
-          marked.setOptions({
-            breaks: true, // Ensure line breaks are preserved
-            gfm: true,
-            sanitize: false
+ finalizeStreamingMessage() {
+  // Final markdown rendering once the complete message is received
+  if (this.appState.currentStreamingMessage && this.appState.currentStreamingRawText) {
+    const container = this.appState.currentStreamingMessage.closest('.ai_content_container');
+    
+    // Use the stored raw accumulated text (preserves original newlines and formatting)
+    const finalText = this.appState.currentStreamingRawText;
+    
+    console.log('Final raw text for rendering:', JSON.stringify(finalText)); // Debug log
+    
+    // Re-render the complete message with proper markdown parsing
+    try {
+      if (typeof marked !== 'undefined' && finalText) {
+        marked.setOptions({
+          breaks: true, // Ensure line breaks are preserved
+          gfm: true,
+          sanitize: false
+        });
+        
+        // Clear and re-render with the original raw text (no additional processing needed)
+        this.appState.currentStreamingMessage.innerHTML = marked.parse(finalText);
+        
+        // Add syntax highlighting for the final render
+        if (typeof Prism !== 'undefined') {
+          this.appState.currentStreamingMessage.querySelectorAll('pre code').forEach((block) => {
+            Prism.highlightElement(block);
           });
-          
-          // Clear and re-render with the original raw text (no additional processing needed)
-          this.appState.currentStreamingMessage.innerHTML = marked.parse(finalText);
-          
-          // Add syntax highlighting for the final render
-          if (typeof Prism !== 'undefined') {
-            this.appState.currentStreamingMessage.querySelectorAll('pre code').forEach((block) => {
-              Prism.highlightElement(block);
-            });
-          }
-          
-          console.log('Final markdown rendering completed for streamed message');
         }
-      } catch (error) {
-        console.error('Error in final markdown rendering:', error);
-        // Fallback: preserve line breaks manually with raw text
-        this.appState.currentStreamingMessage.innerHTML = finalText.replace(/\n/g, '<br>');
+        
+        console.log('Final markdown rendering completed for streamed message');
       }
-      
-      // Setup code blocks for the final message
-      if (container) {
-        this.setupCodeBlocks(container);
-      }
-      
-      // Final scroll to bottom
-      this.scrollToBottom();
+    } catch (error) {
+      console.error('Error in final markdown rendering:', error);
+      // Fallback: preserve line breaks manually with raw text
+      this.appState.currentStreamingMessage.innerHTML = finalText.replace(/\n/g, '<br>');
     }
     
-    // Clear references
-    this.appState.currentStreamingMessage = null;
-    this.appState.currentStreamingRawText = '';
-    this.appState.streamingState = 'idle';
+    // Setup code blocks for the final message
+    if (container) {
+      this.setupCodeBlocks(container);
+    }
+    
+    // Final scroll to bottom
+    this.scrollToBottom();
   }
+  
+  // Clear references
+  this.appState.currentStreamingMessage = null;
+  this.appState.currentStreamingRawText = '';
+  this.appState.streamingState = 'idle';
+  this.appState.currentStreamingAvatar = null; // Clear avatar reference
+}
 
   // ============================================================================
   // STREAM PAUSE HANDLING
@@ -685,37 +690,36 @@ class StudentChat {
   // UI STATE MANAGEMENT
   // ============================================================================
 
-  setUILoadingState(isLoading, container) {
-    const { userInput, chatInputContainer, submitButton, waitingBubble } = this.elements;
-    const alsieAvatar = container.querySelector('#alsie-avatar');
+ setUILoadingState(isLoading) {
+  const { userInput, chatInputContainer, submitButton, waitingBubble } = this.elements;
+  
+  if (isLoading) {
+    userInput.style.opacity = '0.5';
+    userInput.disabled = true;
+    chatInputContainer.className = 'chat-input-container-disabled';
+    submitButton.className = 'icon-button-disabled';
+    waitingBubble.style.display = 'flex';
     
-    if (isLoading) {
-      userInput.style.opacity = '0.5';
-      userInput.disabled = true;
-      chatInputContainer.className = 'chat-input-container-disabled';
-      submitButton.className = 'icon-button-disabled';
-      waitingBubble.style.display = 'flex';
-      
-      // Set alsie-avatar to rotating state
-      if (alsieAvatar) {
-        alsieAvatar.className = 'alsie-avatar rotating';
-        console.log('Avatar rotation started');
-      }
-    } else {
-      userInput.style.opacity = '1';
-      userInput.disabled = false;
-      chatInputContainer.className = 'chat-input-container';
-      submitButton.className = 'icon-button';
-      waitingBubble.style.display = 'none';
-      
-      // Set alsie-avatar to normal state
-      if (alsieAvatar) {
-        alsieAvatar.className = 'alsie-avatar';
-        console.log('Avatar rotation stopped');
-      }
+    // Set the current streaming avatar to rotating state
+    if (this.appState.currentStreamingAvatar) {
+      this.appState.currentStreamingAvatar.className = 'alsie-avatar rotating';
+      console.log('Avatar rotation started');
+    }
+  } else {
+    userInput.style.opacity = '1';
+    userInput.disabled = false;
+    chatInputContainer.className = 'chat-input-container';
+    submitButton.className = 'icon-button';
+    waitingBubble.style.display = 'none';
+    
+    // Set the current streaming avatar to normal state
+    if (this.appState.currentStreamingAvatar) {
+      this.appState.currentStreamingAvatar.className = 'alsie-avatar';
+      console.log('Avatar rotation stopped');
     }
   }
 }
+
 
 // ============================================================================
 // AUTO-INITIALIZATION

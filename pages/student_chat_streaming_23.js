@@ -507,6 +507,7 @@ class StudentChat {
 
       while (true) {
         const { done, value } = await reader.read();
+        console.log('streaming:   ', value);
         
         if (done) {
           console.log('Stream completed');
@@ -525,7 +526,7 @@ class StudentChat {
         buffer = lines.pop() || ''; // Keep incomplete line in buffer
         
         for (const line of lines) {
-          console.log('streaming:   ', line);
+          
           if (line.startsWith('data: ')) {
             const data = line.substring(6); // Remove 'data: ' prefix
             if (data.trim()) { // Only process non-empty data

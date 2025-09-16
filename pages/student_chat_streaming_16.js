@@ -606,6 +606,7 @@ class StudentChat {
           
           // Add syntax highlighting for the final render
           if (typeof Prism !== 'undefined') {
+            console.log('prism');
             this.appState.currentStreamingMessage.querySelectorAll('pre code').forEach((block) => {
               Prism.highlightElement(block);
             });
@@ -692,6 +693,7 @@ class StudentChat {
   // ============================================================================
 
   setUILoadingState(isLoading) {
+    if(!isLoading) {console.log('update ui state with false');}
   const { userInput, chatInputContainer, submitButton, waitingBubble } = this.elements;
   
   if (isLoading) {

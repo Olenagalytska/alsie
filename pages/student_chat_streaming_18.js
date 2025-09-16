@@ -723,6 +723,7 @@ class StudentChat {
       const alsieAvatar = messageContainer.querySelector('.alsie-avatar');
       
       if (alsieAvatar) {
+        console.log('alsie avalar found');
         if (isLoading) {
           // Set avatar to rotating state
           alsieAvatar.className = 'alsie-avatar rotating';

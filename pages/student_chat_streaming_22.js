@@ -525,6 +525,7 @@ class StudentChat {
         buffer = lines.pop() || ''; // Keep incomplete line in buffer
         
         for (const line of lines) {
+          console.log('streaming:   ', line);
           if (line.startsWith('data: ')) {
             const data = line.substring(6); // Remove 'data: ' prefix
             if (data.trim()) { // Only process non-empty data

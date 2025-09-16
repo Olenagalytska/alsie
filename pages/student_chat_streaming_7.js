@@ -694,7 +694,7 @@ async startStreamingResponse(userInput) {
   const { userInput, chatInputContainer, submitButton, waitingBubble } = this.elements;
   
   if (isLoading) {
-    userInput.style.opacity = '0.5';
+    //userInput.style.opacity = '0.5';
     userInput.disabled = true;
     chatInputContainer.className = 'chat-input-container-disabled';
     submitButton.className = 'icon-button-disabled';
@@ -703,19 +703,17 @@ async startStreamingResponse(userInput) {
     // Set the current streaming avatar to rotating state
     if (this.appState.currentStreamingAvatar) {
       this.appState.currentStreamingAvatar.className = 'alsie-avatar rotating';
-      console.log('Avatar rotation started');
+      
     }
   } else {
-    userInput.style.opacity = '1';
+    //userInput.style.opacity = '1';
     userInput.disabled = false;
     chatInputContainer.className = 'chat-input-container';
     submitButton.className = 'icon-button';
-    waitingBubble.style.display = 'none';
     
-    // Set the current streaming avatar to normal state
     if (this.appState.currentStreamingAvatar) {
       this.appState.currentStreamingAvatar.className = 'alsie-avatar';
-      console.log('Avatar rotation stopped');
     }
   }
+}
 }

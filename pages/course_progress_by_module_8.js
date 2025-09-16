@@ -352,7 +352,7 @@ async function clearBlock(ub_id) {
         // Refresh the student progress display after successful grading
         await refreshStudentProgress();
         
-        console.log('Chat cleared successfully:', testId);
+        console.log('Chat cleared successfully:');
         
     } catch (error) {
         console.error('Error clearing chat:', error);

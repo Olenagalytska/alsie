@@ -685,34 +685,45 @@ class StudentChat {
   // UI STATE MANAGEMENT
   // ============================================================================
 
-  setUILoadingState(isLoading, container) {
-    const { userInput, chatInputContainer, submitButton, waitingBubble } = this.elements;
-    const alsieAvatar = container.querySelector('#alsie-avatar');
+  setUILoadingState(isLoading) {
+  const { userInput, chatInputContainer, submitButton, waitingBubble } = this.elements;
+  
+  if (isLoading) {
+    // Disable input controls
+    userInput.style.opacity = '0.5';
+    userInput.disabled = true;
+    chatInputContainer.className = 'chat-input-container-disabled';
+    submitButton.className = 'icon-button-disabled';
+    waitingBubble.style.display = 'flex';
+  } else {
+    // Enable input controls
+    userInput.style.opacity = '1';
+    userInput.disabled = false;
+    chatInputContainer.className = 'chat-input-container';
+    submitButton.className = 'icon-button';
+    waitingBubble.style.display = 'none';
+  }
+
+  // Handle alsie-avatar rotation for the current streaming message
+  if (this.appState.currentStreamingMessage) {
+    // Find the container that holds the current streaming message
+    const messageContainer = this.appState.currentStreamingMessage.closest('.ai_content_container');
     
-    if (isLoading) {
-      userInput.style.opacity = '0.5';
-      userInput.disabled = true;
-      chatInputContainer.className = 'chat-input-container-disabled';
-      submitButton.className = 'icon-button-disabled';
-      waitingBubble.style.display = 'flex';
+    if (messageContainer) {
+      // Find the alsie-avatar within this specific message container
+      const alsieAvatar = messageContainer.querySelector('.alsie-avatar');
       
-      // Set alsie-avatar to rotating state
       if (alsieAvatar) {
-        alsieAvatar.className = 'alsie-avatar rotating';
-        console.log('Avatar rotation started');
-      }
-    } else {
-      userInput.style.opacity = '1';
-      userInput.disabled = false;
-      chatInputContainer.className = 'chat-input-container';
-      submitButton.className = 'icon-button';
-      waitingBubble.style.display = 'none';
-      
-      // Set alsie-avatar to normal state
-      if (alsieAvatar) {
-        alsieAvatar.className = 'alsie-avatar';
-        console.log('Avatar rotation stopped');
+        if (isLoading) {
+          // Set avatar to rotating state
+          alsieAvatar.className = 'alsie-avatar rotating';
+        } else {
+          // Set avatar back to normal state
+          alsieAvatar.className = 'alsie-avatar';
+        }
       }
     }
   }
+}
+
 }

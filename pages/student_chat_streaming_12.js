@@ -629,6 +629,12 @@ class StudentChat {
     this.appState.currentStreamingMessage = null;
     this.appState.currentStreamingRawText = '';
     this.appState.streamingState = 'idle';
+
+
+ 
+  
+     // Stop the avatar rotation
+      this.setUILoadingState(false);
   }
 
   // ============================================================================

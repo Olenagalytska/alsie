@@ -469,14 +469,14 @@ class StudentChat {
       this.appState.currentStreamingMessage = this.createAssistantMessage('');
       
       // 4. Set loading state to TRUE (start avatar rotation)
-      this.setUILoadingState(true, this.elements.mainContainer);
+      this.setUILoadingState(true);
       
       // 5. Start streaming
       await this.startStreamingResponse(userInputValue);
       
     } catch (error) {
       console.error('Error handling chat submit:', error);
-      this.setUILoadingState(false, this.elements.mainContainer);
+      this.setUILoadingState(false);
       // TODO: Add proper error handling UI
     }
   }
@@ -540,11 +540,11 @@ class StudentChat {
       this.finalizeStreamingMessage();
 
       // IMPORTANT: Set loading state to FALSE when streaming is completely done
-      this.setUILoadingState(false, this.elements.mainContainer);
+      this.setUILoadingState(false);
 
     } catch (error) {
       console.error('Error during streaming:', error);
-      this.setUILoadingState(false, this.elements.mainContainer);
+      this.setUILoadingState(false);
       // TODO: Add proper error handling UI
     }
   }
@@ -629,9 +629,6 @@ class StudentChat {
     this.appState.currentStreamingMessage = null;
     this.appState.currentStreamingRawText = '';
     this.appState.streamingState = 'idle';
-
-
- 
   
      // Stop the avatar rotation
       this.setUILoadingState(false);
@@ -696,18 +693,18 @@ class StudentChat {
   
   if (isLoading) {
     // Disable input controls
-    userInput.style.opacity = '0.5';
+    //userInput.style.opacity = '0.5';
     userInput.disabled = true;
     chatInputContainer.className = 'chat-input-container-disabled';
     submitButton.className = 'icon-button-disabled';
-    waitingBubble.style.display = 'flex';
+    //waitingBubble.style.display = 'flex';
   } else {
     // Enable input controls
     userInput.style.opacity = '1';
     userInput.disabled = false;
     chatInputContainer.className = 'chat-input-container';
     submitButton.className = 'icon-button';
-    waitingBubble.style.display = 'none';
+    //waitingBubble.style.display = 'none';
   }
 
   // Handle alsie-avatar rotation for the current streaming message

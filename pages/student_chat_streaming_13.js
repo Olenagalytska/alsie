@@ -580,6 +580,8 @@ class StudentChat {
   }
 
   finalizeStreamingMessage() {
+    console.log('Finalizing stream'); // Debug log
+
     // Final markdown rendering once the complete message is received
     if (this.appState.currentStreamingMessage && this.appState.currentStreamingRawText) {
       const container = this.appState.currentStreamingMessage.closest('.ai_content_container');

@@ -699,7 +699,7 @@ class StudentChat {
   if (isLoading) {
     // Disable input controls
     //userInput.style.opacity = '0.5';
-    userInput.disabled = true;
+    //userInput.disabled = true;
     chatInputContainer.className = 'chat-input-container-disabled';
     submitButton.className = 'icon-button-disabled';
     //waitingBubble.style.display = 'flex';
@@ -718,6 +718,7 @@ class StudentChat {
     const messageContainer = this.appState.currentStreamingMessage.closest('.ai_content_container');
     
     if (messageContainer) {
+      console.log('message container found');
       // Find the alsie-avatar within this specific message container
       const alsieAvatar = messageContainer.querySelector('.alsie-avatar');
       
@@ -727,6 +728,7 @@ class StudentChat {
           alsieAvatar.className = 'alsie-avatar rotating';
         } else {
           // Set avatar back to normal state
+          console.log('setting avalar to default state');
           alsieAvatar.className = 'alsie-avatar';
         }
       }

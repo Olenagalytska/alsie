@@ -95,8 +95,8 @@ function renderStudentProgress(studentsData) {
 
 
 function createBlockElement(block, student_id) {
-    const isGraded = block.status === 'finished' && block.grading_output && Array.isArray(block.grading_output) && block.grading_output.length > 0;
     const isFinishedOrInProgress = block.status === 'finished' || block.status === 'started';
+    const isGraded = isFinishedOrInProgress && block.grading_output && Array.isArray(block.grading_output) && block.grading_output.length > 0;
     
     if (isGraded) {
         return createGradedBlock(block, student_id);

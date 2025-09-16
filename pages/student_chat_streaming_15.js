@@ -537,6 +537,7 @@ class StudentChat {
       }
 
       // Final update after stream completion
+      this.appState.currentStreamingRawText = accumulatedText;
       this.finalizeStreamingMessage();
 
       // IMPORTANT: Set loading state to FALSE when streaming is completely done

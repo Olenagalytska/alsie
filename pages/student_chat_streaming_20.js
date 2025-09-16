@@ -629,13 +629,15 @@ class StudentChat {
       this.scrollToBottom();
     }
     
+    // Stop the avatar rotation
+    this.setUILoadingState(false);
+    
     // Clear references
     this.appState.currentStreamingMessage = null;
     this.appState.currentStreamingRawText = '';
     this.appState.streamingState = 'idle';
   
-     // Stop the avatar rotation
-      this.setUILoadingState(false);
+     
   }
 
   // ============================================================================

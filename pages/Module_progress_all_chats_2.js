@@ -12,7 +12,7 @@ async function initializeProgressChatPage(course_id) {
         await populateLessonSelector(lessons, selectedLessonId);
         
         // Set up lesson selector change handler
-        setupLessonSelector(course_id);
+        setupLessonSelector_all_chats(course_id);
         
         // Display progress for the selected lesson
         if (selectedLessonId) {
@@ -384,4 +384,30 @@ function setupChatCodeBlocks(container) {
             });
         });
     });
+}
+
+
+function setupLessonSelector_all_chats(course_id) {
+    const lessonSelector = document.getElementById('lesson-selector');
+    
+    if (!lessonSelector) {
+        console.error('Lesson selector element not found');
+        return;
+    }
+
+    lessonSelector.addEventListener('change', function() {
+        const selectedLessonId = this.value;
+        
+        console.log('Lesson selected:', selectedLessonId);
+        
+        if (selectedLessonId) {
+            // Navigate to teacher course progress by module page
+            const targetUrl = `/teacher/course-progress-all-chats?course_id=${course_id}&lesson_id=${selectedLessonId}`;
+            console.log('Navigating to:', targetUrl);
+            
+            window.location.href = targetUrl;
+        }
+    });
+    
+    console.log('Lesson selector change handler set up successfully');
 }

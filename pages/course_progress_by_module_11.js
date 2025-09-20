@@ -76,7 +76,7 @@ function renderStudentProgress(studentsData) {
         // Student name row
         const nameContainer = document.createElement('div');
         nameContainer.className = 'pr-grade-row-container';
-        nameContainer.textContent = student.student_id;
+        nameContainer.textContent = student.name;
         studentWrapper.appendChild(nameContainer);
         
         // Student grades main container

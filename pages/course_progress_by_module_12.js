@@ -1,6 +1,7 @@
 async function initializeProgressPage(course_id) {
     try {
         // Set up element names and navigation
+        const teacher = await verifyUserAuth();
         await setElementNames({ course_id });
         setTeacherCourseMenu(course_id);
         
@@ -76,7 +77,9 @@ function renderStudentProgress(studentsData) {
         // Student name row
         const nameContainer = document.createElement('div');
         nameContainer.className = 'pr-grade-row-container';
-        nameContainer.textContent = student.student_name;
+        if (teacher.id == 146) { 
+            nameContainer.textContent = student.student_id;
+        } else nameContainer.textContent = student.student_name;
         studentWrapper.appendChild(nameContainer);
         
         // Student grades main container

@@ -1,7 +1,8 @@
+const teacher = await verifyUserAuth();
 async function initializeProgressPage(course_id) {
     try {
         // Set up element names and navigation
-        const teacher = await verifyUserAuth();
+        
         await setElementNames({ course_id });
         setTeacherCourseMenu(course_id);
         

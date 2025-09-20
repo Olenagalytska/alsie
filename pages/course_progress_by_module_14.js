@@ -1,4 +1,3 @@
-const teacher = await verifyUserAuth();
 async function initializeProgressPage(course_id) {
     try {
         // Set up element names and navigation
@@ -65,10 +64,10 @@ async function displayStudentProgress(course_id, lesson_id) {
     }
 }
 
-function renderStudentProgress(studentsData) {
+async function renderStudentProgress(studentsData) {
     const container = document.getElementById('student-progress-container');
     if (!container) return;
-    
+    const teacher = await verifyUserAuth();
     container.innerHTML = '';
     
     studentsData.forEach(student => {

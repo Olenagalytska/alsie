@@ -449,380 +449,294 @@ class StudentChat {
   // STREAMING FUNCTIONS
   // ============================================================================
 
-  // ============================================================================
-// IMPROVED STREAMING FUNCTIONS - Replace the existing streaming section
-// ============================================================================
-
-async handleStudentSubmit(event) {
-  event.preventDefault();
-  
-  const userInputValue = this.elements.userInput.value.trim();
-  
-  if (!userInputValue) {
-    return;
-  }
-
-  try {
-    // 1. Add user message to chat
-    this.createUserMessage(userInputValue);
+  async handleStudentSubmit(event) {
+    event.preventDefault();
     
-    // 2. Reset form
-    this.elements.userInput.value = '';
+    const userInputValue = this.elements.userInput.value.trim();
     
-    // 3. Create AI message container for streaming (empty initially)
-    this.appState.currentStreamingMessage = this.createStreamingAssistantMessage();
-    
-    // 4. Set loading state (starts avatar rotation)
-    this.setUILoadingState(true);
-    
-    // 5. Start streaming
-    await this.startStreamingResponse(userInputValue);
-    
-  } catch (error) {
-    console.error('Error handling chat submit:', error);
-    this.handleStreamingError(error);
-  }
-}
-
-// Create a streaming-specific assistant message
-createStreamingAssistantMessage() {
-  const aiContainer = document.createElement('div');
-  aiContainer.className = 'ai_content_container';
-  
-  // Create alsie avatar element with rotating class
-  const alsieAvatar = document.createElement('div');
-  alsieAvatar.id = 'alsie-avatar-streaming'; // Unique ID for streaming avatar
-  alsieAvatar.className = 'alsie-avatar rotating'; // Start with rotating
-  
-  const aiBubble = document.createElement('div');
-  aiBubble.className = 'ai_bubble';
-  
-  const aiText = document.createElement('div');
-  aiText.className = 'ai_text w-richtext streaming-text'; // Add streaming class for styling
-  aiText.innerHTML = '<span class="streaming-cursor">▊</span>'; // Optional: blinking cursor
-  
-  aiBubble.appendChild(aiText);
-  aiContainer.appendChild(alsieAvatar);
-  aiContainer.appendChild(aiBubble);
-  this.elements.mainContainer.appendChild(aiContainer);
-  
-  this.scrollToBottom();
-  
-  return { textElement: aiText, avatarElement: alsieAvatar, containerElement: aiContainer };
-}
-
-async startStreamingResponse(userInput) {
-  const streamState = {
-    accumulatedText: '',
-    buffer: '',
-    isComplete: false,
-    hasError: false,
-    pauseDetected: false,
-    lastChunkTime: Date.now()
-  };
-
-  try {
-    const params = new URLSearchParams({
-      ub_id: this.appState.ubId,
-      input: userInput
-    });
-    
-    const response = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/ub_chat_stream?${params.toString()}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Streaming API failed: ${response.status} ${response.statusText}`);
+    if (!userInputValue) {
+      return;
     }
-    
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    
-    // Start pause detection timer
-    const pauseCheckInterval = setInterval(() => {
-      const timeSinceLastChunk = Date.now() - streamState.lastChunkTime;
-      if (timeSinceLastChunk > 3000 && !streamState.isComplete && !streamState.pauseDetected) {
-        streamState.pauseDetected = true;
-        this.handleStreamPause();
-      }
-    }, 1000);
-    
+
     try {
-      while (true) {
-        const { done, value } = await reader.read();
-        
-        if (done) {
-          streamState.isComplete = true;
-          console.log('Stream completed successfully');
-          break;
-        }
-        
-        // Update last chunk time
-        streamState.lastChunkTime = Date.now();
-        if (streamState.pauseDetected) {
-          streamState.pauseDetected = false;
-          this.handleStreamResume();
-        }
-        
-        // Decode the chunk
-        const chunk = decoder.decode(value, { stream: true });
-        
-        // Add to buffer for SSE processing
-        streamState.buffer += chunk;
-        
-        // Process complete SSE lines
-        const lines = streamState.buffer.split('\n');
-        streamState.buffer = lines.pop() || ''; // Keep incomplete line in buffer
-        
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.substring(6);
-            
-            // Check for special SSE messages
-            if (data === '[DONE]') {
-              streamState.isComplete = true;
-              break;
-            }
-            
-            if (data) {
-              // Accumulate text
-              streamState.accumulatedText += data;
-              
-              // Update display with plain text during streaming
-              this.updateStreamingDisplay(streamState.accumulatedText);
-            }
-          } else if (line.startsWith('event: ')) {
-            // Handle special events if your API sends them
-            const event = line.substring(7).trim();
-            this.handleStreamEvent(event, streamState);
-          }
-        }
-        
-        if (streamState.isComplete) break;
-      }
-    } finally {
-      clearInterval(pauseCheckInterval);
+      // 1. Add user message to chat
+      this.createUserMessage(userInputValue);
+      
+      // 2. Reset form
+      this.elements.userInput.value = '';
+      
+      // 3. Create AI message container for streaming
+      this.appState.currentStreamingMessage = this.createAssistantMessage('');
+      
+      // 4. Set loading state to TRUE (start avatar rotation)
+      this.setUILoadingState(true);
+      
+      // 5. Start streaming
+      await this.startStreamingResponse(userInputValue);
+      
+    } catch (error) {
+      console.error('Error handling chat submit:', error);
+      this.setUILoadingState(false);
+      // TODO: Add proper error handling UI
     }
-    
-    // Process any remaining buffer
-    if (streamState.buffer && streamState.buffer.trim()) {
-      if (streamState.buffer.startsWith('data: ')) {
-        const data = streamState.buffer.substring(6).trim();
-        if (data && data !== '[DONE]') {
-          streamState.accumulatedText += data;
-        }
-      }
-    }
-    
-    // Finalize the message with full markdown rendering
-    this.finalizeStreamingMessage(streamState.accumulatedText);
-    
-  } catch (error) {
-    console.error('Error during streaming:', error);
-    streamState.hasError = true;
-    this.handleStreamingError(error);
   }
-}
 
-// Update display with plain text (no markdown parsing during streaming)
-updateStreamingDisplay(text) {
-  if (!this.appState.currentStreamingMessage) return;
-  
-  const { textElement } = this.appState.currentStreamingMessage;
-  
-  // Display as plain text with preserved line breaks during streaming
-  // This avoids expensive markdown parsing on every update
-  const escapedText = this.escapeHtml(text);
-  textElement.innerHTML = escapedText.replace(/\n/g, '<br>') + '<span class="streaming-cursor">▊</span>';
-  
-  this.scrollToBottom();
-}
-
-// Final markdown rendering when streaming is complete
-finalizeStreamingMessage(finalText) {
-  console.log('Finalizing stream with full markdown rendering');
-  
-  if (!this.appState.currentStreamingMessage) return;
-  
-  const { textElement, avatarElement, containerElement } = this.appState.currentStreamingMessage;
-  
-  try {
-    // Remove streaming cursor
-    textElement.innerHTML = '';
-    
-    // Parse and render the complete markdown
-    if (typeof marked !== 'undefined' && finalText) {
-      marked.setOptions({
-        breaks: true,
-        gfm: true,
-        sanitize: false,
-        headerIds: false,
-        mangle: false
+  async startStreamingResponse(userInput) {
+    try {
+      const params = new URLSearchParams({
+        ub_id: this.appState.ubId,
+        input: userInput
       });
       
-      // Render the final markdown
-      const renderedHtml = marked.parse(finalText);
-      textElement.innerHTML = renderedHtml;
-      
-      // Apply syntax highlighting to code blocks
-      if (typeof Prism !== 'undefined') {
-        textElement.querySelectorAll('pre code').forEach((block) => {
-          // Detect language if not specified
-          const lang = block.className.match(/language-(\w+)/);
-          if (lang) {
-            Prism.highlightElement(block);
-          } else {
-            // Try to auto-detect or use plain text
-            block.className = 'language-plaintext';
-            Prism.highlightElement(block);
+      const response = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/ub_chat_stream?${params.toString()}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Streaming API failed: ${response.status} ${response.statusText}`);
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulatedText = '';
+      let isFirstChunk = true;
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        console.log('streaming:   ', value);
+        
+        if (done) {
+          console.log('Stream completed');
+          break;
+        }
+
+        // Keep loading state TRUE during streaming (avatar keeps rotating)
+        // Don't set to false on first chunk anymore
+
+        // Decode chunk and add to buffer
+        const chunk = decoder.decode(value, { stream: true });
+        buffer += chunk;
+        
+        // Process complete SSE messages
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // Keep incomplete line in buffer
+        
+        for (const line of lines) {
+          
+          if (line.startsWith('data: ')) {
+            const data = line.substring(6); // Remove 'data: ' prefix
+            if (data.trim()) { // Only process non-empty data
+              accumulatedText += data;
+              // Update the streaming message
+              this.updateStreamingMessage(accumulatedText);
+            }
           }
-        });
+        }
+      }
+
+      // Final update after stream completion
+      this.appState.currentStreamingRawText = accumulatedText;
+      this.finalizeStreamingMessage();
+
+      // IMPORTANT: Set loading state to FALSE when streaming is completely done
+      this.setUILoadingState(false);
+
+    } catch (error) {
+      console.error('Error during streaming:', error);
+      this.setUILoadingState(false);
+      // TODO: Add proper error handling UI
+    }
+  }
+
+  updateStreamingMessage(text) {
+    if (this.appState.currentStreamingMessage) {
+      try {
+        if (typeof marked !== 'undefined') {
+          marked.setOptions({
+            breaks: true,
+            gfm: true,
+            sanitize: false
+          });
+          
+          this.appState.currentStreamingMessage.innerHTML = marked.parse(text);
+          
+          // Add syntax highlighting if available
+          if (typeof Prism !== 'undefined') {
+            this.appState.currentStreamingMessage.querySelectorAll('pre code').forEach((block) => {
+              Prism.highlightElement(block);
+            });
+          }
+        } else {
+          this.appState.currentStreamingMessage.textContent = text;
+        }
+      } catch (error) {
+        console.error('Error updating streaming message:', error);
+        this.appState.currentStreamingMessage.textContent = text;
       }
       
-      // Setup copy buttons for code blocks
-      this.setupCodeBlocks(containerElement);
+      this.scrollToBottom();
+    }
+  }
+
+  finalizeStreamingMessage() {
+    console.log('Finalizing stream'); // Debug log
+
+    // Final markdown rendering once the complete message is received
+    if (this.appState.currentStreamingMessage && this.appState.currentStreamingRawText) {
+      const container = this.appState.currentStreamingMessage.closest('.ai_content_container');
       
-    } else {
-      // Fallback: display with basic line break preservation
-      const escapedText = this.escapeHtml(finalText);
-      textElement.innerHTML = escapedText.replace(/\n/g, '<br>');
+      // Use the stored raw accumulated text (preserves original newlines and formatting)
+      const finalText = this.appState.currentStreamingRawText;
+      
+      console.log('Final raw text for rendering:', JSON.stringify(finalText)); // Debug log
+      
+      // Re-render the complete message with proper markdown parsing
+      try {
+        if (typeof marked !== 'undefined' && finalText) {
+          marked.setOptions({
+            breaks: true, // Ensure line breaks are preserved
+            gfm: true,
+            sanitize: false
+          });
+          
+          // Clear and re-render with the original raw text (no additional processing needed)
+          this.appState.currentStreamingMessage.innerHTML = marked.parse(finalText);
+          
+          // Add syntax highlighting for the final render
+          if (typeof Prism !== 'undefined') {
+            console.log('prism');
+            this.appState.currentStreamingMessage.querySelectorAll('pre code').forEach((block) => {
+              Prism.highlightElement(block);
+            });
+          }
+          
+          console.log('Final markdown rendering completed for streamed message');
+        }
+      } catch (error) {
+        console.error('Error in final markdown rendering:', error);
+        // Fallback: preserve line breaks manually with raw text
+        this.appState.currentStreamingMessage.innerHTML = finalText.replace(/\n/g, '<br>');
+      }
+      
+      // Setup code blocks for the final message
+      if (container) {
+        this.setupCodeBlocks(container);
+      }
+      
+      // Final scroll to bottom
+      this.scrollToBottom();
     }
     
-    // Remove streaming-specific classes
-    textElement.classList.remove('streaming-text');
+    // Stop the avatar rotation
+    this.setUILoadingState(false);
     
-    // Stop avatar rotation - change to normal alsie-avatar
-    avatarElement.className = 'alsie-avatar';
-    avatarElement.id = 'alsie-avatar'; // Change to standard ID
+    // Clear references
+    this.appState.currentStreamingMessage = null;
+    this.appState.currentStreamingRawText = '';
+    this.appState.streamingState = 'idle';
+  
+     
+  }
+
+  // ============================================================================
+  // STREAM PAUSE HANDLING
+  // ============================================================================
+
+  showStreamPausedIndicator() {
+    // Create or update pause indicator
+    let pauseIndicator = document.getElementById('stream-pause-indicator');
     
-  } catch (error) {
-    console.error('Error in final markdown rendering:', error);
-    // Fallback: display raw text
-    textElement.textContent = finalText;
-  }
-  
-  // Final UI cleanup
-  this.setUILoadingState(false);
-  
-  // Clear references
-  this.appState.currentStreamingMessage = null;
-  
-  // Final scroll
-  this.scrollToBottom();
-}
-
-// Handle stream pause (when no data for 3+ seconds)
-handleStreamPause() {
-  console.log('Stream pause detected');
-  
-  if (this.appState.currentStreamingMessage) {
-    const { avatarElement } = this.appState.currentStreamingMessage;
-    // Optionally change avatar state during pause
-    avatarElement.className = 'alsie-avatar paused';
-  }
-  
-  // Show pause indicator
-  this.showStreamPausedIndicator();
-}
-
-// Handle stream resume after pause
-handleStreamResume() {
-  console.log('Stream resumed');
-  
-  if (this.appState.currentStreamingMessage) {
-    const { avatarElement } = this.appState.currentStreamingMessage;
-    // Resume rotation
-    avatarElement.className = 'alsie-avatar rotating';
-  }
-  
-  // Hide pause indicator
-  this.hideStreamPausedIndicator();
-}
-
-// Handle special stream events
-handleStreamEvent(event, streamState) {
-  console.log('Stream event:', event);
-  
-  switch(event) {
-    case 'pause':
-      this.handleStreamPause();
-      break;
-    case 'resume':
-      this.handleStreamResume();
-      break;
-    case 'error':
-      streamState.hasError = true;
-      break;
-    case 'complete':
-      streamState.isComplete = true;
-      break;
-    default:
-      console.log('Unknown stream event:', event);
-  }
-}
-
-// Handle streaming errors
-handleStreamingError(error) {
-  console.error('Streaming error:', error);
-  
-  // Stop loading state
-  this.setUILoadingState(false);
-  
-  // Update the message to show error
-  if (this.appState.currentStreamingMessage) {
-    const { textElement, avatarElement } = this.appState.currentStreamingMessage;
+    if (!pauseIndicator) {
+      pauseIndicator = document.createElement('div');
+      pauseIndicator.id = 'stream-pause-indicator';
+      pauseIndicator.className = 'stream-pause-indicator';
+      pauseIndicator.innerHTML = `
+        <div class="pause-content">
+          <div class="pause-spinner"></div>
+          <span>Processing...</span>
+        </div>
+      `;
+      
+      // Add some basic styling
+      pauseIndicator.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      `;
+      
+      document.body.appendChild(pauseIndicator);
+    }
     
-    textElement.innerHTML = `
-      <div class="error-message">
-        <strong>Error:</strong> Unable to generate response. Please try again.
-        <br><small>${error.message}</small>
-      </div>
-    `;
-    
-    // Stop avatar rotation and show error state
-    avatarElement.className = 'alsie-avatar error';
+    pauseIndicator.style.display = 'flex';
+    console.log('Stream pause indicator shown');
   }
-  
-  // Clear references
-  this.appState.currentStreamingMessage = null;
-  
-  // Hide any pause indicators
-  this.hideStreamPausedIndicator();
-}
 
-// Utility: Escape HTML to prevent XSS during plain text display
-escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
+  hideStreamPausedIndicator() {
+    const pauseIndicator = document.getElementById('stream-pause-indicator');
+    if (pauseIndicator) {
+      pauseIndicator.style.display = 'none';
+    }
+    console.log('Stream pause indicator hidden');
+  }
 
-// Updated UI state management for streaming
-setUILoadingState(isLoading) {
-  const { userInput, chatInputContainer, submitButton } = this.elements;
+  // ============================================================================
+  // UI STATE MANAGEMENT
+  // ============================================================================
+
+  setUILoadingState(isLoading) {
+    if(!isLoading) {console.log('update ui state with false');}
+  const { userInput, chatInputContainer, submitButton, waitingBubble } = this.elements;
   
   if (isLoading) {
-    // Disable input controls during streaming
-    userInput.disabled = true;
+    // Disable input controls
+    //userInput.style.opacity = '0.5';
+    //userInput.disabled = true;
     chatInputContainer.className = 'chat-input-container-disabled';
     submitButton.className = 'icon-button-disabled';
-    submitButton.disabled = true;
+    //waitingBubble.style.display = 'flex';
   } else {
-    // Re-enable input controls
+    // Enable input controls
+    userInput.style.opacity = '1';
     userInput.disabled = false;
     chatInputContainer.className = 'chat-input-container';
     submitButton.className = 'icon-button';
-    submitButton.disabled = false;
+    //waitingBubble.style.display = 'none';
+  }
+
+  // Handle alsie-avatar rotation for the current streaming message
+  if (this.appState.currentStreamingMessage) {
+    // Find the container that holds the current streaming message
+    const messageContainer = this.appState.currentStreamingMessage.closest('.ai_content_container');
     
-    // Focus back on input for next message
-    userInput.focus();
+    if (messageContainer) {
+      // Find the alsie-avatar within this specific message container
+      const alsieAvatar = messageContainer.querySelector('.alsie-avatar');
+      
+      if (alsieAvatar) {
+        console.log('alsie avalar found');
+        if (isLoading) {
+          // Set avatar to rotating state
+          alsieAvatar.className = 'alsie-avatar rotating';
+        } else {
+          // Set avatar back to normal state
+          alsieAvatar.className = 'alsie-avatar';
+        }
+      }
+    }
   }
 }
-
-
-
 
 }

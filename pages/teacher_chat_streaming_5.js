@@ -39,7 +39,7 @@ class TeacherChat {
       userInput: document.getElementById('user-input'),
       submitButton: document.getElementById('submit-button'),
       generateButton: document.getElementById('generate-button'),
-      waitingBubble: document.getElementById('waiting-bubble'),
+      
       chatInputContainer: document.getElementById('chat-input-container')
     };
   }
@@ -682,13 +682,13 @@ class TeacherChat {
       userInput.disabled = true;
       chatInputContainer.className = 'chat-input-container-disabled';
       submitButton.className = 'icon-button-disabled';
-      waitingBubble.style.display = 'flex';
+      
     } else {
       userInput.style.opacity = '1';
       userInput.disabled = false;
       chatInputContainer.className = 'chat-input-container';
       submitButton.className = 'icon-button';
-      waitingBubble.style.display = 'none';
+      
     }
   }
 }

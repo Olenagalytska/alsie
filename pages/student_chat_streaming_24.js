@@ -505,21 +505,42 @@ class StudentChat {
       let isFirstChunk = true;
       let buffer = '';
 
-      while (true) {
-        const { done, value } = await reader.read();
-        console.log('streaming:   ', value);
-        
-        if (done) {
-          console.log('Stream completed');
-          break;
+
+
+        while (true) {
+    const { done, value } = await reader.read();
+    
+    // Add debugging to see raw bytes
+    console.log('Raw bytes received:', value);
+    console.log('Byte length:', value?.byteLength);
+    
+    if (done) {
+        console.log('Stream completed');
+        break;
+    }
+    
+    try {
+        const chunk = decoder.decode(value, { stream: true });
+        console.log('Decoded chunk:', JSON.stringify(chunk));
+        console.log('Chunk length:', chunk.length);
+    } catch (decodeError) {
+        console.error('Decode error:', decodeError);
+        // Try to decode without stream flag to see what happens
+        try {
+            const fallback = decoder.decode(value, { stream: false });
+            console.log('Fallback decode:', fallback);
+        } catch (e) {
+            console.error('Fallback also failed:', e);
         }
+    }
+  }
 
         // Keep loading state TRUE during streaming (avatar keeps rotating)
         // Don't set to false on first chunk anymore
 
         // Decode chunk and add to buffer
-        const chunk = decoder.decode(value, { stream: true });
-        buffer += chunk;
+        //const chunk = decoder.decode(value, { stream: true });
+        //buffer += chunk;
         
         // Process complete SSE messages
         const lines = buffer.split('\n');

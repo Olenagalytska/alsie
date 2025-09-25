@@ -481,97 +481,98 @@ class StudentChat {
     }
   }
 
-  async startStreamingResponse(userInput) {
-    try {
-      const params = new URLSearchParams({
-        ub_id: this.appState.ubId,
-        input: userInput
-      });
-      
-      const response = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/ub_chat_stream?${params.toString()}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Streaming API failed: ${response.status} ${response.statusText}`);
+  
+async startStreamingResponse(userInput) {
+  try {
+    const params = new URLSearchParams({
+      ub_id: this.appState.ubId,
+      input: userInput
+    });
+    
+    const response = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/ub_chat_stream?${params.toString()}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
       }
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let accumulatedText = '';
-      let isFirstChunk = true;
-      let buffer = '';
-
-
-
-        while (true) {
-    const { done, value } = await reader.read();
+    });
     
-    // Add debugging to see raw bytes
-    console.log('Raw bytes received:', value);
-    console.log('Byte length:', value?.byteLength);
-    
-    if (done) {
-        console.log('Stream completed');
-        break;
+    if (!response.ok) {
+      throw new Error(`Streaming API failed: ${response.status} ${response.statusText}`);
     }
     
-    try {
-        const chunk = decoder.decode(value, { stream: true });
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let accumulatedText = '';
+    let isFirstChunk = true;
+    let buffer = '';
+    
+    while (true) {
+      const { done, value } = await reader.read();
+      
+      // Add debugging to see raw bytes
+      console.log('Raw bytes received:', value);
+      console.log('Byte length:', value?.byteLength);
+      
+      if (done) {
+        console.log('Stream completed');
+        break;
+      }
+      
+      let chunk = '';
+      try {
+        chunk = decoder.decode(value, { stream: true });
         console.log('Decoded chunk:', JSON.stringify(chunk));
         console.log('Chunk length:', chunk.length);
-    } catch (decodeError) {
+      } catch (decodeError) {
         console.error('Decode error:', decodeError);
         // Try to decode without stream flag to see what happens
         try {
-            const fallback = decoder.decode(value, { stream: false });
-            console.log('Fallback decode:', fallback);
+          const fallback = decoder.decode(value, { stream: false });
+          console.log('Fallback decode:', fallback);
+          chunk = fallback; // Use fallback if it works
         } catch (e) {
-            console.error('Fallback also failed:', e);
+          console.error('Fallback also failed:', e);
+          continue; // Skip this iteration if decoding completely fails
         }
-    }
-  }
-
-        // Keep loading state TRUE during streaming (avatar keeps rotating)
-        // Don't set to false on first chunk anymore
-
-        // Decode chunk and add to buffer
-        //const chunk = decoder.decode(value, { stream: true });
-        //buffer += chunk;
-        
-        // Process complete SSE messages
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || ''; // Keep incomplete line in buffer
-        
-        for (const line of lines) {
-          
-          if (line.startsWith('data: ')) {
-            const data = line.substring(6); // Remove 'data: ' prefix
-            if (data.trim()) { // Only process non-empty data
-              accumulatedText += data;
-              // Update the streaming message
-              this.updateStreamingMessage(accumulatedText);
-            }
+      }
+      
+      // Add decoded chunk to buffer
+      buffer += chunk;
+      
+      // Process complete SSE messages
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || ''; // Keep incomplete line in buffer
+      
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.substring(6); // Remove 'data: ' prefix
+          if (data.trim()) { // Only process non-empty data
+            accumulatedText += data;
+            // Update the streaming message
+            this.updateStreamingMessage(accumulatedText);
           }
         }
       }
-
-      // Final update after stream completion
-      this.appState.currentStreamingRawText = accumulatedText;
-      this.finalizeStreamingMessage();
-
-      // IMPORTANT: Set loading state to FALSE when streaming is completely done
-      this.setUILoadingState(false);
-
-    } catch (error) {
-      console.error('Error during streaming:', error);
-      this.setUILoadingState(false);
-      // TODO: Add proper error handling UI
+      
+      // Mark first chunk processed
+      if (isFirstChunk) {
+        isFirstChunk = false;
+      }
     }
+    
+    // Final update after stream completion
+    this.appState.currentStreamingRawText = accumulatedText;
+    this.finalizeStreamingMessage();
+    
+    // IMPORTANT: Set loading state to FALSE when streaming is completely done
+    this.setUILoadingState(false);
+    
+  } catch (error) {
+    console.error('Error during streaming:', error);
+    this.setUILoadingState(false);
+    // TODO: Add proper error handling UI
   }
+}
 
   updateStreamingMessage(text) {
     if (this.appState.currentStreamingMessage) {

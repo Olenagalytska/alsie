@@ -425,7 +425,8 @@ importButton.addEventListener('click', async function() {
         const deleteButton = document.createElement('button');
         deleteButton.className = 'button_red_s';
         deleteButton.innerText = 'Delete';
-        deleteButton.addEventListener('click', () => {
+        deleteButton.addEventListener('click', (e) => {
+            e.preventDefault();
             removeParameterSet(parameterSet);
             updateFormChangedStatus();
             // After deletion, update delete button visibility for remaining sets

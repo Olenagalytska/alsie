@@ -56,7 +56,8 @@ class StudentChat {
     this.appState.user = await verifyUserAuth();
     
     // 3. Get URL parameters
-    this.appState.userId = getUrlParameters('user_id');
+    //this.appState.userId = getUrlParameters('user_id');
+    this.appState.userId = this.appState.user.id;
     this.appState.blockId = getUrlParameters('block_id');
     
     if (!this.appState.userId || !this.appState.blockId) {

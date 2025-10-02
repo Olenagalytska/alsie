@@ -438,7 +438,7 @@ importButton.addEventListener('click', async function() {
     
     container.appendChild(singleParameterSetContainer);
     specificationsSets.push(parameterSet);
-    //removeFocusOutlineFromContainer(singleParameterSetContainer);
+    removeFocusOutlineFromContainer(singleParameterSetContainer);
     
     // Update delete button visibility for all sets
     updateDeleteButtonsVisibility(paramsDefinition);

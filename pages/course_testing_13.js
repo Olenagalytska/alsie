@@ -449,7 +449,7 @@ function createTestCriterionElement(criterion) {
     
     const summaryText = document.createElement('div');
     summaryText.className = 'pr-criterion-summary-text';
-    summaryText.textContent = (criterion.summary || '') + ' ' + (criterion.grading_comment || '');
+    summaryText.textContent = (criterion.summary || '');
     container.appendChild(summaryText);
     
     return container;

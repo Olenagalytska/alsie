@@ -51,6 +51,8 @@ class StudentChat {
   async initializeStudentChat() {
     // 1. Setup UI
     this.setupInputFocusHandling();
+this.setupPageLeaveTracking();
+
     
     // 2. Authenticate user
     this.appState.user = await verifyUserAuth();
@@ -740,4 +742,72 @@ class StudentChat {
   }
 }
 
+// ============================================================================
+// PAGE LEAVE TRACKING
+// ============================================================================
+// Add this method to the StudentChat class
+
+setupPageLeaveTracking() {
+  // Track when user leaves the page (switches tabs or minimizes window)
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      // Page is now hidden (user switched tabs or minimized)
+      this.handlePageLeave();
+    }
+  });
+
+  // Additional tracking for window blur (backup method)
+  window.addEventListener('blur', () => {
+    this.handlePageLeave();
+  });
+
+  // Track page unload (when user navigates away or closes tab)
+  window.addEventListener('beforeunload', () => {
+    this.handlePageLeave();
+  });
 }
+
+async handlePageLeave() {
+  if (!this.appState.ubId) {
+    console.warn('No ub_id available for page_left tracking');
+    return;
+  }
+
+  try {
+    // Use sendBeacon for reliability when page is closing
+    // Falls back to fetch if sendBeacon is not available
+    const url = 'https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/page_left';
+    const data = JSON.stringify({ ub_id: this.appState.ubId });
+
+    if (navigator.sendBeacon) {
+      // sendBeacon is more reliable for page unload events
+      const blob = new Blob([data], { type: 'application/json' });
+      navigator.sendBeacon(url, blob);
+      console.log('Page leave tracked via sendBeacon');
+    } else {
+      // Fallback to fetch with keepalive flag
+      await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: data,
+        keepalive: true // Ensures request completes even if page unloads
+      });
+      console.log('Page leave tracked via fetch');
+    }
+  } catch (error) {
+    console.error('Error tracking page leave:', error);
+  }
+}
+
+// ============================================================================
+// UPDATE THE INITIALIZATION METHOD
+// ============================================================================
+// Add this line to the initializeStudentChat() method, 
+// after step 7 (setupStudentEventListeners):
+
+
+}
+
+

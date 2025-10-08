@@ -741,7 +741,6 @@ this.setupPageLeaveTracking();
     }
   }
 }
-
 // ============================================================================
 // PAGE LEAVE TRACKING
 // ============================================================================
@@ -774,16 +773,15 @@ async handlePageLeave() {
   }
 
   try {
-    // Use sendBeacon for reliability when page is closing
-    // Falls back to fetch if sendBeacon is not available
-    const url = 'https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/page_left';
-    const data = JSON.stringify({ ub_id: this.appState.ubId });
+    // Build URL with ub_id as query parameter (not in body for PUT)
+    const url = `https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/page_left?ub_id=${this.appState.ubId}`;
 
     if (navigator.sendBeacon) {
       // sendBeacon is more reliable for page unload events
-      const blob = new Blob([data], { type: 'application/json' });
-      navigator.sendBeacon(url, blob);
-      console.log('Page leave tracked via sendBeacon');
+      // Send empty body or minimal data since ub_id is in URL
+      const blob = new Blob([''], { type: 'text/plain' });
+      const success = navigator.sendBeacon(url, blob);
+      console.log('Page leave tracked via sendBeacon:', success);
     } else {
       // Fallback to fetch with keepalive flag
       await fetch(url, {
@@ -791,7 +789,6 @@ async handlePageLeave() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: data,
         keepalive: true // Ensures request completes even if page unloads
       });
       console.log('Page leave tracked via fetch');

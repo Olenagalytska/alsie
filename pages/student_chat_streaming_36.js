@@ -634,24 +634,21 @@ class StudentChat {
 
   async startStreamingResponse(userInput) {
     try {
-      const params = new URLSearchParams({
-      ub_id: this.appState.ubId,
-      input: userInput
-    });
+      const formData = new FormData();
+    formData.append('ub_id', this.appState.ubId);
+    formData.append('input', userInput);
     
-    // Add file to params if it exists
+    // Add file to formData if it exists
     if (this.appState.selectedFile) {
-      params.append('user_file', this.appState.selectedFile);
-      // Clear the file after adding to params
+      formData.append('user_file', this.appState.selectedFile);
+      // Clear the file after adding to formData
       this.clearSelectedFile();
     }
-      
-      const response = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/ub_chat_stream_file?${params.toString()}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+    
+    const response = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/ub_chat_stream`, {
+      method: 'GET',
+      body: formData
+    });
 
       if (!response.ok) {
         throw new Error(`Streaming API failed: ${response.status} ${response.statusText}`);

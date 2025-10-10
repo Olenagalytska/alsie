@@ -179,7 +179,7 @@ function createUserContentContainer(userContent, mainContainer) {
   // Add file link if it exists
   
     const fileLink = document.createElement('a');
-    if (userContent.file.name && userContent.file.url) {
+    if (userContent?.file?.name && userContent?.file?.url) {
     fileLink.href = userContent.file.url;
     fileLink.textContent = userContent.file.name;
     fileLink.target = '_blank';

@@ -646,7 +646,7 @@ class StudentChat {
     }
     
     const response = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/ub_chat_stream`, {
-      method: 'GET',
+      method: 'POST',
       body: formData
     });
 

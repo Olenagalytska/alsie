@@ -645,7 +645,7 @@ class StudentChat {
       this.clearSelectedFile();
     }
     
-    const response = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/ub_chat_stream`, {
+    const response = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/ub_chat_stream_file`, {
       method: 'POST',
       body: formData
     });

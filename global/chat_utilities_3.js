@@ -148,7 +148,7 @@ function processChatApiResponse(data, mainContainer) {
   data.forEach(item => {
     // Display user content
     const userContent = item?.user_content;
-    if (userText) {
+    if (userContent) {
       createUserContentContainer(userContent, mainContainer);
     }
     

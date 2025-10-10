@@ -177,16 +177,18 @@ function createUserContentContainer(userContent, mainContainer) {
   content.textContent = userContent?.text;
   
   // Add file link if it exists
-  if (userContent?.file?.name && userContent?.file?.url) {
+  
     const fileLink = document.createElement('a');
+    if (userContent.file.name && userContent.file.url) {
     fileLink.href = userContent.file.url;
     fileLink.textContent = userContent.file.name;
     fileLink.target = '_blank';
     
-    bubble.appendChild(fileLink);
+    
   }
 
   bubble.appendChild(content);
+  bubble.appendChild(fileLink);
   container.appendChild(bubble);
   mainContainer.appendChild(container);
 }

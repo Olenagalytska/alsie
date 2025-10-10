@@ -18,7 +18,8 @@ class StudentChat {
       ubData: null,
       courseId: null,
       lessonId: null,
-      currentStreamingMessage: null
+      currentStreamingMessage: null,
+      selectedFile: null // Added for file upload
     };
   }
 
@@ -44,7 +45,10 @@ class StudentChat {
       userInput: document.getElementById('user-input'),
       submitButton: document.getElementById('submit-button'),
       attachFile: document.getElementById('attach-file-icon'),
-      chatInputContainer: document.getElementById('chat-input-container')
+      chatInputContainer: document.getElementById('chat-input-container'),
+      removeFile: document.getElementById('remove-file-icon'),
+      uploadFile: document.getElementById('upload-file-icon'),
+      fileName: document.getElementById('file-name')
     };
   }
 
@@ -120,6 +124,9 @@ class StudentChat {
     if (this.appState.ubData.status === "finished" || this.appState.ubData.status === "blocked") {
       this.elements.form.style.display = "none";
     }
+
+    // Initialize file upload UI state
+    this.updateFileUploadUI();
   }
 
   setupBlockContent() {
@@ -215,6 +222,147 @@ class StudentChat {
         this.handleStudentSubmit(event);
       }
     });
+
+    // File upload event listeners
+    this.setupFileUploadListeners();
+  }
+
+  // ============================================================================
+  // FILE UPLOAD FUNCTIONALITY
+  // ============================================================================
+
+  setupFileUploadListeners() {
+    // Attach file button - opens file dialog
+    this.elements.attachFile?.addEventListener('click', () => {
+      this.openFileDialog();
+    });
+
+    // Remove file button - clears selected file
+    this.elements.removeFile?.addEventListener('click', () => {
+      this.clearSelectedFile();
+    });
+
+    // Upload file button - uploads the file to API
+    this.elements.uploadFile?.addEventListener('click', async () => {
+      await this.uploadFile();
+    });
+  }
+
+  openFileDialog() {
+    // Create a hidden file input element
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.style.display = 'none';
+    
+    fileInput.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        this.handleFileSelected(file);
+      }
+      // Remove the temporary input element
+      document.body.removeChild(fileInput);
+    });
+    
+    document.body.appendChild(fileInput);
+    fileInput.click();
+  }
+
+  handleFileSelected(file) {
+    // Store the selected file in appState
+    this.appState.selectedFile = file;
+    
+    // Display the file name
+    if (this.elements.fileName) {
+      this.elements.fileName.textContent = file.name;
+    }
+    
+    // Update UI to show file is selected
+    this.updateFileUploadUI();
+    
+    console.log('File selected:', file.name);
+  }
+
+  clearSelectedFile() {
+    // Clear the selected file
+    this.appState.selectedFile = null;
+    
+    // Clear the file name display
+    if (this.elements.fileName) {
+      this.elements.fileName.textContent = '';
+    }
+    
+    // Update UI to show no file selected
+    this.updateFileUploadUI();
+    
+    console.log('File cleared');
+  }
+
+  updateFileUploadUI() {
+    const hasFile = this.appState.selectedFile !== null;
+    
+    if (hasFile) {
+      // Hide attach button, show file name and remove button
+      if (this.elements.attachFile) {
+        this.elements.attachFile.style.display = 'none';
+      }
+      if (this.elements.fileName) {
+        this.elements.fileName.style.display = 'block';
+      }
+      if (this.elements.removeFile) {
+        this.elements.removeFile.style.display = 'block';
+      }
+    } else {
+      // Show attach button, hide file name and remove button
+      if (this.elements.attachFile) {
+        this.elements.attachFile.style.display = 'block';
+      }
+      if (this.elements.fileName) {
+        this.elements.fileName.style.display = 'none';
+      }
+      if (this.elements.removeFile) {
+        this.elements.removeFile.style.display = 'none';
+      }
+    }
+  }
+
+  async uploadFile() {
+    if (!this.appState.selectedFile) {
+      console.warn('No file selected for upload');
+      return;
+    }
+
+    const userInputValue = this.elements.userInput.value.trim();
+
+    try {
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append('user_input', userInputValue);
+      formData.append('ub_id', this.appState.ubId);
+      formData.append('user_file', this.appState.selectedFile);
+
+      // Upload file to API
+      const response = await fetch('https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/add_air_file', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error(`File upload failed: ${response.status} ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log('File uploaded successfully:', result);
+
+      // Clear the file after successful upload
+      this.clearSelectedFile();
+
+      // Optionally clear the user input as well
+      this.elements.userInput.value = '';
+
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      // Handle silently as requested, but log for debugging
+    }
   }
 
   // ============================================================================
@@ -744,5 +892,3 @@ class StudentChat {
 
 
 }
-
-

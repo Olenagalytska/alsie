@@ -135,43 +135,7 @@ async function fetchChatData(ubId) {
   return airData;
 }
 
-async function processUserChatRequest(userInput, ubId) {
-  const formData = new FormData();
-  formData.append('ub_id', ubId);
-  formData.append('user_input', userInput);
-  
-  const response = await fetch(CHAT_CONFIG.ENDPOINTS.PROCESS_CHAT, {
-    method: 'POST',
-    body: formData
-  });
-  
-  if (!response.ok) {
-    throw new Error(`Error processing user request: ${response.statusText}`);
-  }
-  
-  console.log('User request processed successfully.');
-  return response;
-}
 
-async function generateUserResponse(ubId) {
-  const response = await fetch(CHAT_CONFIG.ENDPOINTS.GENERATE_RESPONSE, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ub_id: ubId }),
-  });
-  
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-  
-  const data = await response.json();
-  console.log('Generated Answer:', data);
-  return data;
-}
-
-// ============================================================================
-// CHAT DISPLAY FUNCTIONS
-// ============================================================================
 
 function processChatApiResponse(data, mainContainer) {
   if (!Array.isArray(data)) {
@@ -183,9 +147,9 @@ function processChatApiResponse(data, mainContainer) {
   
   data.forEach(item => {
     // Display user content
-    const userText = item?.user_content?.text;
+    const userContent = item?.user_content;
     if (userText) {
-      createUserContentContainer(userText, mainContainer);
+      createUserContentContainer(userContent, mainContainer);
     }
     
     // Display AI content
@@ -201,7 +165,7 @@ function processChatApiResponse(data, mainContainer) {
   });
 }
 
-function createUserContentContainer(userInput, mainContainer) {
+function createUserContentContainer(userContent, mainContainer) {
   const container = document.createElement('div');
   container.className = 'user_content_container';
   
@@ -210,8 +174,18 @@ function createUserContentContainer(userInput, mainContainer) {
   
   const content = document.createElement('div');
   content.className = 'user_text';
-  content.textContent = userInput;
+  content.textContent = userContent?.text;
   
+  // Add file link if it exists
+  if (userContent?.file?.name && userContent?.file?.url) {
+    const fileLink = document.createElement('a');
+    fileLink.href = userContent.file.url;
+    fileLink.textContent = userContent.file.name;
+    fileLink.target = '_blank';
+    
+    bubble.appendChild(fileLink);
+  }
+
   bubble.appendChild(content);
   container.appendChild(bubble);
   mainContainer.appendChild(container);

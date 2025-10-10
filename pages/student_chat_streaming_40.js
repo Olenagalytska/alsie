@@ -90,7 +90,8 @@ class StudentChat {
     this.setupStudentEventListeners();
     
     // 8. Load initial chat messages
-    await this.loadChatHistory();
+    //await this.loadChatHistory();
+    await refreshChatDisplay(this.appState.ubId, this.elements.mainContainer);
   }
 
   // ============================================================================

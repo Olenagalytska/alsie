@@ -387,13 +387,6 @@ class StudentChat {
         });
         
         aiText.innerHTML = marked.parse(text);
-        
-        // Add syntax highlighting if available
-        if (typeof Prism !== 'undefined') {
-          aiText.querySelectorAll('pre code').forEach((block) => {
-            Prism.highlightElement(block);
-          });
-        }
       } else {
         console.warn('Marked library not loaded, displaying plain text');
         aiText.textContent = text;
@@ -408,40 +401,9 @@ class StudentChat {
     aiContainer.appendChild(aiBubble);
     this.elements.mainContainer.appendChild(aiContainer);
     
-    this.setupCodeBlocks(aiContainer);
     this.scrollToBottom();
     
     return aiText; // Return reference for streaming updates
-  }
-
-  setupCodeBlocks(container) {
-    const codeBlocks = container.querySelectorAll('pre code');
-    
-    codeBlocks.forEach(codeBlock => {
-      const copyButton = document.createElement('button');
-      copyButton.className = 'copy-code-button';
-      copyButton.textContent = 'Copy';
-      
-      const pre = codeBlock.parentNode;
-      pre.style.position = 'relative';
-      pre.appendChild(copyButton);
-      
-      copyButton.addEventListener('click', () => {
-        const code = codeBlock.textContent;
-        navigator.clipboard.writeText(code).then(() => {
-          copyButton.textContent = 'Copied!';
-          setTimeout(() => {
-            copyButton.textContent = 'Copy';
-          }, 2000);
-        }).catch(err => {
-          console.error('Failed to copy code:', err);
-          copyButton.textContent = 'Error!';
-          setTimeout(() => {
-            copyButton.textContent = 'Copy';
-          }, 2000);
-        });
-      });
-    });
   }
 
   scrollToBottom() {
@@ -566,13 +528,6 @@ class StudentChat {
           });
           
           this.appState.currentStreamingMessage.innerHTML = marked.parse(text);
-          
-          // Add syntax highlighting if available
-          if (typeof Prism !== 'undefined') {
-            this.appState.currentStreamingMessage.querySelectorAll('pre code').forEach((block) => {
-              Prism.highlightElement(block);
-            });
-          }
         } else {
           this.appState.currentStreamingMessage.textContent = text;
         }
@@ -609,25 +564,12 @@ class StudentChat {
           // Clear and re-render with the original raw text (no additional processing needed)
           this.appState.currentStreamingMessage.innerHTML = marked.parse(finalText);
           
-          // Add syntax highlighting for the final render
-          if (typeof Prism !== 'undefined') {
-            console.log('prism');
-            this.appState.currentStreamingMessage.querySelectorAll('pre code').forEach((block) => {
-              Prism.highlightElement(block);
-            });
-          }
-          
           console.log('Final markdown rendering completed for streamed message');
         }
       } catch (error) {
         console.error('Error in final markdown rendering:', error);
         // Fallback: preserve line breaks manually with raw text
         this.appState.currentStreamingMessage.innerHTML = finalText.replace(/\n/g, '<br>');
-      }
-      
-      // Setup code blocks for the final message
-      if (container) {
-        this.setupCodeBlocks(container);
       }
       
       // Final scroll to bottom
@@ -744,5 +686,3 @@ class StudentChat {
 
 
 }
-
-

@@ -298,48 +298,61 @@ class StudentChat {
   // ============================================================================
   // TEMPORARY: Legacy message format parser (REMOVE WHEN ALL USERS SWITCH TO STREAMING)
   // ============================================================================
-  parseLegacyMessageFormat(textValue, role) {
-    // Check if message starts with { (indicating legacy JSON format)
-    if (textValue.trim().startsWith('{')) {
-      try {
-        if (role === 'assistant') {
-          // Handle AI messages: {"text":"content","title":"-","type":"interview","additional":"info"}
-          const parsed = JSON.parse(textValue);
-          if (parsed.text) {
-            console.log('TEMP: Parsed legacy AI message format');
-            return parsed.text;
-          }
-        } else if (role === 'user') {
-          // Handle user messages: {'type': 'student', 'text': 'content' (missing closing bracket)
-          let fixedJson = textValue.trim();
-          
-          // Fix missing closing bracket if needed
-          if (!fixedJson.endsWith('}')) {
-            fixedJson += '}';
-          }
-          
-          // Replace single quotes with double quotes for valid JSON
-          fixedJson = fixedJson.replace(/'/g, '"');
-          
-          const parsed = JSON.parse(fixedJson);
-          if (parsed.text) {
-            console.log('TEMP: Parsed legacy user message format');
-            return parsed.text;
-          }
-        }
-      } catch (jsonError) {
-        console.warn('TEMP: Failed to parse legacy JSON format, using raw text:', jsonError);
-        // If JSON parsing fails, return original text
+ parseLegacyMessageFormat(textValue, role) {
+  // Check if message starts with { (indicating JSON format)
+  if (textValue.trim().startsWith('{')) {
+    try {
+      let jsonString = textValue.trim();
+      
+      // Try to fix common JSON issues
+      // 1. Add missing closing bracket if needed
+      const openBraces = (jsonString.match(/{/g) || []).length;
+      const closeBraces = (jsonString.match(/}/g) || []).length;
+      
+      if (openBraces > closeBraces) {
+        console.log('TEMP: Fixing missing closing braces');
+        jsonString += '}'.repeat(openBraces - closeBraces);
       }
+      
+      // 2. For user messages, replace single quotes with double quotes
+      if (role === 'user') {
+        jsonString = jsonString.replace(/'/g, '"');
+      }
+      
+      // Try to parse the JSON
+      const parsed = JSON.parse(jsonString);
+      
+      if (parsed.text) {
+        console.log('TEMP: Successfully parsed JSON and extracted text field');
+        return parsed.text;
+      } else {
+        console.warn('TEMP: JSON parsed but no text field found. Available fields:', Object.keys(parsed));
+        return textValue; // Return original if no text field
+      }
+      
+    } catch (jsonError) {
+      console.warn('TEMP: Failed to parse JSON format:', jsonError.message);
+      console.warn('TEMP: Raw value was:', textValue);
+      
+      // Last resort: Try to extract text field using regex
+      const textMatch = textValue.match(/"text"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+      if (textMatch && textMatch[1]) {
+        console.log('TEMP: Extracted text using regex fallback');
+        // Unescape the text
+        return textMatch[1].replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\\\/g, '\\');
+      }
+      
+      // If all else fails, return original text
+      return textValue;
     }
-    
-    // Return original text if not legacy format or parsing failed
-    return textValue;
   }
-  // ============================================================================
-  // END TEMPORARY SECTION - REMOVE WHEN ALL USERS SWITCH TO STREAMING
-  // ============================================================================
-
+  
+  // Return original text if not JSON format
+  return textValue;
+}
+// ============================================================================
+// END TEMPORARY SECTION - REMOVE WHEN ALL USERS SWITCH TO STREAMING
+// ============================================================================
   // ============================================================================
   // MESSAGE DISPLAY FUNCTIONS
   // ============================================================================

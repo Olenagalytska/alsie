@@ -298,61 +298,48 @@ class StudentChat {
   // ============================================================================
   // TEMPORARY: Legacy message format parser (REMOVE WHEN ALL USERS SWITCH TO STREAMING)
   // ============================================================================
- parseLegacyMessageFormat(textValue, role) {
-  // Check if message starts with { (indicating JSON format)
-  if (textValue.trim().startsWith('{')) {
-    try {
-      let jsonString = textValue.trim();
-      
-      // Try to fix common JSON issues
-      // 1. Add missing closing bracket if needed
-      const openBraces = (jsonString.match(/{/g) || []).length;
-      const closeBraces = (jsonString.match(/}/g) || []).length;
-      
-      if (openBraces > closeBraces) {
-        console.log('TEMP: Fixing missing closing braces');
-        jsonString += '}'.repeat(openBraces - closeBraces);
+  parseLegacyMessageFormat(textValue, role) {
+    // Check if message starts with { (indicating legacy JSON format)
+    if (textValue.trim().startsWith('{')) {
+      try {
+        if (role === 'assistant') {
+          // Handle AI messages: {"text":"content","title":"-","type":"interview","additional":"info"}
+          const parsed = JSON.parse(textValue);
+          if (parsed.text) {
+            console.log('TEMP: Parsed legacy AI message format');
+            return parsed.text;
+          }
+        } else if (role === 'user') {
+          // Handle user messages: {'type': 'student', 'text': 'content' (missing closing bracket)
+          let fixedJson = textValue.trim();
+          
+          // Fix missing closing bracket if needed
+          if (!fixedJson.endsWith('}')) {
+            fixedJson += '}';
+          }
+          
+          // Replace single quotes with double quotes for valid JSON
+          fixedJson = fixedJson.replace(/'/g, '"');
+          
+          const parsed = JSON.parse(fixedJson);
+          if (parsed.text) {
+            console.log('TEMP: Parsed legacy user message format');
+            return parsed.text;
+          }
+        }
+      } catch (jsonError) {
+        console.warn('TEMP: Failed to parse legacy JSON format, using raw text:', jsonError);
+        // If JSON parsing fails, return original text
       }
-      
-      // 2. For user messages, replace single quotes with double quotes
-      if (role === 'user') {
-        jsonString = jsonString.replace(/'/g, '"');
-      }
-      
-      // Try to parse the JSON
-      const parsed = JSON.parse(jsonString);
-      
-      if (parsed.text) {
-        console.log('TEMP: Successfully parsed JSON and extracted text field');
-        return parsed.text;
-      } else {
-        console.warn('TEMP: JSON parsed but no text field found. Available fields:', Object.keys(parsed));
-        return textValue; // Return original if no text field
-      }
-      
-    } catch (jsonError) {
-      console.warn('TEMP: Failed to parse JSON format:', jsonError.message);
-      console.warn('TEMP: Raw value was:', textValue);
-      
-      // Last resort: Try to extract text field using regex
-      const textMatch = textValue.match(/"text"\s*:\s*"((?:[^"\\]|\\.)*)"/);
-      if (textMatch && textMatch[1]) {
-        console.log('TEMP: Extracted text using regex fallback');
-        // Unescape the text
-        return textMatch[1].replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\\\/g, '\\');
-      }
-      
-      // If all else fails, return original text
-      return textValue;
     }
+    
+    // Return original text if not legacy format or parsing failed
+    return textValue;
   }
-  
-  // Return original text if not JSON format
-  return textValue;
-}
-// ============================================================================
-// END TEMPORARY SECTION - REMOVE WHEN ALL USERS SWITCH TO STREAMING
-// ============================================================================
+  // ============================================================================
+  // END TEMPORARY SECTION - REMOVE WHEN ALL USERS SWITCH TO STREAMING
+  // ============================================================================
+
   // ============================================================================
   // MESSAGE DISPLAY FUNCTIONS
   // ============================================================================
@@ -400,6 +387,13 @@ class StudentChat {
         });
         
         aiText.innerHTML = marked.parse(text);
+        
+        // Add syntax highlighting if available
+        if (typeof Prism !== 'undefined') {
+          aiText.querySelectorAll('pre code').forEach((block) => {
+            Prism.highlightElement(block);
+          });
+        }
       } else {
         console.warn('Marked library not loaded, displaying plain text');
         aiText.textContent = text;
@@ -414,9 +408,40 @@ class StudentChat {
     aiContainer.appendChild(aiBubble);
     this.elements.mainContainer.appendChild(aiContainer);
     
+    this.setupCodeBlocks(aiContainer);
     this.scrollToBottom();
     
     return aiText; // Return reference for streaming updates
+  }
+
+  setupCodeBlocks(container) {
+    const codeBlocks = container.querySelectorAll('pre code');
+    
+    codeBlocks.forEach(codeBlock => {
+      const copyButton = document.createElement('button');
+      copyButton.className = 'copy-code-button';
+      copyButton.textContent = 'Copy';
+      
+      const pre = codeBlock.parentNode;
+      pre.style.position = 'relative';
+      pre.appendChild(copyButton);
+      
+      copyButton.addEventListener('click', () => {
+        const code = codeBlock.textContent;
+        navigator.clipboard.writeText(code).then(() => {
+          copyButton.textContent = 'Copied!';
+          setTimeout(() => {
+            copyButton.textContent = 'Copy';
+          }, 2000);
+        }).catch(err => {
+          console.error('Failed to copy code:', err);
+          copyButton.textContent = 'Error!';
+          setTimeout(() => {
+            copyButton.textContent = 'Copy';
+          }, 2000);
+        });
+      });
+    });
   }
 
   scrollToBottom() {
@@ -541,6 +566,13 @@ class StudentChat {
           });
           
           this.appState.currentStreamingMessage.innerHTML = marked.parse(text);
+          
+          // Add syntax highlighting if available
+          if (typeof Prism !== 'undefined') {
+            this.appState.currentStreamingMessage.querySelectorAll('pre code').forEach((block) => {
+              Prism.highlightElement(block);
+            });
+          }
         } else {
           this.appState.currentStreamingMessage.textContent = text;
         }
@@ -577,12 +609,25 @@ class StudentChat {
           // Clear and re-render with the original raw text (no additional processing needed)
           this.appState.currentStreamingMessage.innerHTML = marked.parse(finalText);
           
+          // Add syntax highlighting for the final render
+          if (typeof Prism !== 'undefined') {
+            console.log('prism');
+            this.appState.currentStreamingMessage.querySelectorAll('pre code').forEach((block) => {
+              Prism.highlightElement(block);
+            });
+          }
+          
           console.log('Final markdown rendering completed for streamed message');
         }
       } catch (error) {
         console.error('Error in final markdown rendering:', error);
         // Fallback: preserve line breaks manually with raw text
         this.appState.currentStreamingMessage.innerHTML = finalText.replace(/\n/g, '<br>');
+      }
+      
+      // Setup code blocks for the final message
+      if (container) {
+        this.setupCodeBlocks(container);
       }
       
       // Final scroll to bottom
@@ -699,3 +744,4 @@ class StudentChat {
 
 
 }
+

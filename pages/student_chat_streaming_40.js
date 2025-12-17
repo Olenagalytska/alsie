@@ -1,5 +1,5 @@
 // ============================================================================
-// WEBFLOW STUDENT CHAT PAGE SCRIPT - WITH VERCEL WORKFLOWS
+// WEBFLOW STUDENT CHAT PAGE SCRIPT - RESTRUCTURED
 // ============================================================================
 // Place this code in the Webflow page settings under "Before </body> tag"
 
@@ -19,9 +19,7 @@ class StudentChat {
       courseId: null,
       lessonId: null,
       currentStreamingMessage: null,
-      selectedFile: null,
-      // НОВЕ: URL вашого Vercel бекенду
-      workflowApiUrl: 'https://workflow-mrvm2xiax-toropilja374-gmailcoms-projects.vercel.app' // ЗАМІНІТЬ на ваш URL
+      selectedFile: null // Added for file upload
     };
   }
 
@@ -57,11 +55,14 @@ class StudentChat {
   async initializeStudentChat() {
     // 1. Setup UI
     this.setupInputFocusHandling();
+//this.setupPageLeaveTracking();
+
     
     // 2. Authenticate user
     this.appState.user = await verifyUserAuth();
     
     // 3. Get URL parameters
+    //this.appState.userId = getUrlParameters('user_id');
     this.appState.userId = this.appState.user.id;
     this.appState.blockId = getUrlParameters('block_id');
     
@@ -88,8 +89,9 @@ class StudentChat {
     // 7. Setup event listeners
     this.setupStudentEventListeners();
     
-    // 8. Load initial chat messages - ОНОВЛЕНО: через Xano API
-    await this.loadChatHistory();
+    // 8. Load initial chat messages
+    //await this.loadChatHistory();
+    await refreshChatDisplay(this.appState.ubId, this.elements.mainContainer);
   }
 
   // ============================================================================
@@ -227,7 +229,7 @@ class StudentChat {
   }
 
   // ============================================================================
-  // FILE UPLOAD FUNCTIONALITY - ЗАЛИШАЄТЬСЯ ЯК Є (через Xano)
+  // FILE UPLOAD FUNCTIONALITY
   // ============================================================================
 
   setupFileUploadListeners() {
@@ -365,7 +367,7 @@ class StudentChat {
   }
 
   // ============================================================================
-  // MESSAGE LOADING FUNCTIONS - ОНОВЛЕНО: через Xano API
+  // MESSAGE LOADING FUNCTIONS
   // ============================================================================
 
   async loadChatHistory() {
@@ -596,7 +598,7 @@ class StudentChat {
   }
 
   // ============================================================================
-  // STREAMING FUNCTIONS - ОНОВЛЕНО: через Vercel Workflows
+  // STREAMING FUNCTIONS
   // ============================================================================
 
   async handleStudentSubmit(event) {
@@ -621,73 +623,73 @@ class StudentChat {
       // 4. Set loading state to TRUE (start avatar rotation)
       this.setUILoadingState(true);
       
-      // 5. Start streaming - ОНОВЛЕНО: через Vercel workflows
-      await this.startWorkflowStreaming(userInputValue);
+      // 5. Start streaming
+      await this.startStreamingResponse(userInputValue);
       
     } catch (error) {
       console.error('Error handling chat submit:', error);
       this.setUILoadingState(false);
-      
-      // Show error to user
-      if (this.appState.currentStreamingMessage) {
-        this.appState.currentStreamingMessage.textContent = 
-          'Sorry, there was an error processing your request. Please try again.';
-      }
+      // TODO: Add proper error handling UI
     }
   }
 
-  async startWorkflowStreaming(userInput) {
+  async startStreamingResponse(userInput) {
     try {
-      // Викликаємо ваш Vercel API
-      const response = await fetch(`${this.appState.workflowApiUrl}/chat/message`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ub_id: this.appState.ubId,
-          content: userInput
-        })
-      });
+      const formData = new FormData();
+    formData.append('ub_id', this.appState.ubId);
+    formData.append('input', userInput);
+    
+    // Add file to formData if it exists
+    if (this.appState.selectedFile) {
+      formData.append('user_file', this.appState.selectedFile);
+      // Clear the file after adding to formData
+      this.clearSelectedFile();
+    }
+    
+    const response = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/ub_chat_stream_file`, {
+      method: 'POST',
+      body: formData
+    });
 
       if (!response.ok) {
-        throw new Error(`Workflow API failed: ${response.status} ${response.statusText}`);
+        throw new Error(`Streaming API failed: ${response.status} ${response.statusText}`);
       }
 
-      // Read streaming response
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let accumulatedText = '';
+      let isFirstChunk = true;
       let buffer = '';
 
       while (true) {
         const { done, value } = await reader.read();
+        console.log('streaming:   ', value);
         
         if (done) {
           console.log('Stream completed');
           break;
         }
 
+        // Keep loading state TRUE during streaming (avatar keeps rotating)
+        // Don't set to false on first chunk anymore
+
         // Decode chunk and add to buffer
         const chunk = decoder.decode(value, { stream: true });
         buffer += chunk;
         
-        // Process complete SSE messages (if your Vercel uses SSE format)
+        // Process complete SSE messages
         const lines = buffer.split('\n');
         buffer = lines.pop() || ''; // Keep incomplete line in buffer
         
         for (const line of lines) {
-          // Adjust this based on your Vercel response format
+          
           if (line.startsWith('data: ')) {
             const data = line.substring(6); // Remove 'data: ' prefix
-            if (data.trim()) {
+            if (data.trim()) { // Only process non-empty data
               accumulatedText += data;
+              // Update the streaming message
               this.updateStreamingMessage(accumulatedText);
             }
-          } else if (line.trim()) {
-            // If not SSE format, just accumulate the line
-            accumulatedText += line;
-            this.updateStreamingMessage(accumulatedText);
           }
         }
       }
@@ -700,9 +702,9 @@ class StudentChat {
       this.setUILoadingState(false);
 
     } catch (error) {
-      console.error('Error during workflow streaming:', error);
+      console.error('Error during streaming:', error);
       this.setUILoadingState(false);
-      throw error;
+      // TODO: Add proper error handling UI
     }
   }
 
@@ -791,6 +793,59 @@ class StudentChat {
     // Clear references
     this.appState.currentStreamingMessage = null;
     this.appState.currentStreamingRawText = '';
+    this.appState.streamingState = 'idle';
+  
+     
+  }
+
+  // ============================================================================
+  // STREAM PAUSE HANDLING
+  // ============================================================================
+
+  showStreamPausedIndicator() {
+    // Create or update pause indicator
+    let pauseIndicator = document.getElementById('stream-pause-indicator');
+    
+    if (!pauseIndicator) {
+      pauseIndicator = document.createElement('div');
+      pauseIndicator.id = 'stream-pause-indicator';
+      pauseIndicator.className = 'stream-pause-indicator';
+      pauseIndicator.innerHTML = `
+        <div class="pause-content">
+          <div class="pause-spinner"></div>
+          <span>Processing...</span>
+        </div>
+      `;
+      
+      // Add some basic styling
+      pauseIndicator.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      `;
+      
+      document.body.appendChild(pauseIndicator);
+    }
+    
+    pauseIndicator.style.display = 'flex';
+    console.log('Stream pause indicator shown');
+  }
+
+  hideStreamPausedIndicator() {
+    const pauseIndicator = document.getElementById('stream-pause-indicator');
+    if (pauseIndicator) {
+      pauseIndicator.style.display = 'none';
+    }
+    console.log('Stream pause indicator hidden');
   }
 
   // ============================================================================
@@ -799,51 +854,46 @@ class StudentChat {
 
   setUILoadingState(isLoading) {
     if(!isLoading) {console.log('update ui state with false');}
-    const { userInput, chatInputContainer, submitButton } = this.elements;
-    
-    if (isLoading) {
-      // Disable input controls
-      chatInputContainer.className = 'chat-input-container-disabled';
-      submitButton.className = 'icon-button-disabled';
-    } else {
-      // Enable input controls
-      userInput.style.opacity = '1';
-      userInput.disabled = false;
-      chatInputContainer.className = 'chat-input-container';
-      submitButton.className = 'icon-button';
-    }
+  const { userInput, chatInputContainer, submitButton, waitingBubble } = this.elements;
+  
+  if (isLoading) {
+    // Disable input controls
+    //userInput.style.opacity = '0.5';
+    //userInput.disabled = true;
+    chatInputContainer.className = 'chat-input-container-disabled';
+    submitButton.className = 'icon-button-disabled';
+    //waitingBubble.style.display = 'flex';
+  } else {
+    // Enable input controls
+    userInput.style.opacity = '1';
+    userInput.disabled = false;
+    chatInputContainer.className = 'chat-input-container';
+    submitButton.className = 'icon-button';
+    //waitingBubble.style.display = 'none';
+  }
 
-    // Handle alsie-avatar rotation for the current streaming message
-    if (this.appState.currentStreamingMessage) {
-      // Find the container that holds the current streaming message
-      const messageContainer = this.appState.currentStreamingMessage.closest('.ai_content_container');
+  // Handle alsie-avatar rotation for the current streaming message
+  if (this.appState.currentStreamingMessage) {
+    // Find the container that holds the current streaming message
+    const messageContainer = this.appState.currentStreamingMessage.closest('.ai_content_container');
+    
+    if (messageContainer) {
+      // Find the alsie-avatar within this specific message container
+      const alsieAvatar = messageContainer.querySelector('.alsie-avatar');
       
-      if (messageContainer) {
-        // Find the alsie-avatar within this specific message container
-        const alsieAvatar = messageContainer.querySelector('.alsie-avatar');
-        
-        if (alsieAvatar) {
-          console.log('alsie avatar found');
-          if (isLoading) {
-            // Set avatar to rotating state
-            alsieAvatar.className = 'alsie-avatar rotating';
-          } else {
-            // Set avatar back to normal state
-            alsieAvatar.className = 'alsie-avatar';
-          }
+      if (alsieAvatar) {
+        console.log('alsie avalar found');
+        if (isLoading) {
+          // Set avatar to rotating state
+          alsieAvatar.className = 'alsie-avatar rotating';
+        } else {
+          // Set avatar back to normal state
+          alsieAvatar.className = 'alsie-avatar';
         }
       }
     }
   }
 }
 
-// ============================================================================
-// GLOBAL INITIALIZATION
-// ============================================================================
 
-window.studentChat = null;
-
-window.initializeStudentChat = async function() {
-  window.studentChat = new StudentChat();
-  return await window.studentChat.initialize();
-};
+}

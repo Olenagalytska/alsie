@@ -309,32 +309,63 @@ class StudentChat {
 
   async loadChatHistory() {
     try {
-      if (!this.appState.ubData.thread_id) {
-        console.log('No thread_id found, chat is empty');
-        return;
-      }
+      let hasMessages = false;
 
-      const response = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/l_messages?thread_id=${this.appState.ubData.thread_id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
+      const workflowResponse = await fetch(`${this.appState.workflowApiUrl}/chat/${this.appState.ubId}/state`);
+      
+      if (workflowResponse.ok) {
+        const workflowState = await workflowResponse.json();
+        console.log('Workflow state loaded:', workflowState);
+        
+        if (workflowState.answers && workflowState.answers.length > 0) {
+          this.elements.mainContainer.innerHTML = '';
+          
+          workflowState.answers.forEach(answer => {
+            if (answer.user_message) {
+              this.createUserMessage(answer.user_message);
+            }
+            
+            const aiResponse = answer.assistant_response || answer.coach_response || answer.tutor_response || answer.assignment;
+            if (aiResponse) {
+              this.createAssistantMessage(aiResponse);
+            }
+          });
+          
+          hasMessages = true;
+          console.log('Chat history loaded from workflow state');
+          return;
         }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch messages: ${response.status} ${response.statusText}`);
       }
 
-      const messages = await response.json();
-      console.log('Messages loaded:', messages);
+      if (!hasMessages && this.appState.ubData.thread_id) {
+        const response = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/l_messages?thread_id=${this.appState.ubData.thread_id}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
 
-      this.elements.mainContainer.innerHTML = '';
+        if (response.ok) {
+          const messages = await response.json();
+          console.log('Messages loaded from OpenAI thread:', messages);
 
-      const sortedMessages = messages.reverse();
+          if (messages && messages.length > 0) {
+            this.elements.mainContainer.innerHTML = '';
 
-      sortedMessages.forEach(message => {
-        this.displayMessage(message);
-      });
+            const sortedMessages = messages.reverse();
+
+            sortedMessages.forEach(message => {
+              this.displayMessage(message);
+            });
+            
+            hasMessages = true;
+          }
+        }
+      }
+
+      if (!hasMessages) {
+        console.log('No chat history found');
+      }
 
     } catch (error) {
       console.error('Error loading chat history:', error);

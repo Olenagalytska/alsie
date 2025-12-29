@@ -11,7 +11,7 @@ class TeacherChat {
       lessonId: null,
       currentStreamingMessage: null,
       currentStreamingRawText: '',
-      workflowApiUrl: 'https://workflow-hw6y4gglz-toropilja374-gmailcoms-projects.vercel.app'
+      workflowApiUrl: 'https://workflow-hw6y4gg1i-toropilja374-gmailcoms-projects.vercel.app'
     };
   }
 
@@ -181,29 +181,78 @@ class TeacherChat {
     try {
       let hasMessages = false;
 
-      const workflowResponse = await fetch(`${this.appState.workflowApiUrl}/chat/${this.appState.ubId}/state`);
+      const airResponse = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/air?ub_id=${this.appState.ubId}`);
       
-      if (workflowResponse.ok) {
-        const workflowState = await workflowResponse.json();
-        console.log('Workflow state loaded:', workflowState);
+      if (airResponse.ok) {
+        const airData = await airResponse.json();
+        console.log('AIR data loaded:', airData);
         
-        if (workflowState.answers && workflowState.answers.length > 0) {
+        if (airData && airData.length > 0) {
           this.elements.mainContainer.innerHTML = '';
           
-          workflowState.answers.forEach(answer => {
-            if (answer.user_message) {
-              this.createUserMessage(answer.user_message);
+          airData.forEach(item => {
+            if (item.user_content) {
+              let userText = '';
+              try {
+                const userContent = typeof item.user_content === 'string' ? JSON.parse(item.user_content) : item.user_content;
+                userText = userContent.text || userContent;
+              } catch (e) {
+                userText = item.user_content;
+              }
+              if (userText) {
+                this.createUserMessage(userText);
+              }
             }
             
-            const aiResponse = answer.assistant_response || answer.coach_response || answer.tutor_response || answer.assignment;
-            if (aiResponse) {
-              this.createAssistantMessage(aiResponse);
+            if (item.ai_content) {
+              let aiTexts = [];
+              try {
+                aiTexts = typeof item.ai_content === 'string' ? JSON.parse(item.ai_content) : item.ai_content;
+              } catch (e) {
+                aiTexts = [{ text: item.ai_content }];
+              }
+              
+              if (Array.isArray(aiTexts)) {
+                aiTexts.forEach(ai => {
+                  if (ai.text) {
+                    this.createAssistantMessage(ai.text);
+                  }
+                });
+              }
             }
           });
           
           hasMessages = true;
-          console.log('Chat history loaded from workflow state');
+          console.log('Chat history loaded from AIR table');
           return;
+        }
+      }
+
+      if (!hasMessages) {
+        const workflowResponse = await fetch(`${this.appState.workflowApiUrl}/chat/${this.appState.ubId}/state`);
+        
+        if (workflowResponse.ok) {
+          const workflowState = await workflowResponse.json();
+          console.log('Workflow state loaded:', workflowState);
+          
+          if (workflowState.answers && workflowState.answers.length > 0) {
+            this.elements.mainContainer.innerHTML = '';
+            
+            workflowState.answers.forEach(answer => {
+              if (answer.user_message) {
+                this.createUserMessage(answer.user_message);
+              }
+              
+              const aiResponse = answer.assistant_response || answer.coach_response || answer.tutor_response || answer.assignment;
+              if (aiResponse) {
+                this.createAssistantMessage(aiResponse);
+              }
+            });
+            
+            hasMessages = true;
+            console.log('Chat history loaded from workflow state');
+            return;
+          }
         }
       }
 

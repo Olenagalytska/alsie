@@ -177,58 +177,16 @@ class TeacherChat {
     }
   }
 
+  // ============================================================================
+  // CHAT HISTORY LOADING - Порядок: 1) workflow_state, 2) AIR, 3) OpenAI thread
+  // ============================================================================
+
   async loadChatHistory() {
     try {
       let hasMessages = false;
 
-      const airResponse = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/air?ub_id=${this.appState.ubId}`);
-      
-      if (airResponse.ok) {
-        const airData = await airResponse.json();
-        console.log('AIR data loaded:', airData);
-        
-        if (airData && airData.length > 0) {
-          this.elements.mainContainer.innerHTML = '';
-          
-          airData.forEach(item => {
-            if (item.user_content) {
-              let userText = '';
-              try {
-                const userContent = typeof item.user_content === 'string' ? JSON.parse(item.user_content) : item.user_content;
-                userText = userContent.text || userContent;
-              } catch (e) {
-                userText = item.user_content;
-              }
-              if (userText) {
-                this.createUserMessage(userText);
-              }
-            }
-            
-            if (item.ai_content) {
-              let aiTexts = [];
-              try {
-                aiTexts = typeof item.ai_content === 'string' ? JSON.parse(item.ai_content) : item.ai_content;
-              } catch (e) {
-                aiTexts = [{ text: item.ai_content }];
-              }
-              
-              if (Array.isArray(aiTexts)) {
-                aiTexts.forEach(ai => {
-                  if (ai.text) {
-                    this.createAssistantMessage(ai.text);
-                  }
-                });
-              }
-            }
-          });
-          
-          hasMessages = true;
-          console.log('Chat history loaded from AIR table');
-          return;
-        }
-      }
-
-      if (!hasMessages) {
+      // 1. ПРІОРИТЕТ: Спочатку пробуємо workflow_state (нова логіка)
+      try {
         const workflowResponse = await fetch(`${this.appState.workflowApiUrl}/chat/${this.appState.ubId}/state`);
         
         if (workflowResponse.ok) {
@@ -254,31 +212,95 @@ class TeacherChat {
             return;
           }
         }
+      } catch (workflowError) {
+        console.log('Workflow state not available, trying AIR...', workflowError);
       }
 
-      if (!hasMessages && this.appState.ubData.thread_id) {
-        const response = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/l_messages?thread_id=${this.appState.ubData.thread_id}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (response.ok) {
-          const messages = await response.json();
-          console.log('Messages loaded from OpenAI thread:', messages);
-
-          if (messages && messages.length > 0) {
-            this.elements.mainContainer.innerHTML = '';
-
-            const sortedMessages = messages.reverse();
-
-            sortedMessages.forEach(message => {
-              this.displayMessage(message);
-            });
+      // 2. FALLBACK: AIR таблиця (стара логіка)
+      if (!hasMessages) {
+        try {
+          const airResponse = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/air?ub_id=${this.appState.ubId}`);
+          
+          if (airResponse.ok) {
+            const airData = await airResponse.json();
+            console.log('AIR data loaded:', airData);
             
-            hasMessages = true;
+            if (airData && airData.length > 0) {
+              this.elements.mainContainer.innerHTML = '';
+              
+              airData.forEach(item => {
+                // Parse user content
+                if (item.user_content) {
+                  let userText = '';
+                  try {
+                    const userContent = typeof item.user_content === 'string' ? JSON.parse(item.user_content) : item.user_content;
+                    userText = userContent.text || userContent;
+                  } catch (e) {
+                    userText = item.user_content;
+                  }
+                  if (userText && typeof userText === 'string') {
+                    this.createUserMessage(userText);
+                  }
+                }
+                
+                // Parse AI content
+                if (item.ai_content) {
+                  let aiTexts = [];
+                  try {
+                    aiTexts = typeof item.ai_content === 'string' ? JSON.parse(item.ai_content) : item.ai_content;
+                  } catch (e) {
+                    aiTexts = [{ text: item.ai_content }];
+                  }
+                  
+                  if (Array.isArray(aiTexts)) {
+                    aiTexts.forEach(ai => {
+                      if (ai.text) {
+                        this.createAssistantMessage(ai.text);
+                      }
+                    });
+                  }
+                }
+              });
+              
+              hasMessages = true;
+              console.log('Chat history loaded from AIR table');
+              return;
+            }
           }
+        } catch (airError) {
+          console.log('AIR data not available, trying OpenAI thread...', airError);
+        }
+      }
+
+      // 3. LEGACY FALLBACK: OpenAI thread (найстаріша логіка)
+      if (!hasMessages && this.appState.ubData.thread_id) {
+        try {
+          const response = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/l_messages?thread_id=${this.appState.ubData.thread_id}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (response.ok) {
+            const messages = await response.json();
+            console.log('Messages loaded from OpenAI thread:', messages);
+
+            if (messages && messages.length > 0) {
+              this.elements.mainContainer.innerHTML = '';
+
+              const sortedMessages = messages.reverse();
+
+              sortedMessages.forEach(message => {
+                this.displayMessage(message);
+              });
+              
+              hasMessages = true;
+              console.log('Chat history loaded from OpenAI thread');
+            }
+          }
+        } catch (threadError) {
+          console.log('OpenAI thread not available', threadError);
         }
       }
 

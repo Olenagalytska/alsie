@@ -12,7 +12,7 @@ class StudentChat {
       currentStreamingMessage: null,
       currentStreamingRawText: '',
       selectedFile: null,
-      workflowApiUrl: 'https://workflow-hw6y4ggsp-toropilja374-gmailcoms-projects.vercel.app'
+      workflowApiUrl: 'https://workflow-hw6y4gglz-toropilja374-gmailcoms-projects.vercel.app'
     };
   }
 

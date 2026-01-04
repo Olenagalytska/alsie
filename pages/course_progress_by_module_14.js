@@ -1,5 +1,5 @@
 // ============================================================================
-// COURSE PROGRESS BY MODULE - UPDATED WITH VERCEL GRADING SUPPORT
+// COURSE PROGRESS BY MODULE - WITH VERCEL GRADING SUPPORT
 // ============================================================================
 
 const WORKFLOW_API_URL = 'https://workflow-hw6y4gglz-toropilja374-gmailcoms-projects.vercel.app';
@@ -8,90 +8,108 @@ const WORKFLOW_API_URL = 'https://workflow-hw6y4gglz-toropilja374-gmailcoms-proj
 // INITIALIZATION
 // ============================================================================
 
-document.addEventListener("DOMContentLoaded", async () => {
+async function initializeProgressPage(course_id) {
     try {
-        const course_id = getUrlParameters('course_id');
-        const lesson_id = getUrlParameters('lesson_id');
+        // Set up element names and navigation
+        await setElementNames({ course_id });
+        setTeacherCourseMenu(course_id);
         
-        if (lesson_id) {
-            console.log('Displaying progress for lesson ID:', lesson_id);
-            await displayStudentProgress(course_id, lesson_id);
+        // Fetch lessons and determine which lesson to display
+        const lessons = await fetchLessons(course_id);
+        const selectedLessonId = await determineLessonId(lessons);
+        
+        // Populate lesson selector dropdown
+        await populateLessonSelector(lessons, selectedLessonId);
+        
+        // Set up lesson selector change handler
+        setupLessonSelector(course_id);
+        
+        // Display progress for the selected lesson
+        if (selectedLessonId) {
+            console.log('Displaying progress for lesson ID:', selectedLessonId);
+            
+            // Display lesson title
+            await displayLessonTitle(lessons, selectedLessonId);
+
+            const gradeLessonButton = document.getElementById('grade-lesson-button');
+            if (gradeLessonButton) {
+                gradeLessonButton.addEventListener('click', () => gradeLesson(selectedLessonId, gradeLessonButton));
+            }
+            
+            // Display student progress
+            await displayStudentProgress(course_id, selectedLessonId);
         }
         
         console.log('Progress page initialized successfully');
+        
     } catch (error) {
         console.error('Error initializing progress page:', error);
+        alert('Error loading page. Please try again.');
     }
-});
+}
 
 // ============================================================================
-// DISPLAY FUNCTIONS
+// DATA FETCHING AND DISPLAY
 // ============================================================================
 
 async function displayStudentProgress(course_id, lesson_id) {
-    const mainContainer = document.getElementById('main-container');
-    
-    if (!mainContainer) {
-        console.error('Main container not found');
-        return;
-    }
-    
-    mainContainer.innerHTML = '';
-    
     try {
-        const response = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/student_progress?course_id=${course_id}&lesson_id=${lesson_id}`);
-        
-        if (!response.ok) {
-            throw new Error('Failed to fetch student progress');
-        }
-        
-        const data = await response.json();
-        console.log('Loaded data: ', data);
-        
-        if (!data || data.length === 0) {
-            mainContainer.innerHTML = '<div class="empty-block-container">No student progress data available.</div>';
-            return;
-        }
-        
-        data.forEach(student => {
-            const studentContainer = createStudentContainer(student);
-            mainContainer.appendChild(studentContainer);
+        const response = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/get_progress_by_lesson?lesson_id=${lesson_id}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
+
+        if (!response.ok) {
+            throw new Error(`API request failed with status ${response.status}`);
+        }
+
+        const result = await response.json();
+        const studentsData = result.progress_by_module;
+        console.log('Loaded data: ', studentsData);
+        renderStudentProgress(studentsData);
         
     } catch (error) {
-        console.error('Error displaying student progress:', error);
-        mainContainer.innerHTML = '<div class="empty-block-container">Error loading progress data.</div>';
+        console.error('Error fetching student progress:', error);
     }
 }
 
-function createStudentContainer(student) {
-    const container = document.createElement('div');
-    container.className = 'pr-student-container';
+async function renderStudentProgress(studentsData) {
+    const container = document.getElementById('student-progress-container');
+    if (!container) return;
+    const teacher = await verifyUserAuth();
+    container.innerHTML = '';
     
-    const headerContainer = document.createElement('div');
-    headerContainer.className = 'pr-student-header';
-    
-    const studentName = document.createElement('div');
-    studentName.className = 'pr-student-name';
-    studentName.textContent = student.student_name || 'Unknown Student';
-    headerContainer.appendChild(studentName);
-    
-    container.appendChild(headerContainer);
-    
-    if (student.blocks && student.blocks.length > 0) {
+    studentsData.forEach(student => {
+        const studentWrapper = document.createElement('div');
+        studentWrapper.className = 'pr-student-grades-wrapper';
+        
+        // Student name row
+        const nameContainer = document.createElement('div');
+        nameContainer.className = 'pr-grade-row-container';
+        if (teacher.id == 146) { 
+            nameContainer.textContent = student.student_id;
+        } else nameContainer.textContent = student.student_name;
+        studentWrapper.appendChild(nameContainer);
+        
+        // Student grades main container
+        const gradesMainContainer = document.createElement('div');
+        gradesMainContainer.className = 'pr-student-grades-main-container';
+        
         student.blocks.forEach(block => {
             const blockElement = createBlockElement(block, student.student_id);
-            container.appendChild(blockElement);
+            gradesMainContainer.appendChild(blockElement);
         });
-    } else {
-        const emptyMessage = document.createElement('div');
-        emptyMessage.className = 'empty-block-container';
-        emptyMessage.textContent = 'No blocks found for this student.';
-        container.appendChild(emptyMessage);
-    }
-    
-    return container;
+        
+        studentWrapper.appendChild(gradesMainContainer);
+        container.appendChild(studentWrapper);
+    });
 }
+
+// ============================================================================
+// BLOCK ELEMENT CREATION
+// ============================================================================
 
 function createBlockElement(block, student_id) {
     const isFinishedOrInProgress = block.status === 'finished' || block.status === 'started';
@@ -110,6 +128,7 @@ function createGradedBlock(block, student_id) {
     const container = document.createElement('div');
     container.className = 'pr-grade-row-container-expanded';
     
+    // First grade-button-container
     const blockStatusContainer = document.createElement('div');
     blockStatusContainer.className = 'pr-block-status-container';
     
@@ -123,6 +142,7 @@ function createGradedBlock(block, student_id) {
     blockName.className = 'pr-block-name';
     blockName.textContent = block.block_name;
     blockName.addEventListener('click', () => {
+        console.log('test id:', block.ub_id);
         window.location.href = `lesson-page-teacher-view?&ub_id=${block.ub_id}`;
     });
     blockGradesContainer.appendChild(blockName);
@@ -139,6 +159,7 @@ function createGradedBlock(block, student_id) {
     blockStatusContainer.appendChild(blockGradesContainer);
     container.appendChild(blockStatusContainer);
     
+    // Second grade-button-container
     const secondButtonContainer = document.createElement('div');
     secondButtonContainer.className = 'pr-grade-button-container';
     
@@ -157,11 +178,14 @@ function createGradedBlock(block, student_id) {
     const viewButton = document.createElement('button');
     viewButton.className = 'iconbutton_transp_s';
     viewButton.innerHTML = '<span class="material-symbols-outlined" style="font-size: 1.2rem;">arrow_right_alt</span>';
+    
     viewButton.addEventListener('click', () => {
         window.location.href = `lesson-page-teacher-view?block_id=${block.block_id}&user_id=${student_id}`;
     });
+
     secondButtonContainer.appendChild(viewButton);
-    
+
+    // ADD Clear BUTTON HERE
     const clearButton = document.createElement('button');
     clearButton.className = 'icon_red_transp_s';
     clearButton.innerHTML = '<span class="material-symbols-outlined" style="font-size: 1.2rem;">delete_history</span>';
@@ -190,6 +214,7 @@ function createUngradedBlock(block, student_id, showGradeButton) {
     blockName.className = 'pr-block-name';
     blockName.textContent = block.block_name;
     blockName.addEventListener('click', () => {
+        console.log('test id:', block.ub_id);
         window.location.href = `lesson-page-teacher-view?&ub_id=${block.ub_id}`;
     });
     blockGradesContainer.appendChild(blockName);
@@ -204,9 +229,11 @@ function createUngradedBlock(block, student_id, showGradeButton) {
     gradeButton.textContent = 'Grade';
     
     if (showGradeButton) {
+        // For finished/started blocks - active button
         gradeButton.className = 'button_primary_s';
         gradeButton.addEventListener('click', () => gradeBlock(block.ub_id, gradeButton));
     } else {
+        // For idle blocks - disabled button
         gradeButton.className = 'button_disabled_s';
     }
     
@@ -215,11 +242,14 @@ function createUngradedBlock(block, student_id, showGradeButton) {
     const viewButton = document.createElement('button');
     viewButton.className = 'iconbutton_transp_s';
     viewButton.innerHTML = '<span class="material-symbols-outlined" style="font-size: 1.2rem;">arrow_right_alt</span>';
+    
     viewButton.addEventListener('click', () => {
         window.location.href = `lesson-page-teacher-view?block_id=${block.block_id}&user_id=${student_id}`;
     });
+
     secondButtonContainer.appendChild(viewButton);
 
+    // ADD Clear BUTTON HERE
     const clearButton = document.createElement('button');
     clearButton.className = 'icon_red_transp_s';
     clearButton.innerHTML = '<span class="material-symbols-outlined" style="font-size: 1.2rem;">delete_history</span>';
@@ -267,40 +297,8 @@ function createCriterionElement(criterion) {
     return container;
 }
 
-function createStatusElement(status) {
-    const statusImg = document.createElement('div');
-    statusImg.className = 'status-circle-idle';
-    
-    switch(status) {
-        case 'finished':
-            statusImg.alt = 'Finished';
-            statusImg.title = 'Finished';
-            statusImg.className = 'status-circle-done';
-            statusImg.innerHTML = '<span class="material-symbols-outlined" style="font-size: 1.2rem;">radio_button_checked</span>';
-            break;
-        case 'started':
-            statusImg.alt = 'In progress';
-            statusImg.title = 'In progress';
-            statusImg.className = 'status-circle-progress';
-            statusImg.innerHTML = '<span class="material-symbols-outlined" style="font-size: 1.2rem;">radio_button_partial</span>';
-            break;
-        case 'idle':
-            statusImg.alt = 'Not started';
-            statusImg.title = 'Not started';
-            statusImg.className = 'status-circle-idle';
-            statusImg.innerHTML = '<span class="material-symbols-outlined" style="font-size: 1.2rem;">radio_button_unchecked</span>';
-            break;
-        default:
-            statusImg.alt = 'Unknown';
-            statusImg.title = 'Unknown';
-            statusImg.innerHTML = '<span class="material-symbols-outlined" style="font-size: 1.2rem;">radio_button_unchecked</span>';
-    }
-    
-    return statusImg;
-}
-
 // ============================================================================
-// GRADING FUNCTIONS - UPDATED WITH VERCEL API SUPPORT
+// GRADING FUNCTIONS - WITH VERCEL API SUPPORT
 // ============================================================================
 
 async function gradeBlock(ub_id, gradeButton) {
@@ -332,7 +330,7 @@ async function gradeBlock(ub_id, gradeButton) {
             return;
         }
         
-        console.log('Vercel API failed, trying Xano fallback...');
+        console.log('Vercel API returned non-ok status, trying Xano fallback...');
         
         // 2. FALLBACK: Xano API (старі workflows)
         const xanoResponse = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/grade_ub?ub_id=${ub_id}`, {
@@ -368,10 +366,11 @@ async function gradeBlock(ub_id, gradeButton) {
 }
 
 async function clearBlock(ub_id) {
+    // Show confirmation dialog
     const confirmDelete = confirm('Are you sure you want to clear this chat? This action will remove all the chat messages, and grades, and this cannot be undone.');
     
     if (!confirmDelete) {
-        return;
+        return; // User cancelled
     }
     
     try {
@@ -386,8 +385,10 @@ async function clearBlock(ub_id) {
             throw new Error(`Clear request failed with status ${response.status}`);
         }
         
+        // Refresh the student progress display after successful grading
         await refreshStudentProgress();
-        console.log('Chat cleared successfully');
+        
+        console.log('Chat cleared successfully:');
         
     } catch (error) {
         console.error('Error clearing chat:', error);
@@ -397,6 +398,7 @@ async function clearBlock(ub_id) {
 
 async function refreshStudentProgress() {
     try {
+        // Get the current lesson_id from the URL or lesson selector
         const urlLessonId = getUrlParameters('lesson_id');
         const lessonSelector = document.getElementById('lesson-selector');
         const selectedLessonId = urlLessonId || (lessonSelector ? lessonSelector.value : null);
@@ -406,6 +408,7 @@ async function refreshStudentProgress() {
             return;
         }
         
+        // Get the current course_id from the URL
         const course_id = getUrlParameters('course_id');
         
         if (!course_id) {
@@ -415,6 +418,7 @@ async function refreshStudentProgress() {
         
         console.log('Refreshing student progress for lesson:', selectedLessonId);
         
+        // Re-fetch and display the updated student progress
         await displayStudentProgress(course_id, selectedLessonId);
         
         console.log('Student progress refreshed successfully');
@@ -436,7 +440,7 @@ async function gradeLesson(lesson_id, gradeLessonButton) {
             headers: {
                 'Content-Type': 'application/json'
             },
-            keepalive: true
+            keepalive: true  // This ensures the request continues even if user leaves page
         });
         
         if (!response.ok) {
@@ -445,16 +449,18 @@ async function gradeLesson(lesson_id, gradeLessonButton) {
         
         const result = await response.json();
         
+        // Only refresh and update button if user is still on the page
         if (document.visibilityState === 'visible') {
             refreshStudentProgress();
-            gradeLessonButton.textContent = 'Grade Lesson';
+            gradeLessonButton.textContent = 'Grade Module';
         }
         
     } catch (error) {
         console.error('Error calculating lesson grades:', error);
         
+        // Only update button if user is still on the page
         if (document.visibilityState === 'visible') {
-            gradeLessonButton.textContent = 'Grade Lesson';
+            gradeLessonButton.textContent = 'Grade Module';
         }
     }
 }

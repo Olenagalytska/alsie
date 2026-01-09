@@ -15,7 +15,7 @@ class StudentChat {
       lessonId: null,
       currentStreamingMessage: null,
       selectedFile: null,
-      workflowApiUrl: 'https://workflow-5ns6q3b5g-toropilja374-gmailcoms-projects.vercel.app',
+      workflowApiUrl: 'https://workflow-k0vg18unl-toropilja374-gmailcoms-projects.vercel.app',
       // ChatKit state
       chatKitEnabled: false,
       chatKitSession: null,

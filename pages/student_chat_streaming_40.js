@@ -12,7 +12,7 @@ class StudentChat {
       currentStreamingMessage: null,
       currentStreamingRawText: '',
       selectedFile: null,
-      workflowApiUrl: 'https://workflow-61qc9u2fp-toropilja374-gmailcoms-projects.vercel.app'
+      workflowApiUrl: 'https://workflow-gpe8u15ze-toropilja374-gmailcoms-projects.vercel.app'
     };
   }
 
@@ -117,24 +117,9 @@ class StudentChat {
     
     this.setupBasicNavigation();
     
-    document.getElementById('course-name')?.addEventListener('click', () => {
-      if (ubData._lesson.course_id) {
-        window.location.href = `/course-home-student?course_id=${ubData._lesson.course_id}`;
-      } else {
-        console.error('No course home available');
-      }
-    });
-    
-    document.getElementById('course-home')?.addEventListener('click', () => {
-      if (ubData._lesson.course_id) {
-        window.location.href = `/course-home-student?course_id=${ubData._lesson.course_id}`;
-      } else {
-        console.error('No course home available');
-      }
-    });
-    
-    document.getElementById('home-button')?.addEventListener('click', () => {
-      window.location.href = `/`;
+    const backButton = document.getElementById('back_to_course');
+    backButton?.addEventListener('click', () => {
+      window.history.back();
     });
   }
 
@@ -173,7 +158,7 @@ class StudentChat {
   }
 
   setupStudentEventListeners() {
-    this.elements.submitButton.addEventListener('click', (event) => {
+    this.elements.submitButton?.addEventListener('click', (event) => {
       this.handleStudentSubmit(event);
     });
 
@@ -307,15 +292,10 @@ class StudentChat {
     }
   }
 
-  // ============================================================================
-  // CHAT HISTORY LOADING - Порядок: 1) workflow_state, 2) AIR, 3) OpenAI thread
-  // ============================================================================
-
   async loadChatHistory() {
     try {
       let hasMessages = false;
 
-      // 1. ПРІОРИТЕТ: Спочатку пробуємо workflow_state (нова логіка)
       try {
         const workflowResponse = await fetch(`${this.appState.workflowApiUrl}/chat/${this.appState.ubId}/state`);
         
@@ -327,13 +307,27 @@ class StudentChat {
             this.elements.mainContainer.innerHTML = '';
             
             workflowState.answers.forEach(answer => {
-              if (answer.user_message) {
+              if (answer.user_message && answer.user_message !== answer.answer) {
                 this.createUserMessage(answer.user_message);
               }
               
-              const aiResponse = answer.assistant_response || answer.coach_response || answer.tutor_response || answer.assignment;
+              const aiResponse = answer.interviewer_question ||
+                                 answer.assistant_response ||
+                                 answer.coach_response ||
+                                 answer.tutor_response ||
+                                 answer.assignment ||
+                                 answer.agent_response;
+              
               if (aiResponse) {
                 this.createAssistantMessage(aiResponse);
+              }
+              
+              if (answer.answer) {
+                this.createUserMessage(answer.answer);
+              }
+              
+              if (answer.follow_up_question) {
+                this.createAssistantMessage(answer.follow_up_question);
               }
             });
             
@@ -346,7 +340,6 @@ class StudentChat {
         console.log('Workflow state not available, trying AIR...', workflowError);
       }
 
-      // 2. FALLBACK: AIR таблиця (стара логіка)
       if (!hasMessages) {
         try {
           const airResponse = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/air?ub_id=${this.appState.ubId}`);
@@ -359,7 +352,6 @@ class StudentChat {
               this.elements.mainContainer.innerHTML = '';
               
               airData.forEach(item => {
-                // Parse user content
                 if (item.user_content) {
                   let userText = '';
                   try {
@@ -373,7 +365,6 @@ class StudentChat {
                   }
                 }
                 
-                // Parse AI content
                 if (item.ai_content) {
                   let aiTexts = [];
                   try {
@@ -402,7 +393,6 @@ class StudentChat {
         }
       }
 
-      // 3. LEGACY FALLBACK: OpenAI thread (найстаріша логіка)
       if (!hasMessages && this.appState.ubData.thread_id) {
         try {
           const response = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/l_messages?thread_id=${this.appState.ubData.thread_id}`, {

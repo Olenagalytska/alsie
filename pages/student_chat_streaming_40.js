@@ -1,11 +1,6 @@
 // ============================================================================
 // WEBFLOW STUDENT CHAT PAGE SCRIPT - WITH VERCEL WORKFLOWS
 // ============================================================================
-// Place this code in the Webflow page settings under "Before </body> tag"
-
-// ============================================================================
-// STUDENT CHAT CLASS DEFINITION
-// ============================================================================
 
 class StudentChat {
   constructor() {
@@ -24,10 +19,6 @@ class StudentChat {
       workflowApiUrl: 'https://workflow-8d80onml6-toropilja374-gmailcoms-projects.vercel.app'
     };
   }
-
-  // ============================================================================
-  // INITIALIZATION
-  // ============================================================================
 
   async initialize() {
     try {
@@ -55,13 +46,10 @@ class StudentChat {
   }
 
   async initializeStudentChat() {
-    // 1. Setup UI
     this.setupInputFocusHandling();
     
-    // 2. Authenticate user
     this.appState.user = await verifyUserAuth();
     
-    // 3. Get URL parameters
     this.appState.userId = this.appState.user.id;
     this.appState.blockId = getUrlParameters('block_id');
     
@@ -69,32 +57,23 @@ class StudentChat {
       throw new Error('Required URL parameters are missing: user_id or block_id');
     }
 
-    // 4. Security check: Compare authenticated user ID with URL user ID
     if (this.appState.user.id != this.appState.userId) {
       console.warn('User ID mismatch detected. Redirecting to home page.');
       window.location.href = '/';
       return;
     }
     
-    // 5. Fetch user block data
     this.appState.ubData = await fetchUbData(this.appState.userId, this.appState.blockId);
     this.appState.ubId = this.appState.ubData.id;
     this.appState.courseId = this.appState.ubData._lesson._course.id;
     this.appState.lessonId = this.appState.ubData._lesson.id;
     
-    // 6. Setup page elements
     await this.setupStudentPageElements();
     
-    // 7. Setup event listeners
     this.setupStudentEventListeners();
     
-    // 8. Load initial chat messages
     await this.loadChatHistory();
   }
-
-  // ============================================================================
-  // UI SETUP
-  // ============================================================================ 
 
   setupInputFocusHandling() {
     this.elements.userInput.addEventListener('focus', function() {
@@ -105,7 +84,6 @@ class StudentChat {
   }
 
   async setupStudentPageElements() {
-    // Set element names for navigation
     await setElementNames({
       course_id: this.appState.courseId,
       lesson_id: this.appState.lessonId,
@@ -113,18 +91,13 @@ class StudentChat {
       user_id: this.appState.userId
     });
     
-    // Setup navigation
     this.setupStudentNavigation();
-    
-    // Setup block content
     this.setupBlockContent();
     
-    // Hide form if block is finished or blocked
     if (this.appState.ubData.status === "finished" || this.appState.ubData.status === "blocked") {
       this.elements.form.style.display = "none";
     }
 
-    // Initialize file upload UI state
     this.updateFileUploadUI();
   }
 
@@ -145,23 +118,17 @@ class StudentChat {
   setupStudentNavigation() {
     const { ubData, userId } = this.appState;
     
-    // Setup basic lesson navigation
     this.setupBasicNavigation();
     
-    // Setup student-specific navigation
     document.getElementById('course-name')?.addEventListener('click', () => {
       if (ubData._lesson.course_id) {
         window.location.href = `/course-home-student?course_id=${ubData._lesson.course_id}`;
-      } else {
-        console.error('No course home available');
       }
     });
     
     document.getElementById('course-home')?.addEventListener('click', () => {
       if (ubData._lesson.course_id) {
         window.location.href = `/course-home-student?course_id=${ubData._lesson.course_id}`;
-      } else {
-        console.error('No course home available');
       }
     });
     
@@ -183,8 +150,6 @@ class StudentChat {
       prevButton.addEventListener('click', () => {
         if (ubData._block.prev_id) {
           window.location.href = `/lesson-page?user_id=${userId}&block_id=${ubData._block.prev_id}`;
-        } else {
-          console.error('No previous lesson available');
         }
       });
     }
@@ -197,8 +162,6 @@ class StudentChat {
       nextButton.addEventListener('click', () => {
         if (ubData._block.next_id) {
           window.location.href = `/lesson-page?user_id=${userId}&block_id=${ubData._block.next_id}`;
-        } else {
-          console.error('No next lesson available');
         }
       });
     }
@@ -209,20 +172,16 @@ class StudentChat {
       this.handleStudentSubmit(event);
     });
 
-    // Handle Enter key press in the input field
     this.elements.userInput.addEventListener('keydown', (event) => {
       if (event.key === 'Enter') {
-        // Check if Shift+Enter was pressed (for multi-line input)
         if (event.shiftKey) {
           return;
         }
-        
         event.preventDefault();
         this.handleStudentSubmit(event);
       }
     });
 
-    // File upload event listeners
     this.setupFileUploadListeners();
   }
 
@@ -231,24 +190,20 @@ class StudentChat {
   // ============================================================================
 
   setupFileUploadListeners() {
-    // Attach file button - opens file dialog
     this.elements.attachFile?.addEventListener('click', () => {
       this.openFileDialog();
     });
 
-    // Remove file button - clears selected file
     this.elements.removeFile?.addEventListener('click', () => {
       this.clearSelectedFile();
     });
 
-    // Upload file button - uploads the file to API
     this.elements.uploadFile?.addEventListener('click', async () => {
       await this.uploadFile();
     });
   }
 
   openFileDialog() {
-    // Create a hidden file input element
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.style.display = 'none';
@@ -258,7 +213,6 @@ class StudentChat {
       if (file) {
         this.handleFileSelected(file);
       }
-      // Remove the temporary input element
       document.body.removeChild(fileInput);
     });
     
@@ -267,32 +221,24 @@ class StudentChat {
   }
 
   handleFileSelected(file) {
-    // Store the selected file in appState
     this.appState.selectedFile = file;
     
-    // Display the file name
     if (this.elements.fileName) {
       this.elements.fileName.textContent = file.name;
     }
     
-    // Update UI to show file is selected
     this.updateFileUploadUI();
-    
     console.log('File selected:', file.name);
   }
 
   clearSelectedFile() {
-    // Clear the selected file
     this.appState.selectedFile = null;
     
-    // Clear the file name display
     if (this.elements.fileName) {
       this.elements.fileName.textContent = '';
     }
     
-    // Update UI to show no file selected
     this.updateFileUploadUI();
-    
     console.log('File cleared');
   }
 
@@ -300,27 +246,13 @@ class StudentChat {
     const hasFile = this.appState.selectedFile !== null;
     
     if (hasFile) {
-      // Hide attach button, show file name and remove button
-      if (this.elements.attachFile) {
-        this.elements.attachFile.style.display = 'none';
-      }
-      if (this.elements.fileName) {
-        this.elements.fileName.style.display = 'block';
-      }
-      if (this.elements.removeFile) {
-        this.elements.removeFile.style.display = 'block';
-      }
+      if (this.elements.attachFile) this.elements.attachFile.style.display = 'none';
+      if (this.elements.fileName) this.elements.fileName.style.display = 'block';
+      if (this.elements.removeFile) this.elements.removeFile.style.display = 'block';
     } else {
-      // Show attach button, hide file name and remove button
-      if (this.elements.attachFile) {
-        this.elements.attachFile.style.display = 'block';
-      }
-      if (this.elements.fileName) {
-        this.elements.fileName.style.display = 'none';
-      }
-      if (this.elements.removeFile) {
-        this.elements.removeFile.style.display = 'none';
-      }
+      if (this.elements.attachFile) this.elements.attachFile.style.display = 'block';
+      if (this.elements.fileName) this.elements.fileName.style.display = 'none';
+      if (this.elements.removeFile) this.elements.removeFile.style.display = 'none';
     }
   }
 
@@ -333,13 +265,11 @@ class StudentChat {
     const userInputValue = this.elements.userInput.value.trim();
 
     try {
-      // Create FormData for file upload
       const formData = new FormData();
       formData.append('user_input', userInputValue);
       formData.append('ub_id', this.appState.ubId);
       formData.append('user_file', this.appState.selectedFile);
 
-      // Upload file to API
       const response = await fetch('https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/add_air_file', {
         method: 'POST',
         body: formData
@@ -352,10 +282,7 @@ class StudentChat {
       const result = await response.json();
       console.log('File uploaded successfully:', result);
 
-      // Clear the file after successful upload
       this.clearSelectedFile();
-
-      // Optionally clear the user input as well
       this.elements.userInput.value = '';
 
     } catch (error) {
@@ -364,14 +291,14 @@ class StudentChat {
   }
 
   // ============================================================================
-  // MESSAGE LOADING FUNCTIONS - УНІФІКОВАНО
+  // CHAT HISTORY LOADING - Порядок: 1) workflow_state, 2) AIR, 3) OpenAI thread
   // ============================================================================
 
   async loadChatHistory() {
     try {
       let hasMessages = false;
 
-      // 1. ПРІОРИТЕТ: Спочатку пробуємо workflow_state (нова логіка)
+      // 1. ПРІОРИТЕТ: workflow_state
       try {
         const workflowResponse = await fetch(`${this.appState.workflowApiUrl}/chat/${this.appState.ubId}/state`);
         
@@ -382,11 +309,15 @@ class StudentChat {
           if (workflowState.answers && workflowState.answers.length > 0) {
             this.elements.mainContainer.innerHTML = '';
             
-            // УНІФІКОВАНА обробка - всі workflows тепер використовують user_message та assistant_response
+            // Обробка кожної відповіді
             workflowState.answers.forEach((answerObj, index) => {
               
-              // Показуємо відповідь AI (assistant_response - уніфіковано)
-              // Також підтримуємо старі формати для сумісності
+              const userMessage = answerObj.user_message || answerObj.answer;
+              if (userMessage) {
+                this.createUserMessage(userMessage);
+              }
+            });
+
               const aiResponse = answerObj.assistant_response || 
                                  answerObj.coach_response || 
                                  answerObj.tutor_response || 
@@ -396,13 +327,6 @@ class StudentChat {
                 this.createAssistantMessage(aiResponse);
               }
               
-              // Показуємо повідомлення студента (user_message - уніфіковано)
-              // Також підтримуємо старий формат answer для сумісності
-              const userMessage = answerObj.user_message || answerObj.answer;
-              if (userMessage) {
-                this.createUserMessage(userMessage);
-              }
-            });
             
             hasMessages = true;
             console.log('Chat history loaded from workflow state');
@@ -419,76 +343,87 @@ class StudentChat {
           const airResponse = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/air?ub_id=${this.appState.ubId}`);
           
           if (airResponse.ok) {
-            const airMessages = await airResponse.json();
-            console.log('AIR messages loaded:', airMessages);
+            const airData = await airResponse.json();
+            console.log('AIR data loaded:', airData);
             
-            if (airMessages && airMessages.length > 0) {
+            if (airData && airData.length > 0) {
               this.elements.mainContainer.innerHTML = '';
               
-              airMessages.forEach(msg => {
-                try {
-                  // Parse user content
-                  let userContent = msg.user_content;
-                  if (typeof userContent === 'string') {
-                    userContent = JSON.parse(userContent);
+              airData.forEach(item => {
+                // Parse user content
+                if (item.user_content) {
+                  let userText = '';
+                  try {
+                    const userContent = typeof item.user_content === 'string' ? JSON.parse(item.user_content) : item.user_content;
+                    userText = userContent.text || userContent;
+                  } catch (e) {
+                    userText = item.user_content;
+                  }
+                  if (userText && typeof userText === 'string') {
+                    this.createUserMessage(userText);
+                  }
+                }
+                
+                // Parse AI content
+                if (item.ai_content) {
+                  let aiTexts = [];
+                  try {
+                    aiTexts = typeof item.ai_content === 'string' ? JSON.parse(item.ai_content) : item.ai_content;
+                  } catch (e) {
+                    aiTexts = [{ text: item.ai_content }];
                   }
                   
-                  // Parse AI content
-                  let aiContent = msg.ai_content;
-                  if (typeof aiContent === 'string') {
-                    aiContent = JSON.parse(aiContent);
+                  if (Array.isArray(aiTexts)) {
+                    aiTexts.forEach(ai => {
+                      if (ai.text) {
+                        this.createAssistantMessage(ai.text);
+                      }
+                    });
                   }
-                  
-                  // Display user message
-                  if (userContent && userContent.text) {
-                    this.createUserMessage(userContent.text);
-                  }
-                  
-                  // Display AI message
-                  if (aiContent && Array.isArray(aiContent) && aiContent.length > 0 && aiContent[0].text) {
-                    this.createAssistantMessage(aiContent[0].text);
-                  }
-                } catch (parseError) {
-                  console.error('Error parsing AIR message:', parseError);
                 }
               });
               
               hasMessages = true;
-              console.log('Chat history loaded from AIR');
+              console.log('Chat history loaded from AIR table');
               return;
             }
           }
         } catch (airError) {
-          console.log('AIR not available, trying legacy...', airError);
+          console.log('AIR data not available, trying OpenAI thread...', airError);
         }
       }
 
-      // 3. LEGACY FALLBACK: OpenAI thread (стара логіка)
+      // 3. LEGACY FALLBACK: OpenAI thread
       if (!hasMessages && this.appState.ubData.thread_id) {
         try {
           const response = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/l_messages?thread_id=${this.appState.ubData.thread_id}`, {
             method: 'GET',
-            headers: {
-              'Content-Type': 'application/json'
-            }
+            headers: { 'Content-Type': 'application/json' }
           });
 
           if (response.ok) {
             const messages = await response.json();
-            console.log('Legacy messages loaded:', messages);
+            console.log('Messages loaded from OpenAI thread:', messages);
 
-            this.elements.mainContainer.innerHTML = '';
-            const sortedMessages = messages.reverse();
+            if (messages && messages.length > 0) {
+              this.elements.mainContainer.innerHTML = '';
+              const sortedMessages = messages.reverse();
 
-            sortedMessages.forEach(message => {
-              this.displayMessage(message);
-            });
-            
-            console.log('Chat history loaded from legacy thread');
+              sortedMessages.forEach(message => {
+                this.displayMessage(message);
+              });
+              
+              hasMessages = true;
+              console.log('Chat history loaded from OpenAI thread');
+            }
           }
-        } catch (legacyError) {
-          console.error('Error loading legacy chat history:', legacyError);
+        } catch (threadError) {
+          console.log('OpenAI thread not available', threadError);
         }
+      }
+
+      if (!hasMessages) {
+        console.log('No chat history found');
       }
 
     } catch (error) {
@@ -512,10 +447,7 @@ class StudentChat {
         const contentObj = message.content[0];
         if (contentObj.type === 'text' && contentObj.text && contentObj.text.value) {
           let textValue = contentObj.text.value;
-          
-          // Legacy JSON format support
           textValue = this.parseLegacyMessageFormat(textValue, message.role);
-          
           return textValue;
         }
       }
@@ -526,7 +458,6 @@ class StudentChat {
   }
 
   parseLegacyMessageFormat(textValue, role) {
-    // Check if message starts with { (indicating legacy JSON format)
     if (textValue.trim().startsWith('{')) {
       try {
         if (role === 'assistant') {
@@ -536,23 +467,19 @@ class StudentChat {
           }
         } else if (role === 'user') {
           let fixedJson = textValue.trim();
-          
           if (!fixedJson.endsWith('}')) {
             fixedJson += '}';
           }
-          
           fixedJson = fixedJson.replace(/'/g, '"');
-          
           const parsed = JSON.parse(fixedJson);
           if (parsed.text) {
             return parsed.text;
           }
         }
       } catch (jsonError) {
-        console.warn('Failed to parse legacy JSON format, using raw text:', jsonError);
+        console.warn('Failed to parse legacy JSON format, using raw text');
       }
     }
-    
     return textValue;
   }
 
@@ -582,7 +509,6 @@ class StudentChat {
     const aiContainer = document.createElement('div');
     aiContainer.className = 'ai_content_container';
     
-    // Create alsie avatar element
     const alsieAvatar = document.createElement('div');
     alsieAvatar.id = 'alsie-avatar';
     alsieAvatar.className = 'alsie-avatar';
@@ -593,7 +519,6 @@ class StudentChat {
     const aiText = document.createElement('div');
     aiText.className = 'ai_text w-richtext';
     
-    // Parse markdown to HTML
     try {
       if (typeof marked !== 'undefined') {
         marked.setOptions({
@@ -604,14 +529,12 @@ class StudentChat {
         
         aiText.innerHTML = marked.parse(text);
         
-        // Add syntax highlighting if available
         if (typeof Prism !== 'undefined') {
           aiText.querySelectorAll('pre code').forEach((block) => {
             Prism.highlightElement(block);
           });
         }
       } else {
-        console.warn('Marked library not loaded, displaying plain text');
         aiText.textContent = text;
       }
     } catch (error) {
@@ -627,7 +550,7 @@ class StudentChat {
     this.setupCodeBlocks(aiContainer);
     this.scrollToBottom();
     
-    return aiText; // Return reference for streaming updates
+    return aiText;
   }
 
   setupCodeBlocks(container) {
@@ -646,15 +569,11 @@ class StudentChat {
         const code = codeBlock.textContent;
         navigator.clipboard.writeText(code).then(() => {
           copyButton.textContent = 'Copied!';
-          setTimeout(() => {
-            copyButton.textContent = 'Copy';
-          }, 2000);
+          setTimeout(() => { copyButton.textContent = 'Copy'; }, 2000);
         }).catch(err => {
           console.error('Failed to copy code:', err);
           copyButton.textContent = 'Error!';
-          setTimeout(() => {
-            copyButton.textContent = 'Copy';
-          }, 2000);
+          setTimeout(() => { copyButton.textContent = 'Copy'; }, 2000);
         });
       });
     });
@@ -678,26 +597,25 @@ class StudentChat {
     }
 
     try {
-      // 1. Add user message to chat
+      // 1. Додаємо повідомлення користувача
       this.createUserMessage(userInputValue);
       
-      // 2. Reset form
+      // 2. Очищаємо форму
       this.elements.userInput.value = '';
       
-      // 3. Create AI message container for streaming
+      // 3. Створюємо контейнер для стрімінгу AI відповіді
       this.appState.currentStreamingMessage = this.createAssistantMessage('');
       
-      // 4. Set loading state to TRUE (start avatar rotation)
+      // 4. Встановлюємо стан завантаження
       this.setUILoadingState(true);
       
-      // 5. Start streaming
+      // 5. Запускаємо стрімінг
       await this.startWorkflowStreaming(userInputValue);
       
     } catch (error) {
       console.error('Error handling chat submit:', error);
       this.setUILoadingState(false);
       
-      // Show error to user
       if (this.appState.currentStreamingMessage) {
         this.appState.currentStreamingMessage.textContent = 
           'Sorry, there was an error processing your request. Please try again.';
@@ -707,12 +625,9 @@ class StudentChat {
 
   async startWorkflowStreaming(userInput) {
     try {
-      // Call Vercel API
       const response = await fetch(`${this.appState.workflowApiUrl}/chat/message`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ub_id: this.appState.ubId,
           content: userInput
@@ -723,11 +638,9 @@ class StudentChat {
         throw new Error(`Workflow API failed: ${response.status} ${response.statusText}`);
       }
 
-      // Read streaming response
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let accumulatedText = '';
-      let buffer = '';
 
       while (true) {
         const { done, value } = await reader.read();
@@ -737,34 +650,16 @@ class StudentChat {
           break;
         }
 
-        // Decode chunk and add to buffer
         const chunk = decoder.decode(value, { stream: true });
-        buffer += chunk;
-        
-        // Process complete SSE messages
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-        
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.substring(6);
-            if (data.trim()) {
-              accumulatedText += data;
-              this.updateStreamingMessage(accumulatedText);
-            }
-          } else if (line.trim()) {
-            accumulatedText += line;
-            this.updateStreamingMessage(accumulatedText);
-          }
-        }
+        accumulatedText += chunk;
+        this.updateStreamingMessage(accumulatedText);
       }
 
-      // Final update after stream completes
       this.appState.currentStreamingRawText = accumulatedText;
       this.finalizeStreamingMessage();
 
     } catch (error) {
-      console.error('Streaming error:', error);
+      console.error('Error during workflow streaming:', error);
       this.setUILoadingState(false);
       throw error;
     }
@@ -774,32 +669,60 @@ class StudentChat {
     if (this.appState.currentStreamingMessage) {
       try {
         if (typeof marked !== 'undefined') {
+          marked.setOptions({ breaks: true, gfm: true, sanitize: false });
           this.appState.currentStreamingMessage.innerHTML = marked.parse(text);
+          
+          if (typeof Prism !== 'undefined') {
+            this.appState.currentStreamingMessage.querySelectorAll('pre code').forEach((block) => {
+              Prism.highlightElement(block);
+            });
+          }
         } else {
           this.appState.currentStreamingMessage.textContent = text;
         }
-        this.scrollToBottom();
       } catch (error) {
         console.error('Error updating streaming message:', error);
         this.appState.currentStreamingMessage.textContent = text;
       }
+      
+      this.scrollToBottom();
     }
   }
 
   finalizeStreamingMessage() {
-    // Set loading state to FALSE (stop avatar rotation)
-    this.setUILoadingState(false);
-    
-    // Setup code blocks for the completed message
-    if (this.appState.currentStreamingMessage) {
+    console.log('Finalizing stream');
+
+    if (this.appState.currentStreamingMessage && this.appState.currentStreamingRawText) {
       const container = this.appState.currentStreamingMessage.closest('.ai_content_container');
+      const finalText = this.appState.currentStreamingRawText;
+      
+      try {
+        if (typeof marked !== 'undefined' && finalText) {
+          marked.setOptions({ breaks: true, gfm: true, sanitize: false });
+          this.appState.currentStreamingMessage.innerHTML = marked.parse(finalText);
+          
+          if (typeof Prism !== 'undefined') {
+            this.appState.currentStreamingMessage.querySelectorAll('pre code').forEach((block) => {
+              Prism.highlightElement(block);
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error in final markdown rendering:', error);
+        this.appState.currentStreamingMessage.innerHTML = finalText.replace(/\n/g, '<br>');
+      }
+      
       if (container) {
         this.setupCodeBlocks(container);
       }
+      
+      this.scrollToBottom();
     }
     
-    // Clear the streaming message reference
+    this.setUILoadingState(false);
+    
     this.appState.currentStreamingMessage = null;
+    this.appState.currentStreamingRawText = '';
   }
 
   // ============================================================================
@@ -807,37 +730,30 @@ class StudentChat {
   // ============================================================================
 
   setUILoadingState(isLoading) {
-    if(!isLoading) {console.log('update ui state with false');}
+    if(!isLoading) { console.log('update ui state with false'); }
     const { userInput, chatInputContainer, submitButton } = this.elements;
     
     if (isLoading) {
-      // Disable input controls
       chatInputContainer.className = 'chat-input-container-disabled';
       submitButton.className = 'icon-button-disabled';
     } else {
-      // Enable input controls
       userInput.style.opacity = '1';
       userInput.disabled = false;
       chatInputContainer.className = 'chat-input-container';
       submitButton.className = 'icon-button';
     }
 
-    // Handle alsie-avatar rotation for the current streaming message
     if (this.appState.currentStreamingMessage) {
-      // Find the container that holds the current streaming message
       const messageContainer = this.appState.currentStreamingMessage.closest('.ai_content_container');
       
       if (messageContainer) {
-        // Find the alsie-avatar within this specific message container
         const alsieAvatar = messageContainer.querySelector('.alsie-avatar');
         
         if (alsieAvatar) {
           console.log('alsie avatar found');
           if (isLoading) {
-            // Set avatar to rotating state
             alsieAvatar.className = 'alsie-avatar rotating';
           } else {
-            // Set avatar back to normal state
             alsieAvatar.className = 'alsie-avatar';
           }
         }

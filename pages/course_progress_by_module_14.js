@@ -2,7 +2,7 @@
 // COURSE PROGRESS BY MODULE - WITH VERCEL GRADING SUPPORT
 // ============================================================================
 
-const WORKFLOW_API_URL = 'https://workflow-8d80onml6-toropilja374-gmailcoms-projects.vercel.app';
+const WORKFLOW_API_URL = 'https://workflow-c2y7i9hwr-toropilja374-gmailcoms-projects.vercel.app';
 
 // ============================================================================
 // INITIALIZATION

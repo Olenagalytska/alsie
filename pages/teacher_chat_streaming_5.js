@@ -11,7 +11,7 @@ class TeacherChat {
       lessonId: null,
       currentStreamingMessage: null,
       currentStreamingRawText: '',
-      workflowApiUrl: 'https://workflow-8d80onml6-toropilja374-gmailcoms-projects.vercel.app'
+      workflowApiUrl: 'https://workflow-c2y7i9hwr-toropilja374-gmailcoms-projects.vercel.app'
     };
   }
 

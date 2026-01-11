@@ -1,0 +1,452 @@
+
+document.addEventListener('DOMContentLoaded', async function () {
+  
+/*-------------------------------*/
+//Get the auth token
+let user = await verifyUserAuth();
+
+  // Get the auth token from local storage
+  let course_id = getUrlParameters('course_id');
+  let user_id = user.id;
+  let user_name = user.name;
+  let user_role = user.role;
+//  let authToken;
+
+if (!course_id) {
+console.error('Required URL parameters are missing: course_id');
+window.location.href = '/';
+}
+
+		setElementNames({ course_id, lesson_id: null, block_id: null, teacher_id: null });  
+    setTeacherCourseMenu(course_id);
+
+
+
+  if (user_id) {
+    // Fetch lessons and blocks for the user
+    const apiUrl = 'https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/lesson_full';
+    //const courseId = 2; // Hardcoded course_id
+
+    fetch(`${apiUrl}?course_id=${course_id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        //'Authorization': `Bearer ${authToken}`,
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok ' + response.statusText);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log('Data received:', data);
+
+        const mainContainer = document.getElementById('main-container');
+
+      if (mainContainer) {
+      mainContainer.innerHTML = ''; // Clear previous content
+
+      // Populate course name
+      const courseTitleBlock = document.getElementById('course-name-title');
+      if (courseTitleBlock) {
+        courseTitleBlock.textContent = data[0]?._course.name || 'Unknown Course';
+      }
+
+      
+          // Process each lesson in the data array
+          data.forEach((lesson) => {
+          
+          
+            const lessonHeaderContainer = document.createElement('div');
+            lessonHeaderContainer.className = 'li_lesson_header_container';
+            
+            
+            const lessonNameContainer = document.createElement('div');
+            lessonNameContainer.className = 'li_lesson_name_container';
+
+            
+            
+            // Create and append lesson name element
+            const lessonName = document.createElement('div');
+            lessonName.className = 'home_st_lesson_name';
+            lessonName.innerText = lesson.name;
+
+						const labelBlockName = document.createElement('text');
+                labelBlockName.className = 'lesson-label-text';
+                labelBlockName.innerText = `Module ${lesson.order}`;
+                
+
+
+								const lessonStatus = document.createElement('div'); 
+        				lessonStatus.innerText = lesson.status;
+          	  	if(lesson.status==="draft") {
+       					lessonStatus.classList.add('idle-tag');
+           			 } else if (lesson.status==="published") {
+          	 		 lessonStatus.classList.add('done-tag');
+          	 		 }
+
+								const labelContainer = document.createElement('div'); 
+                labelContainer.classList.add('lesson-label-container');
+                labelContainer.appendChild(lessonStatus);
+                labelContainer.appendChild(labelBlockName);
+
+        		lessonNameContainer.appendChild(labelContainer);
+        		lessonNameContainer.appendChild(lessonName);
+						lessonHeaderContainer.appendChild(lessonNameContainer);
+						mainContainer.appendChild(lessonHeaderContainer);
+
+						if (lesson.status ==="published") {
+
+            const lessonGradeButton = document.createElement('div');
+            lessonGradeButton.className = 'button_primary_m';
+            lessonGradeButton.innerText = 'Grade Module';
+            
+            
+            lessonHeaderContainer.appendChild(lessonGradeButton);
+
+            
+
+            // Add click event listener to calculate grades
+            lessonGradeButton.addEventListener('click', function () {
+              console.log('calc grades: ', lesson.id);
+              getLessonGrades(lesson.id);
+            });
+						
+            if (lesson.blocks?.length) {
+            // Process each block in the lesson
+            let blockOrder=1;
+            lesson.blocks.forEach((block) => {
+            
+              const blockContainer = document.createElement('div');
+              blockContainer.className = 'course-progress-block-container';
+							blockContainer.classList.add('bg-paper');
+
+	 						const labelBlockName = document.createElement('label'); 
+        			labelBlockName.innerText = 'Block '+ blockOrder;
+       				labelBlockName.classList.add('label-text');
+       		 	 	blockContainer.appendChild(labelBlockName);
+
+              const blockNameElement = document.createElement('div');
+              blockNameElement.className = 'li_block_name';
+              blockNameElement.innerText = block.name;
+
+              blockContainer.appendChild(blockNameElement);
+              mainContainer.appendChild(blockContainer);
+
+              // Add grades container for each block
+              const gradesContainer = document.createElement('div');
+              gradesContainer.id = `grades-block-${block.id}`;
+              gradesContainer.className = 'grades-container';
+
+              blockContainer.appendChild(gradesContainer);
+
+              // Fetch and display grades for each block
+              fetchAndDisplayGrades(block.id, gradesContainer.id);
+              blockOrder+=1;
+            });
+            } else {
+            const emptyBlockContainer = document.createElement('div');
+            emptyBlockContainer.className = 'empty-block-container';
+            emptyBlockContainer.innerText = "No blocks found in this Module. If you added blocks and you don't see them here, ensure you published the module after adding those blocks.";
+            mainContainer.appendChild(emptyBlockContainer);
+            }
+            
+            }
+          });
+        } else {
+          console.error('Main container not found');
+        }
+      })
+      .catch((error) => console.error('Error fetching data:', error));
+  } else {
+    console.error('No auth token found. Please log in.');
+  }
+});
+
+
+// Function to call API and populate table
+async function fetchAndDisplayGrades(blockId, gradesContainerId) {
+  const apiUrl = 'https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/get_ub_grades';
+  const userType = "student";
+
+  try {
+		const response = await fetch(`${apiUrl}?block_id=${encodeURIComponent(blockId)}&role=${encodeURIComponent(userType)}`);
+
+    
+    const data = await response.json();
+		//console.log('grades received':, data);
+    const gradesContainer = document.getElementById(gradesContainerId);
+
+    if (data.length === 0) {
+    gradesContainer.className="empty-block-container";
+      gradesContainer.innerText = "No grades available for this block. This happens if the module hasn't been published or you haven't added any students to this course";
+      return;
+    }
+
+    let table = document.createElement('table');
+    table.style.width = '100%';
+    table.style.borderCollapse = 'collapse'; 
+
+    let thead = document.createElement('thead');
+    let headerRow = document.createElement('tr');
+    headerRow.style.borderBottom = '1px solid #babbca';
+    
+    
+    let nameHeader = document.createElement('th');
+    nameHeader.textContent = 'Name';
+    nameHeader.classList.add('table-header');
+    nameHeader.style.width = '20%'; 
+    //nameHeader.style.textAlign = 'left'; // Align Name header to the left
+
+
+    headerRow.appendChild(nameHeader);
+
+    
+    let doneHeader = document.createElement('th');
+    doneHeader.textContent = 'Progress';
+    doneHeader.style.width = '10%'; 
+    doneHeader.classList.add('table-header');
+		doneHeader.style.textAlign = 'left'; // Align Grade header to the left
+
+    headerRow.appendChild(doneHeader);
+    
+    
+    let gradeHeader = document.createElement('th');
+    gradeHeader.textContent = 'Grade';
+    gradeHeader.style.width = '10%'; 
+    gradeHeader.classList.add('table-header');
+		gradeHeader.style.textAlign = 'left'; // Align Grade header to the left
+
+    headerRow.appendChild(gradeHeader);
+
+    let summaryHeader = document.createElement('th');
+    summaryHeader.textContent = 'Feedback';
+    summaryHeader.style.width = '40%'; 
+		summaryHeader.classList.add('table-header'); 
+    
+    headerRow.appendChild(summaryHeader);
+    
+    
+    let viewHeader = document.createElement('th');
+    viewHeader.textContent = '';
+    viewHeader.style.width = '6%'; 
+		viewHeader.classList.add('table-header'); 
+    
+    headerRow.appendChild(viewHeader);
+    
+    let clearHeader = document.createElement('th');
+    clearHeader.textContent = '';
+    clearHeader.style.width = '7%'; 
+		clearHeader.classList.add('table-header'); 
+    
+    headerRow.appendChild(clearHeader);
+    
+    let actionHeader = document.createElement('th');
+    actionHeader.textContent = '';
+    actionHeader.style.width = '7%'; 
+		actionHeader.classList.add('table-header'); 
+    
+    headerRow.appendChild(actionHeader);
+    
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    let tbody = document.createElement('tbody');
+
+    data.forEach(item => {
+      let row = document.createElement('tr');
+			
+     
+      let nameCell = document.createElement('td');
+      nameCell.textContent = item._user.name;
+      nameCell.classList.add('table-row');
+      row.appendChild(nameCell);
+      
+      let doneCell = document.createElement('td');
+      doneCell.classList.add("table-row");
+      doneCell.style.padding = '0.5rem';
+      let doneStatus = document.createElement('div');
+      doneStatus.textContent = item.status || "Idle";
+     
+      if(item.status == "finished") {
+      doneStatus.classList.add('done-tag');
+      } else {
+      if(item.status == "started") {
+      doneStatus.classList.add('started-tag');} 
+      else {
+      doneStatus.classList.add('idle-tag');
+      }
+      }
+      doneCell.appendChild(doneStatus);
+      row.appendChild(doneCell);
+
+      let gradeCell = document.createElement('td');
+      gradeCell.textContent = item.grade;
+      gradeCell.classList.add('table-row');; 
+      row.appendChild(gradeCell);
+
+      let summaryCell = document.createElement('td');
+      summaryCell.textContent = item.work_summary || 'N/A'; 
+      summaryCell.classList.add('table-row'); 
+      row.appendChild(summaryCell);
+
+// Add a "Clear" link in the last column
+            let actionCell = document.createElement('td');
+            actionCell.classList.add("table-row");
+            actionCell.style.padding = '0.5rem';
+
+            let clearLink = document.createElement('div');
+            
+            clearLink.textContent = 'Clear';
+            clearLink.className = 'button_red_s';
+            clearLink.style.cursor = 'pointer'; // Add pointer style for link
+
+            // Add an event listener to the "Clear" link
+            clearLink.addEventListener('click', function(e) {
+                e.preventDefault(); // Prevent the link from navigating
+                clearBlockGrades(item.id, blockId); // Call the API to clear grades
+            });
+
+            actionCell.appendChild(clearLink);
+            row.appendChild(actionCell);
+            
+            
+// Add a "View" link in the last column
+            let viewCell = document.createElement('td');
+            viewCell.classList.add("table-row");
+            viewCell.style.padding = '0.5rem';
+
+            let viewLink = document.createElement('div');
+            viewLink.textContent = 'View';
+            viewLink.className = 'button_inverse_s';
+            viewLink.style.cursor = 'pointer'; // Add pointer style for link
+
+            // Add an event listener to the "View" link
+            viewLink.addEventListener('click', function() {
+            window.location.href = `/lesson-page-teacher-view?block_id=${item.block_id}&user_id=${item._user.id}`;
+            });
+
+            viewCell.appendChild(viewLink);
+            row.appendChild(viewCell);
+
+      
+// Add a "Grade" link in the last column
+            let gradeBlockCell = document.createElement('td');
+            gradeBlockCell.classList.add("table-row");
+            gradeBlockCell.style.padding = '0.5rem';
+
+            let gradeLink = document.createElement('div');
+            
+            gradeLink.textContent = 'Grade';
+            gradeLink.className = 'button_primary_s';
+            gradeLink.style.cursor = 'pointer'; // Add pointer style for link
+
+            // Add an event listener to the "Clear" link
+            gradeLink.addEventListener('click', function(e) {
+                e.preventDefault(); // Prevent the link from navigating
+                gradeBlock(item.id); // Call the API to clear grades
+            });
+
+            gradeBlockCell.appendChild(gradeLink);
+            row.appendChild(gradeBlockCell);
+
+      tbody.appendChild(row);
+    });
+
+    table.appendChild(tbody);
+    gradesContainer.innerHTML = ''; 
+    gradesContainer.appendChild(table);
+  } catch (error) {
+    console.error('Error fetching or displaying grades:', error);
+  }
+}
+
+
+// Function to call the API to clear the grades for a block
+async function clearBlockGrades(ub_id, block_id) {
+    const apiUrl = 'https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/clear_ub';
+
+    try {
+        const response = await fetch(`${apiUrl}?ub_id=${ub_id}`, {
+            method: 'DELETE', // Use POST if this is an action that modifies data
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        const result = await response.json();
+        console.log('Grades cleared:', result);
+
+        // Optionally, you can refresh the grades table or display a message
+        alert('Grades have been cleared for this block.');
+        // Optionally refresh the grades display after clearing
+        fetchAndDisplayGrades(block_id, `grades-block-${block_id}`);
+    } catch (error) {
+        console.error('Error clearing grades:', error);
+    }
+}
+
+
+
+
+
+// Function to call the API to calc the grades for a lesson
+async function getLessonGrades(lesson_id) {
+    const apiUrl = 'https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/grade_lesson';
+
+    try {
+        const response = await fetch(`${apiUrl}?lesson_id=${lesson_id}`, {
+            method: 'POST', 
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        const result = await response.json();
+        console.log('Grades calculated:', result);
+
+        // Optionally, you can refresh the grades table or display a message
+        //alert('Grades have been calculated for this block.');
+    } catch (error) {
+        console.error('Error clearing grades:', error);
+    }
+}
+
+  
+
+// Function to call the API to calc the grades for a block
+async function gradeBlock(ub_id) {
+		console.log('Grading user block:', ub_id);
+    const apiUrl = 'https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/grade_ub';
+
+    try {
+        const response = await fetch(`${apiUrl}?ub_id=${ub_id}`, {
+            method: 'POST', 
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        const result = await response.json();
+        console.log('User Block grades calculated:', result);
+
+        // Optionally, you can refresh the grades table or display a message
+        //alert('Grades have been calculated for this block.');
+    } catch (error) {
+        console.error('Error clearing grades:', error);
+    }
+}

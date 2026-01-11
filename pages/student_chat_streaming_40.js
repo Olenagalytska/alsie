@@ -21,7 +21,7 @@ class StudentChat {
       currentStreamingMessage: null,
       currentStreamingRawText: '',
       selectedFile: null,
-      workflowApiUrl: 'https://workflow-157stioq2-toropilja374-gmailcoms-projects.vercel.app'
+      workflowApiUrl: 'https://workflow-8d80onml6-toropilja374-gmailcoms-projects.vercel.app'
     };
   }
 
@@ -364,7 +364,7 @@ class StudentChat {
   }
 
   // ============================================================================
-  // MESSAGE LOADING FUNCTIONS - ВИПРАВЛЕНО
+  // MESSAGE LOADING FUNCTIONS - УНІФІКОВАНО
   // ============================================================================
 
   async loadChatHistory() {
@@ -382,29 +382,25 @@ class StudentChat {
           if (workflowState.answers && workflowState.answers.length > 0) {
             this.elements.mainContainer.innerHTML = '';
             
-            // ВИПРАВЛЕНО: Правильна обробка структури даних
+            // УНІФІКОВАНА обробка - всі workflows тепер використовують user_message та assistant_response
             workflowState.answers.forEach((answerObj, index) => {
-              // Отримуємо питання за question_index
-              const questionIndex = answerObj.question_index !== undefined ? answerObj.question_index : index;
-              const questionObj = workflowState.questions ? workflowState.questions[questionIndex] : null;
               
-              // Показуємо питання від AI (якщо є)
-              if (questionObj && questionObj.question) {
-                this.createAssistantMessage(questionObj.question);
-              }
-              
-              // Показуємо відповідь студента
-              // Підтримка різних форматів: answer, user_message
-              const userAnswer = answerObj.answer || answerObj.user_message;
-              if (userAnswer) {
-                this.createUserMessage(userAnswer);
-              }
-              
-              // Показуємо відповідь AI (якщо є)
-              // Підтримка різних форматів: assistant_response, coach_response, tutor_response, assignment
-              const aiResponse = answerObj.assistant_response || answerObj.coach_response || answerObj.tutor_response || answerObj.assignment;
+              // Показуємо відповідь AI (assistant_response - уніфіковано)
+              // Також підтримуємо старі формати для сумісності
+              const aiResponse = answerObj.assistant_response || 
+                                 answerObj.coach_response || 
+                                 answerObj.tutor_response || 
+                                 answerObj.agent_response ||
+                                 answerObj.assignment;
               if (aiResponse) {
                 this.createAssistantMessage(aiResponse);
+              }
+              
+              // Показуємо повідомлення студента (user_message - уніфіковано)
+              // Також підтримуємо старий формат answer для сумісності
+              const userMessage = answerObj.user_message || answerObj.answer;
+              if (userMessage) {
+                this.createUserMessage(userMessage);
               }
             });
             

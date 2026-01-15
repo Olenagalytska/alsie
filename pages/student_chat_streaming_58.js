@@ -137,7 +137,8 @@ class StudentChat {
             const data = await response.json();
             console.log('ChatKit session created:', data.session_id);
             return data.client_secret;
-          }
+          },
+          uploads: 'hosted'
         },
         theme: {
           colorScheme: 'light',

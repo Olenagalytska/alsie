@@ -89,7 +89,7 @@ class StudentChat {
     this.elements.mainContainer.innerHTML = `
       <style>
         #chatkit-wrapper {
-          min-width: 100%;
+          width: 640px;
           min-height: 100%;
           position: relative;
         }

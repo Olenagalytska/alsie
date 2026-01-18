@@ -90,8 +90,8 @@ class StudentChat {
       <style>
         #chatkit-wrapper {
           width: 100%;
-          height: 600px;
-          min-height: 600px;
+          height: 100%;
+          min-height: 100%;
           position: relative;
         }
         #chatkit-widget {
@@ -194,16 +194,6 @@ class StudentChat {
             maxCount: 5,
             maxSize: 10485760
           }
-        },
-        startScreen: {
-          greeting: '',
-          prompts: [
-            {
-              icon: 'circle-question',
-              label: 'What is ChatKit?',
-              prompt: 'What is ChatKit?'
-            }
-          ]
         }
       });
       
@@ -233,8 +223,8 @@ class StudentChat {
     
     this.setupBlockContent();
     
-    if (this.appState.ubData.status === "finished" || this.appState.ubData.status === "blocked") {
-      this.elements.form.style.display = "none";
+    if (!(this.appState.ubData.status === "finished" || this.appState.ubData.status === "blocked")) {
+      this.elements.form.style.display = "flex";
     }
 
     this.updateFileUploadUI();

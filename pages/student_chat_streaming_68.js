@@ -16,8 +16,7 @@ class StudentChat {
     };
   }
 
-<<<<<<< HEAD
-  async initialize() {
+async initialize() {
     try {
       this.setupDOMElements();
       await this.initializeStudentChat();

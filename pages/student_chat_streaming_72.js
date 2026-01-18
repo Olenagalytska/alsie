@@ -90,6 +90,7 @@ class StudentChat {
       <style>
         #chatkit-wrapper {
           width: 640px;
+          height: 640px;
           min-height: 100%;
           position: relative;
         }

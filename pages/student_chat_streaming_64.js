@@ -198,7 +198,11 @@ class StudentChat {
         startScreen: {
           greeting: '',
           prompts: [
-            
+            {
+              icon: 'circle-question',
+              label: 'Hi there!',
+              prompt: 'Hi there!'
+            }
           ]
         }
         

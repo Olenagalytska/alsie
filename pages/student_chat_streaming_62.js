@@ -193,7 +193,17 @@ class StudentChat {
             enabled: true,
             maxCount: 5,
             maxSize: 10485760
-          }
+          },
+        startScreen: {
+          greeting: '',
+          prompts: [
+            {
+              icon: 'circle-question',
+              label: 'What is ChatKit?',
+              prompt: 'What is ChatKit?'
+            }
+          ]
+        }
         }
       });
       

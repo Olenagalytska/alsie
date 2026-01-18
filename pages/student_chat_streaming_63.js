@@ -89,8 +89,8 @@ class StudentChat {
     this.elements.mainContainer.innerHTML = `
       <style>
         #chatkit-wrapper {
-          width: 100%;
-          height: 100%;
+          width: 600px;
+          height: 600px;
           min-height: 100%;
           position: relative;
         }
@@ -193,7 +193,8 @@ class StudentChat {
             enabled: true,
             maxCount: 5,
             maxSize: 10485760
-          },
+          }
+        },
         startScreen: {
           greeting: '',
           prompts: [
@@ -204,7 +205,7 @@ class StudentChat {
             }
           ]
         }
-        }
+        
       });
       
       console.log('ChatKit options set successfully');

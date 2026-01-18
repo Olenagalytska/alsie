@@ -89,8 +89,8 @@ class StudentChat {
     this.elements.mainContainer.innerHTML = `
       <style>
         #chatkit-wrapper {
-          width: 600px;
-          height: 600px;
+          width: 100%;
+          height: 100%;
           min-height: 100%;
           position: relative;
         }
@@ -198,11 +198,7 @@ class StudentChat {
         startScreen: {
           greeting: '',
           prompts: [
-            {
-              icon: 'circle-question',
-              label: 'What is ChatKit?',
-              prompt: 'What is ChatKit?'
-            }
+            
           ]
         }
         

@@ -197,8 +197,7 @@ class StudentChat {
         },
         startScreen: {
           greeting: 'Start the conversation as you do with real people.',
-          prompts: [
-          ]
+          prompts: this.appState.ubData._block.chatkit_prompts
         }
         
       });

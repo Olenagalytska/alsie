@@ -194,7 +194,18 @@ class StudentChat {
             maxCount: 5,
             maxSize: 10485760
           }
+        },
+        startScreen: {
+          greeting: 'Start the conversation as you do with real people.',
+          prompts: [
+            {
+              icon: 'comic_bubble',
+              label: `Hi there! How's it going?`,
+              prompt: 'Hi there!'
+            }
+          ]
         }
+        
       });
       
       console.log('ChatKit options set successfully');

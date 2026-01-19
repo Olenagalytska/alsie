@@ -194,18 +194,7 @@ class StudentChat {
             maxCount: 5,
             maxSize: 10485760
           }
-        },
-        startScreen: {
-          greeting: '',
-          prompts: [
-            {
-              icon: 'circle-question',
-              label: 'Hi there!',
-              prompt: 'Hi there!'
-            }
-          ]
         }
-        
       });
       
       console.log('ChatKit options set successfully');

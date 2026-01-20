@@ -1,4 +1,4 @@
-class StudentChat {
+class TeacherChat {
   constructor() {
     this.elements = {};
     this.appState = {
@@ -11,7 +11,6 @@ class StudentChat {
       lessonId: null,
       currentStreamingMessage: null,
       currentStreamingRawText: '',
-      selectedFile: null,
       workflowApiUrl: 'https://workflow-r1fsa2lue-toropilja374-gmailcoms-projects.vercel.app'
     };
   }
@@ -19,10 +18,10 @@ class StudentChat {
   async initialize() {
     try {
       this.setupDOMElements();
-      await this.initializeStudentChat();
+      await this.initializeTeacherChat();
       return true;
     } catch (error) {
-      console.error('Failed to initialize student chat:', error);
+      console.error('Failed to initialize teacher chat:', error);
       return false;
     }
   }
@@ -33,219 +32,44 @@ class StudentChat {
       mainContainer: document.getElementById('main-container'),
       userInput: document.getElementById('user-input'),
       submitButton: document.getElementById('submit-button'),
-      attachFile: document.getElementById('attach-file-icon'),
-      chatInputContainer: document.getElementById('chat-input-container'),
-      removeFile: document.getElementById('remove-file-icon'),
-      uploadFile: document.getElementById('upload-file-icon'),
-      fileName: document.getElementById('file-name')
+      generateButton: document.getElementById('generate-button'),
+      chatInputContainer: document.getElementById('chat-input-container')
     };
   }
 
-  async initializeStudentChat() {
+  async initializeTeacherChat() {
     this.setupInputFocusHandling();
     
     this.appState.user = await verifyUserAuth();
     
-    this.appState.userId = this.appState.user.id;
-    this.appState.blockId = getUrlParameters('block_id');
+    const userId = getUrlParameters('user_id');
+    const blockId = getUrlParameters('block_id');
+    const ubId = getUrlParameters('ub_id');
     
-    if (!this.appState.userId || !this.appState.blockId) {
-      throw new Error('Required URL parameters are missing: user_id or block_id');
-    }
-
-    if (this.appState.user.id != this.appState.userId) {
-      console.warn('User ID mismatch detected. Redirecting to home page.');
-      window.location.href = '/';
-      return;
+    if (ubId) {
+      this.appState.ubData = await fetchUbData(null, null, ubId);
+      this.appState.ubId = ubId;
+      this.appState.userId = this.appState.ubData.user_id;
+      this.appState.blockId = this.appState.ubData.block_id;
+    } else if (userId && blockId) {
+      this.appState.ubData = await fetchUbData(userId, blockId);
+      this.appState.ubId = this.appState.ubData.id;
+      this.appState.userId = userId;
+      this.appState.blockId = blockId;
+    } else {
+      throw new Error('Required URL parameters are missing');
     }
     
-    this.appState.ubData = await fetchUbData(this.appState.userId, this.appState.blockId);
-    this.appState.ubId = this.appState.ubData.id;
     this.appState.courseId = this.appState.ubData._lesson._course.id;
     this.appState.lessonId = this.appState.ubData._lesson.id;
     
-    await this.setupStudentPageElements();
+    await this.setupTeacherPageElements();
     
-    if (this.appState.ubData._block.workflow_id) {
-      console.log('ChatKit workflow detected:', this.appState.ubData._block.workflow_id);
-      await this.initChatKit(this.appState.ubData._block.workflow_id);
-      return;
-    }
-    
-    this.setupStudentEventListeners();
+    this.setupTeacherEventListeners();
     
     await this.loadChatHistory();
   }
 
-  async initChatKit(workflowId) {
-    console.log('Initializing ChatKit with workflow:', workflowId);
-    
-    this.elements.form.style.display = 'none';
-    
-    const workflowApiUrl = this.appState.workflowApiUrl;
-    const ubId = this.appState.ubId;
-    const blockId = this.appState.blockId;
-    const userId = this.appState.userId;
-    
-    // Check if self-hosted mode (uses your own workflows via ChatKit UI)
-    const isSelfHosted = workflowId === 'self-hosted';
-    
-    this.elements.mainContainer.innerHTML = `
-      <style>
-        #chatkit-wrapper {
-          width: 100%;
-          height: 100%;
-          min-height: 100%;
-          position: relative;
-        }
-        #chatkit-widget {
-          width: 100%;
-          height: 100%;
-          display: block;
-        }
-      </style>
-      <div id="chatkit-wrapper">
-        <openai-chatkit id="chatkit-widget"></openai-chatkit>
-      </div>
-    `;
-    
-    const chatWidget = document.getElementById('chatkit-widget');
-    
-    if (chatWidget) {
-      // Base theme options (shared between both modes)
-      const themeOptions = {
-        theme: {
-          colorScheme: 'light',
-          radius: 'soft',
-          density: 'spacious',
-          color: {
-            grayscale: {
-              hue: 219,
-              tint: 1
-            },
-            accent: {
-              primary: '#CAFCEE',
-              level: 0
-            },
-            surface: {
-              background: '#D8E1EB',
-              foreground: '#F0F5FA'
-            }
-          },
-          typography: {
-            baseSize: 16,
-            fontFamily: 'Inter, sans-serif',
-            fontSources: [
-              {
-                family: 'Inter',
-                src: 'https://rsms.me/inter/font-files/Inter-Regular.woff2',
-                weight: 400,
-                style: 'normal'
-              },
-              {
-                family: 'Inter',
-                src: 'https://rsms.me/inter/font-files/Inter-Medium.woff2',
-                weight: 500,
-                style: 'normal'
-              },
-              {
-                family: 'Inter',
-                src: 'https://rsms.me/inter/font-files/Inter-SemiBold.woff2',
-                weight: 600,
-                style: 'normal'
-              },
-              {
-                family: 'Inter',
-                src: 'https://rsms.me/inter/font-files/Inter-Bold.woff2',
-                weight: 700,
-                style: 'normal'
-              }
-            ]
-          }
-        },
-        composer: {
-          attachments: {
-            enabled: true,
-            maxCount: 5,
-            maxSize: 10485760
-          }
-        }
-      };
-      
-      // Get prompts safely (ensure it's an array)
-      const chatKitPrompts = Array.isArray(this.appState.ubData._block.chatkit_prompts) 
-        ? this.appState.ubData._block.chatkit_prompts 
-        : [];
-      
-      if (isSelfHosted) {
-        // Self-hosted mode: connects to your Vercel backend
-        // Uses your existing workflows (Tutor, Interview, Coach, etc.) with ChatKit UI
-        chatWidget.setOptions({
-          ...themeOptions,
-          api: {
-            url: `${workflowApiUrl}/chatkit?ub_id=${ubId}&block_id=${blockId}&user_id=${userId}`,
-            domainKey: 'alsie-self-hosted',
-          },
-          composer: {
-            attachments: {
-              enabled: false
-            }
-          },
-          startScreen: {
-            greeting: 'Start the conversation as you do with real people.',
-            prompts: []
-          }
-        });
-        console.log('ChatKit configured for SELF-HOSTED mode (your workflows)');
-      } else {
-        // OpenAI-hosted mode: connects to OpenAI Agent Builder
-        // Uses workflow_id from Agent Builder platform
-        chatWidget.setOptions({
-          ...themeOptions,
-          api: {
-            async getClientSecret(currentClientSecret) {
-              if (currentClientSecret) {
-                return currentClientSecret;
-              }
-              
-              console.log('Requesting ChatKit session...');
-              
-              const response = await fetch(`${workflowApiUrl}/chatkit/session`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  workflow_id: workflowId,
-                  user_id: `${userId}_${ubId}`
-                })
-              });
-              
-              if (!response.ok) {
-                const error = await response.json();
-                console.error('ChatKit session error:', error);
-                throw new Error(error.detail || 'Failed to create session');
-              }
-              
-              const data = await response.json();
-              console.log('ChatKit session created:', data.session_id);
-              return data.client_secret;
-            }
-          },
-          startScreen: {
-            greeting: 'Start the conversation as you do with real people.',
-            prompts: chatKitPrompts
-          }
-        });
-        console.log('ChatKit configured for OPENAI-HOSTED mode (Agent Builder)');
-      }
-      
-      console.log('ChatKit options set successfully');
-    } else {
-      console.error('ChatKit widget element not found');
-    }
-  }
-  
   setupInputFocusHandling() {
     this.elements.userInput.addEventListener('focus', function() {
       this.style.outline = 'none';
@@ -254,7 +78,7 @@ class StudentChat {
     });
   }
 
-  async setupStudentPageElements() {
+  async setupTeacherPageElements() {
     await setElementNames({
       course_id: this.appState.courseId,
       lesson_id: this.appState.lessonId,
@@ -262,15 +86,13 @@ class StudentChat {
       user_id: this.appState.userId
     });
     
-    this.setupStudentNavigation();
+    this.setupTeacherNavigation();
     
     this.setupBlockContent();
     
-    if (this.appState.ubData.status === "finished" || this.appState.ubData.status === "blocked") {
+    if (this.appState.ubData.status === "finished") {
       this.elements.form.style.display = "none";
     }
-
-    this.updateFileUploadUI();
   }
 
   setupBlockContent() {
@@ -287,13 +109,13 @@ class StudentChat {
     }
   }
 
-  setupStudentNavigation() {
+  setupTeacherNavigation() {
     const { ubData, userId } = this.appState;
     
     this.setupBasicNavigation();
     
-    const backButton = document.getElementById('back_to_course');
-    backButton?.addEventListener('click', () => {
+    document.getElementById('back-button')?.addEventListener('click', () => {
+      console.log('back button clicked!');
       window.history.back();
     });
   }
@@ -310,7 +132,7 @@ class StudentChat {
       
       prevButton.addEventListener('click', () => {
         if (ubData._block.prev_id) {
-          window.location.href = `/lesson-page?user_id=${userId}&block_id=${ubData._block.prev_id}`;
+          window.location.href = `/teacher/lesson-page-teacher-view?user_id=${userId}&block_id=${ubData._block.prev_id}`;
         } else {
           console.error('No previous lesson available');
         }
@@ -324,7 +146,7 @@ class StudentChat {
       
       nextButton.addEventListener('click', () => {
         if (ubData._block.next_id) {
-          window.location.href = `/lesson-page?user_id=${userId}&block_id=${ubData._block.next_id}`;
+          window.location.href = `/teacher/lesson-page-teacher-view?user_id=${userId}&block_id=${ubData._block.next_id}`;
         } else {
           console.error('No next lesson available');
         }
@@ -332,138 +154,26 @@ class StudentChat {
     }
   }
 
-  setupStudentEventListeners() {
+  setupTeacherEventListeners() {
     this.elements.submitButton?.addEventListener('click', (event) => {
-      this.handleStudentSubmit(event);
+      this.handleTeacherSubmit(event);
     });
 
-    this.elements.userInput.addEventListener('keydown', (event) => {
+    this.elements.userInput?.addEventListener('keydown', (event) => {
       if (event.key === 'Enter') {
         if (event.shiftKey) {
           return;
         }
         
         event.preventDefault();
-        this.handleStudentSubmit(event);
+        this.handleTeacherSubmit(event);
       }
     });
-
-    this.setupFileUploadListeners();
-  }
-
-  setupFileUploadListeners() {
-    this.elements.attachFile?.addEventListener('click', () => {
-      this.openFileDialog();
-    });
-
-    this.elements.removeFile?.addEventListener('click', () => {
-      this.clearSelectedFile();
-    });
-
-    this.elements.uploadFile?.addEventListener('click', async () => {
-      await this.uploadFile();
-    });
-  }
-
-  openFileDialog() {
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.style.display = 'none';
     
-    fileInput.addEventListener('change', (event) => {
-      const file = event.target.files[0];
-      if (file) {
-        this.handleFileSelected(file);
-      }
-      document.body.removeChild(fileInput);
-    });
-    
-    document.body.appendChild(fileInput);
-    fileInput.click();
-  }
-
-  handleFileSelected(file) {
-    this.appState.selectedFile = file;
-    
-    if (this.elements.fileName) {
-      this.elements.fileName.textContent = file.name;
-    }
-    
-    this.updateFileUploadUI();
-    
-    console.log('File selected:', file.name);
-  }
-
-  clearSelectedFile() {
-    this.appState.selectedFile = null;
-    
-    if (this.elements.fileName) {
-      this.elements.fileName.textContent = '';
-    }
-    
-    this.updateFileUploadUI();
-    
-    console.log('File cleared');
-  }
-
-  updateFileUploadUI() {
-    const hasFile = this.appState.selectedFile !== null;
-    
-    if (hasFile) {
-      if (this.elements.attachFile) {
-        this.elements.attachFile.style.display = 'none';
-      }
-      if (this.elements.fileName) {
-        this.elements.fileName.style.display = 'block';
-      }
-      if (this.elements.removeFile) {
-        this.elements.removeFile.style.display = 'block';
-      }
-    } else {
-      if (this.elements.attachFile) {
-        this.elements.attachFile.style.display = 'block';
-      }
-      if (this.elements.fileName) {
-        this.elements.fileName.style.display = 'none';
-      }
-      if (this.elements.removeFile) {
-        this.elements.removeFile.style.display = 'none';
-      }
-    }
-  }
-
-  async uploadFile() {
-    if (!this.appState.selectedFile) {
-      console.warn('No file selected for upload');
-      return;
-    }
-
-    const userInputValue = this.elements.userInput.value.trim();
-
-    try {
-      const formData = new FormData();
-      formData.append('user_input', userInputValue);
-      formData.append('ub_id', this.appState.ubId);
-      formData.append('user_file', this.appState.selectedFile);
-
-      const response = await fetch('https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/add_air_file', {
-        method: 'POST',
-        body: formData
+    if (this.elements.generateButton) {
+      this.elements.generateButton.addEventListener('click', () => {
+        this.handleGenerateResponse();
       });
-
-      if (!response.ok) {
-        throw new Error(`File upload failed: ${response.status} ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      console.log('File uploaded successfully:', result);
-
-      this.clearSelectedFile();
-
-      this.elements.userInput.value = '';
-
-    } catch (error) {
-      console.error('Error uploading file:', error);
     }
   }
 
@@ -779,7 +489,7 @@ class StudentChat {
     this.elements.mainContainer.scrollTop = this.elements.mainContainer.scrollHeight;
   }
 
-  async handleStudentSubmit(event) {
+  async handleTeacherSubmit(event) {
     event.preventDefault();
     
     const userInputValue = this.elements.userInput.value.trim();
@@ -791,45 +501,43 @@ class StudentChat {
     try {
       this.createUserMessage(userInputValue);
       
+      this.setUILoadingState(true);
+      
       this.elements.userInput.value = '';
       
       this.appState.currentStreamingMessage = this.createAssistantMessage('');
       
-      this.setUILoadingState(true);
-      
-      await this.startWorkflowStreaming(userInputValue);
+      await this.startStreamingResponse(userInputValue);
       
     } catch (error) {
       console.error('Error handling chat submit:', error);
       this.setUILoadingState(false);
-      
-      if (this.appState.currentStreamingMessage) {
-        this.appState.currentStreamingMessage.textContent = 
-          'Sorry, there was an error processing your request. Please try again.';
-      }
     }
   }
 
-  async startWorkflowStreaming(userInput) {
+  async startStreamingResponse(userInput) {
     try {
-      const response = await fetch(`${this.appState.workflowApiUrl}/chat/message`, {
-        method: 'POST',
+      const params = new URLSearchParams({
+        ub_id: this.appState.ubId,
+        input: userInput
+      });
+      
+      const response = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/ub_chat_stream?${params.toString()}`, {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ub_id: this.appState.ubId,
-          content: userInput
-        })
+        }
       });
 
       if (!response.ok) {
-        throw new Error(`Workflow API failed: ${response.status} ${response.statusText}`);
+        throw new Error(`Streaming API failed: ${response.status} ${response.statusText}`);
       }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let accumulatedText = '';
+      let isFirstChunk = true;
+      let buffer = '';
 
       while (true) {
         const { done, value } = await reader.read();
@@ -840,8 +548,38 @@ class StudentChat {
         }
 
         const chunk = decoder.decode(value, { stream: true });
-        accumulatedText += chunk;
-        this.updateStreamingMessage(accumulatedText);
+        buffer += chunk;
+        
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const jsonStr = line.substring(6);
+            
+            if (jsonStr === '[DONE]') {
+              console.log('Stream done signal received');
+              continue;
+            }
+            
+            try {
+              const data = JSON.parse(jsonStr);
+              
+              if (data.text) {
+                if (isFirstChunk) {
+                  accumulatedText = data.text;
+                  isFirstChunk = false;
+                } else {
+                  accumulatedText = data.text;
+                }
+                
+                this.updateStreamingMessage(accumulatedText);
+              }
+            } catch (parseError) {
+              console.warn('Failed to parse SSE data:', parseError);
+            }
+          }
+        }
       }
 
       this.appState.currentStreamingRawText = accumulatedText;
@@ -849,7 +587,7 @@ class StudentChat {
       this.setUILoadingState(false);
 
     } catch (error) {
-      console.error('Error during workflow streaming:', error);
+      console.error('Error during streaming:', error);
       this.setUILoadingState(false);
       throw error;
     }
@@ -885,8 +623,6 @@ class StudentChat {
   }
 
   finalizeStreamingMessage() {
-    console.log('Finalizing stream');
-
     if (this.appState.currentStreamingMessage && this.appState.currentStreamingRawText) {
       const container = this.appState.currentStreamingMessage.closest('.ai_content_container');
       
@@ -930,42 +666,49 @@ class StudentChat {
     this.appState.currentStreamingRawText = '';
   }
 
+  async handleGenerateResponse() {
+    if (!this.appState.ubId) {
+      console.error('No UB ID available');
+      return;
+    }
+    
+    try {
+      console.log('sending ub_id', this.appState.ubId);
+      
+      this.setUILoadingState(true);
+      
+      await generateUserResponse(this.appState.ubId);
+      
+      this.setUILoadingState(false);
+      
+      await this.loadChatHistory();
+      
+    } catch (error) {
+      console.error('Error generating answer:', error);
+      this.setUILoadingState(false);
+    }
+  }
+
   setUILoadingState(isLoading) {
-    if(!isLoading) {console.log('update ui state with false');}
     const { userInput, chatInputContainer, submitButton } = this.elements;
     
     if (isLoading) {
-      chatInputContainer.className = 'chat-input-container-disabled';
-      submitButton.className = 'icon-button-disabled';
+      if (userInput) userInput.style.opacity = '0.5';
+      if (userInput) userInput.disabled = true;
+      if (chatInputContainer) chatInputContainer.className = 'chat-input-container-disabled';
+      if (submitButton) submitButton.className = 'icon-button-disabled';
     } else {
-      userInput.style.opacity = '1';
-      userInput.disabled = false;
-      chatInputContainer.className = 'chat-input-container';
-      submitButton.className = 'icon-button';
-    }
-
-    if (this.appState.currentStreamingMessage) {
-      const messageContainer = this.appState.currentStreamingMessage.closest('.ai_content_container');
-      
-      if (messageContainer) {
-        const alsieAvatar = messageContainer.querySelector('.alsie-avatar');
-        
-        if (alsieAvatar) {
-          console.log('alsie avatar found');
-          if (isLoading) {
-            alsieAvatar.className = 'alsie-avatar rotating';
-          } else {
-            alsieAvatar.className = 'alsie-avatar';
-          }
-        }
-      }
+      if (userInput) userInput.style.opacity = '1';
+      if (userInput) userInput.disabled = false;
+      if (chatInputContainer) chatInputContainer.className = 'chat-input-container';
+      if (submitButton) submitButton.className = 'icon-button';
     }
   }
 }
 
-window.studentChat = null;
+window.teacherChat = null;
 
-window.initializeStudentChat = async function() {
-  window.studentChat = new StudentChat();
-  return await window.studentChat.initialize();
+window.initializeTeacherChat = async function() {
+  window.teacherChat = new TeacherChat();
+  return await window.teacherChat.initialize();
 };

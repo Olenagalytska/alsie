@@ -12,7 +12,7 @@ class StudentChat {
       currentStreamingMessage: null,
       currentStreamingRawText: '',
       selectedFile: null,
-      workflowApiUrl: 'https://workflow-cot5tzhq7-toropilja374-gmailcoms-projects.vercel.app'
+      workflowApiUrl: 'https://workflow-q42chzzgl-toropilja374-gmailcoms-projects.vercel.app'
     };
   }
 
@@ -84,11 +84,7 @@ class StudentChat {
     
     const workflowApiUrl = this.appState.workflowApiUrl;
     const ubId = this.appState.ubId;
-    const blockId = this.appState.blockId;
     const userId = this.appState.userId;
-    
-    // Check if self-hosted mode (uses your own workflows via ChatKit UI)
-    const isSelfHosted = workflowId === 'self-hosted';
     
     this.elements.mainContainer.innerHTML = `
       <style>
@@ -112,8 +108,37 @@ class StudentChat {
     const chatWidget = document.getElementById('chatkit-widget');
     
     if (chatWidget) {
-      // Base theme options (shared between both modes)
-      const themeOptions = {
+      chatWidget.setOptions({
+        api: {
+          async getClientSecret(currentClientSecret) {
+            if (currentClientSecret) {
+              return currentClientSecret;
+            }
+            
+            console.log('Requesting ChatKit session...');
+            
+            const response = await fetch(`${workflowApiUrl}/chatkit/session`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                workflow_id: workflowId,
+                user_id: `${userId}_${ubId}`
+              })
+            });
+            
+            if (!response.ok) {
+              const error = await response.json();
+              console.error('ChatKit session error:', error);
+              throw new Error(error.detail || 'Failed to create session');
+            }
+            
+            const data = await response.json();
+            console.log('ChatKit session created:', data.session_id);
+            return data.client_secret;
+          }
+        },
         theme: {
           colorScheme: 'light',
           radius: 'soft',
@@ -171,59 +196,11 @@ class StudentChat {
           }
         },
         startScreen: {
-          greeting: 'Start the conversation as you do with real people.',
-          prompts: this.appState.ubData._block.chatkit_prompts || []
+          greeting: this.appState.ubData._block.chatkit_greeting,
+          prompts: this.appState.ubData._block.chatkit_prompts
         }
-      };
-      
-      if (isSelfHosted) {
-        // Self-hosted mode: connects to your Vercel backend
-        // Uses your existing workflows (Tutor, Interview, Coach, etc.) with ChatKit UI
-        chatWidget.setOptions({
-          ...themeOptions,
-          api: {
-            url: `${workflowApiUrl}/chatkit?ub_id=${ubId}&block_id=${blockId}&user_id=${userId}`,
-          }
-        });
-        console.log('ChatKit configured for SELF-HOSTED mode (your workflows)');
-      } else {
-        // OpenAI-hosted mode: connects to OpenAI Agent Builder
-        // Uses workflow_id from Agent Builder platform
-        chatWidget.setOptions({
-          ...themeOptions,
-          api: {
-            async getClientSecret(currentClientSecret) {
-              if (currentClientSecret) {
-                return currentClientSecret;
-              }
-              
-              console.log('Requesting ChatKit session...');
-              
-              const response = await fetch(`${workflowApiUrl}/chatkit/session`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  workflow_id: workflowId,
-                  user_id: `${userId}_${ubId}`
-                })
-              });
-              
-              if (!response.ok) {
-                const error = await response.json();
-                console.error('ChatKit session error:', error);
-                throw new Error(error.detail || 'Failed to create session');
-              }
-              
-              const data = await response.json();
-              console.log('ChatKit session created:', data.session_id);
-              return data.client_secret;
-            }
-          }
-        });
-        console.log('ChatKit configured for OPENAI-HOSTED mode (Agent Builder)');
-      }
+        
+      });
       
       console.log('ChatKit options set successfully');
     } else {
@@ -251,8 +228,8 @@ class StudentChat {
     
     this.setupBlockContent();
     
-    if (this.appState.ubData.status === "finished" || this.appState.ubData.status === "blocked") {
-      this.elements.form.style.display = "none";
+    if (!(this.appState.ubData.status === "finished" || this.appState.ubData.status === "blocked")) {
+      this.elements.form.style.display = "flex";
     }
 
     this.updateFileUploadUI();
@@ -378,7 +355,6 @@ class StudentChat {
     
     console.log('File selected:', file.name);
   }
-
   clearSelectedFile() {
     this.appState.selectedFile = null;
     

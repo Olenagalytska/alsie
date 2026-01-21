@@ -176,6 +176,7 @@ class StudentChat {
       const chatKitPrompts = Array.isArray(this.appState.ubData._block.chatkit_prompts) 
         ? this.appState.ubData._block.chatkit_prompts 
         : [];
+      const chatKitGreeting = this.appState.ubData._block.chatkit_greeting;
       
       if (isSelfHosted) {
         // Self-hosted mode: connects to your Vercel backend
@@ -233,7 +234,7 @@ class StudentChat {
             }
           },
           startScreen: {
-            greeting: 'Start the conversation as you do with real people.',
+            greeting: chatKitGreeting,
             prompts: chatKitPrompts
           }
         });

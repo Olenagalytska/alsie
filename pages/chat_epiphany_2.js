@@ -337,6 +337,7 @@ class StudentChat {
     courseButton.addEventListener('click', () => {
           window.location.href = `/course-home-student-epiphany?course_id=${course_id}}`;
         }); 
+    courseButton.textContent = this.appState.ubData._lesson._course.name;
   }
 
   setupStudentEventListeners() {

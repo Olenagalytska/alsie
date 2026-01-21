@@ -195,6 +195,7 @@ class StudentChat {
             maxSize: 10485760
           }
         },
+        //
         startScreen: {
           greeting: this.appState.ubData._block.chatkit_greeting,
           prompts: this.appState.ubData._block.chatkit_prompts

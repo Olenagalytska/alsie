@@ -303,6 +303,8 @@ class StudentChat {
     const { ubData, userId } = this.appState;
     const prevButton = document.getElementById('prev_lesson');
     const nextButton = document.getElementById('next_lesson');
+    const courseButton = document.getElementById('course-name');
+    
     
     if (prevButton) {
       if (!ubData._block.prev_id) {
@@ -331,6 +333,10 @@ class StudentChat {
         }
       });
     }
+
+    courseButton.addEventListener('click', () => {
+          window.location.href = `/course-home-student-epiphany?course_id=${course_id}}`;
+        }); 
   }
 
   setupStudentEventListeners() {

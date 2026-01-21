@@ -306,6 +306,7 @@ class StudentChat {
     const courseButton = document.getElementById('course-name');
     
     
+    
     if (prevButton) {
       if (!ubData._block.prev_id) {
         prevButton.className = 'arrow-disabled';
@@ -335,7 +336,7 @@ class StudentChat {
     }
 
     courseButton.addEventListener('click', () => {
-          window.location.href = `/course-home-student-epiphany?course_id=${this.appState.courseId}}`;
+          window.location.href = `/course-home-student-epiphany?course_id=${this.appState.courseId}`;
         }); 
     courseButton.textContent = this.appState.ubData._lesson._course.name;
   }

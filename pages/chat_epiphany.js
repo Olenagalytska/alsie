@@ -55,7 +55,7 @@ class StudentChat {
 
     if (this.appState.user.id != this.appState.userId) {
       console.warn('User ID mismatch detected. Redirecting to home page.');
-      window.location.href = '/';
+      window.location.href = '/home-epiphany';
       return;
     }
     
@@ -311,7 +311,7 @@ class StudentChat {
       
       prevButton.addEventListener('click', () => {
         if (ubData._block.prev_id) {
-          window.location.href = `/lesson-page?user_id=${userId}&block_id=${ubData._block.prev_id}`;
+          window.location.href = `/lesson-page-epiphany?user_id=${userId}&block_id=${ubData._block.prev_id}`;
         } else {
           console.error('No previous lesson available');
         }
@@ -325,7 +325,7 @@ class StudentChat {
       
       nextButton.addEventListener('click', () => {
         if (ubData._block.next_id) {
-          window.location.href = `/lesson-page?user_id=${userId}&block_id=${ubData._block.next_id}`;
+          window.location.href = `/lesson-page-epiphany?user_id=${userId}&block_id=${ubData._block.next_id}`;
         } else {
           console.error('No next lesson available');
         }

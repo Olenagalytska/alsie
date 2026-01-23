@@ -52,7 +52,7 @@ async function verifyTeacherPermissions(user_id, course_id) {
         
         const course = await response.json();
         
-        if (user_id !== course.user_id) {
+        if (user_id != course.user_id) {
             alert("You don't have the rights to view this page");
             window.location.href = '/';
             throw new Error('Unauthorized access');

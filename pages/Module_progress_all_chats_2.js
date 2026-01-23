@@ -1,5 +1,8 @@
 async function initializeProgressChatPage(course_id) {
     try {
+        const user = await verifyUserAuth();
+        await verifyTeacherPermissions(user.id, course_id);
+        
         // Set up element names and navigation
         await setElementNames({ course_id });
         setTeacherCourseMenu(course_id);

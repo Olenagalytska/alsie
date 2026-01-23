@@ -1,4 +1,7 @@
-function displayCourse(course_id) {
+async function displayCourse(course_id) {
+    const user = await verifyUserAuth();
+    await verifyTeacherPermissions(user.id, course_id);
+
     const apiUrl = 'https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/lesson_full';
     fetch(`${apiUrl}?course_id=${course_id}`, {
         method: 'GET',

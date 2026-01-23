@@ -10,6 +10,9 @@ const WORKFLOW_API_URL = 'https://workflow-akg3emddy-toropilja374-gmailcoms-proj
 
 async function initializeProgressPage(course_id) {
     try {
+        const user = await verifyUserAuth();
+        await verifyTeacherPermissions(user.id, course_id);
+        
         // Set up element names and navigation
         await setElementNames({ course_id });
         setTeacherCourseMenu(course_id);

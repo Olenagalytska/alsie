@@ -77,6 +77,8 @@ class TeacherChat {
     // Extract course and lesson IDs from the response
     this.appState.courseId = this.appState.ubData._lesson._course.id;
     this.appState.lessonId = this.appState.ubData._lesson.id;
+
+    await verifyTeacherPermissions(this.appState.user.id, this.appState.courseId);
     
     console.log('Initialized with:', {
         ubId: this.appState.ubId,

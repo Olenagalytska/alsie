@@ -43,9 +43,25 @@ function verifyUserAuth() {
 
 // Verify teacher permissions for a course
 async function verifyTeacherPermissions(user_id, course_id) {
-    const course = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/course/${course_id}`);
-    if (user_id !== course.user_id) {
-        alert("You don't have the rights to view this page");
+    try {
+        const response = await fetch(`https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/course/${course_id}`);
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch course');
+        }
+        
+        const course = await response.json();
+        
+        if (user_id !== course.user_id) {
+            alert("You don't have the rights to view this page");
+            window.location.href = '/';
+            throw new Error('Unauthorized access');
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('Permission check failed:', error);
         window.location.href = '/';
+        throw error;
     }
 }

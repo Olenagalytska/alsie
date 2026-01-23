@@ -20,7 +20,6 @@ function verifyUserAuth() {
 
             if (!response.ok) {
                 throw new Error('Authorization failed');
-                window.location.href = "/login";
             }
 
             const data = await response.json();

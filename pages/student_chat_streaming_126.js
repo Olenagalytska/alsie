@@ -133,29 +133,29 @@ class StudentChat {
           },
           typography: {
             baseSize: 16,
-            fontFamily: 'Inter, sans-serif',
+            fontFamily: 'Google Sans Display, sans-serif',
             fontSources: [
               {
-                family: 'Inter',
-                src: 'https://rsms.me/https://fonts.gstatic.com/s/googlesans/v58/4UabrENHsxJlGDuGo1OIlLVU5It3CwZ-Pw.woff2/font-files/Inter-Regular.woff2',
+                family: 'Google Sans Display',
+                src: 'https://fonts.gstatic.com/s/googlesansdisplay/v21/ea8FacM9Wef3EJPWRrHjgE4B6CnlZxHVDvr9oS_a.woff2',
                 weight: 400,
                 style: 'normal'
               },
               {
-                family: 'Inter',
-                src: 'https://fonts.gstatic.com/s/googlesans/v58/4UabrENHsxJlGDuGo1OIlLVU5It3CwZ-Pw.woff2',
+                family: 'Google Sans Display',
+                src: 'https://fonts.gstatic.com/s/googlesansdisplay/v21/ea8FacM9Wef3EJPWRrHjgE4B6CnlZxHVDvr9oS_a.woff2',
                 weight: 500,
                 style: 'normal'
               },
               {
-                family: 'Inter',
-                src: 'https://fonts.gstatic.com/s/googlesans/v58/4UabrENHsxJlGDuGo1OIlLVU5It3CwZ-Pw.woff2',
+                family: 'Google Sans Display',
+                src: 'https://fonts.gstatic.com/s/googlesansdisplay/v21/ea8FacM9Wef3EJPWRrHjgE4B6CnlZxHVDvr9oS_a.woff2',
                 weight: 600,
                 style: 'normal'
               },
               {
-                family: 'Inter',
-                src: 'https://fonts.gstatic.com/s/googlesans/v58/4UabrENHsxJlGDuGo1OIlLVU5It3CwZ-Pw.woff2',
+                family: 'Google Sans Display',
+                src: 'https://fonts.gstatic.com/s/googlesansdisplay/v21/ea8FacM9Wef3EJPWRrHjgE4B6CnlZxHVDvr9oS_a.woff2',
                 weight: 700,
                 style: 'normal'
               }
@@ -505,8 +505,8 @@ if (isSelfHosted) {
                 this.createUserMessage(answer.user_message);
               }
               
-              if (answer.interviewer_question) {
-                this.createAssistantMessage(answer.interviewer_question);
+              if (answer.Google Sans Displayviewer_question) {
+                this.createAssistantMessage(answer.Google Sans Displayviewer_question);
               }
               
               if (answer.tutor_response) {

@@ -137,25 +137,25 @@ class StudentChat {
             fontSources: [
               {
                 family: 'Inter',
-                src: 'https://rsms.me/inter/font-files/Inter-Regular.woff2',
+                src: 'https://rsms.me/https://fonts.gstatic.com/s/googlesans/v58/4UabrENHsxJlGDuGo1OIlLVU5It3CwZ-Pw.woff2/font-files/Inter-Regular.woff2',
                 weight: 400,
                 style: 'normal'
               },
               {
                 family: 'Inter',
-                src: 'https://rsms.me/inter/font-files/Inter-Medium.woff2',
+                src: 'https://fonts.gstatic.com/s/googlesans/v58/4UabrENHsxJlGDuGo1OIlLVU5It3CwZ-Pw.woff2',
                 weight: 500,
                 style: 'normal'
               },
               {
                 family: 'Inter',
-                src: 'https://rsms.me/inter/font-files/Inter-SemiBold.woff2',
+                src: 'https://fonts.gstatic.com/s/googlesans/v58/4UabrENHsxJlGDuGo1OIlLVU5It3CwZ-Pw.woff2',
                 weight: 600,
                 style: 'normal'
               },
               {
                 family: 'Inter',
-                src: 'https://rsms.me/inter/font-files/Inter-Bold.woff2',
+                src: 'https://fonts.gstatic.com/s/googlesans/v58/4UabrENHsxJlGDuGo1OIlLVU5It3CwZ-Pw.woff2',
                 weight: 700,
                 style: 'normal'
               }

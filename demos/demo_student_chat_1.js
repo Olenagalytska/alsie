@@ -171,81 +171,88 @@ class StudentChat {
       }
     };
     
-    // Get prompts and greeting safely - ВИЗНАЧАЄМО ЇХ ТУТ, ДО IF/ELSE
     const chatKitPrompts = Array.isArray(this.appState.ubData._block.chatkit_prompts) 
-      ? this.appState.ubData._block.chatkit_prompts 
-      : [];
-    const chatKitGreeting = this.appState.ubData._block.chatkit_greeting || 'Start the conversation as you do with real people.';
-    
-    if (isSelfHosted) {
-      chatWidget.setOptions({
-        ...themeOptions,
-        api: {
-          url: `${workflowApiUrl}/chatkit?ub_id=${ubId}&block_id=${blockId}&user_id=${userId}`,
-          domainKey: 'domain_pk_68f92d5f959c8190bfd55a86b1f2d6af0c600cbbe67779cf',
-          uploadStrategy: {
-            type: "direct",
-            uploadUrl: `${workflowApiUrl}/chatkit/upload?ub_id=${ubId}&block_id=${blockId}`
-          }
-        },
-        composer: {
-          attachments: {
-            enabled: true,
-            maxCount: 5,
-            maxSize: 10485760,
-            accept: {
-              "image/*": [".png", ".jpg", ".jpeg"],
-              "application/pdf": [".pdf"],
-              "text/*": [".txt", ".md"]
-            }
-          }
-        },
-        startScreen: {
-          greeting: chatKitGreeting,
-          prompts: chatKitPrompts
+  ? this.appState.ubData._block.chatkit_prompts 
+  : [];
+const chatKitGreeting = this.appState.ubData._block.chatkit_greeting || 'Start the conversation as you do with real people.';
+
+// Domain key mapping
+const DOMAIN_KEYS = {
+  'alsie.app': 'domain_pk_6966384300208190964ee06d16b4c4f80f8d0edeb8b578d3',
+  'www.alsie.app': 'domain_pk_6966386ed8b48193b96699515d23971c0baf4e46ee97082d',
+  'alsie-app.webflow.io': 'domain_pk_68f92d5f959c8190bfd55a86b1f2d6af0c600cbbe67779cf'
+};
+const domainKey = DOMAIN_KEYS[window.location.hostname] || DOMAIN_KEYS['alsie-app.webflow.io'];
+
+if (isSelfHosted) {
+  chatWidget.setOptions({
+    ...themeOptions,
+    api: {
+      url: `${workflowApiUrl}/chatkit?ub_id=${ubId}&block_id=${blockId}&user_id=${userId}`,
+      domainKey: domainKey,
+      uploadStrategy: {
+        type: "direct",
+        uploadUrl: `${workflowApiUrl}/chatkit/upload?ub_id=${ubId}&block_id=${blockId}`
+      }
+    },
+    composer: {
+      attachments: {
+        enabled: true,
+        maxCount: 5,
+        maxSize: 10485760,
+        accept: {
+          "image/*": [".png", ".jpg", ".jpeg"],
+          "application/pdf": [".pdf"],
+          "text/*": [".txt", ".md"]
         }
-      });
-      console.log('ChatKit configured for SELF-HOSTED mode (your workflows)');
-    } else {
-      chatWidget.setOptions({
-        ...themeOptions,
-        api: {
-          async getClientSecret(currentClientSecret) {
-            if (currentClientSecret) {
-              return currentClientSecret;
-            }
-            
-            console.log('Requesting ChatKit session...');
-            
-            const response = await fetch(`${workflowApiUrl}/chatkit/session`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                workflow_id: workflowId,
-                user_id: `${userId}_${ubId}`
-              })
-            });
-            
-            if (!response.ok) {
-              const error = await response.json();
-              console.error('ChatKit session error:', error);
-              throw new Error(error.detail || 'Failed to create session');
-            }
-            
-            const data = await response.json();
-            console.log('ChatKit session created:', data.session_id);
-            return data.client_secret;
-          }
-        },
-        startScreen: {
-          greeting: chatKitGreeting,
-          prompts: chatKitPrompts
-        }
-      });
-      console.log('ChatKit configured for OPENAI-HOSTED mode (Agent Builder)');
+      }
+    },
+    startScreen: {
+      greeting: chatKitGreeting,
+      prompts: chatKitPrompts
     }
+  });
+  console.log('ChatKit configured for SELF-HOSTED mode (your workflows)');
+} else {
+  chatWidget.setOptions({
+    ...themeOptions,
+    api: {
+      async getClientSecret(currentClientSecret) {
+        if (currentClientSecret) {
+          return currentClientSecret;
+        }
+        
+        console.log('Requesting ChatKit session...');
+        
+        const response = await fetch(`${workflowApiUrl}/chatkit/session`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            workflow_id: workflowId,
+            user_id: `${userId}_${ubId}`
+          })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          console.error('ChatKit session error:', error);
+          throw new Error(error.detail || 'Failed to create session');
+        }
+        
+        const data = await response.json();
+        console.log('ChatKit session created:', data.session_id);
+        return data.client_secret;
+      }
+    },
+    startScreen: {
+      greeting: chatKitGreeting,
+      prompts: chatKitPrompts
+    }
+  });
+  console.log('ChatKit configured for OPENAI-HOSTED mode (Agent Builder)');
+}
     
     console.log('ChatKit options set successfully');
   } else {

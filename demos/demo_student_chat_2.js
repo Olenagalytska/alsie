@@ -12,8 +12,7 @@ class StudentChat {
       currentStreamingMessage: null,
       currentStreamingRawText: '',
       selectedFile: null,
-      workflowApiUrl: 'https://workflow-1hfposbn0-toropilja374-gmailcoms-projects.vercel.app',
-      messageIndex: 0
+      workflowApiUrl: 'https://workflow-evph4ywr3-toropilja374-gmailcoms-projects.vercel.app'
     };
   }
 
@@ -45,7 +44,11 @@ class StudentChat {
   async initializeStudentChat() {
     this.setupInputFocusHandling();
     
-    this.appState.user = await verifyUserAuth();
+    this.appState.user = {
+    id: 604,
+    name: "Demo User",
+    role: "student"
+};
     
     this.appState.userId = this.appState.user.id;
     this.appState.blockId = getUrlParameters('block_id');
@@ -54,11 +57,6 @@ class StudentChat {
       throw new Error('Required URL parameters are missing: user_id or block_id');
     }
 
-    if (this.appState.user.id != this.appState.userId) {
-      console.warn('User ID mismatch detected. Redirecting to home page.');
-      window.location.href = '/';
-      return;
-    }
     
     this.appState.ubData = await fetchUbData(this.appState.userId, this.appState.blockId);
     this.appState.ubId = this.appState.ubData.id;
@@ -79,99 +77,119 @@ class StudentChat {
   }
 
   async initChatKit(workflowId) {
-    console.log('Initializing ChatKit with workflow:', workflowId);
-    
-    this.elements.form.style.display = 'none';
-    
-    const workflowApiUrl = this.appState.workflowApiUrl;
-    const ubId = this.appState.ubId;
-    const blockId = this.appState.blockId;
-    const userId = this.appState.userId;
-    
-    const isSelfHosted = workflowId === 'self-hosted';
-    
-    this.elements.mainContainer.innerHTML = `
-      <style>
-        #chatkit-wrapper {
-          width: 100%;
-          height: 100%;
-          min-height: 100%;
-          position: relative;
-        }
-        #chatkit-widget {
-          width: 100%;
-          height: 100%;
-          display: block;
-        }
-      </style>
-      <div id="chatkit-wrapper">
-        <openai-chatkit id="chatkit-widget"></openai-chatkit>
-      </div>
-    `;
-    
-    const chatWidget = document.getElementById('chatkit-widget');
-    
-    if (chatWidget) {
-      const themeOptions = {
-        theme: {
-          colorScheme: 'light',
-          radius: 'soft',
-          density: 'spacious',
-          color: {
-            grayscale: {
-              hue: 219,
-              tint: 1
-            },
-            accent: {
-              primary: '#CAFCEE',
-              level: 0
-            },
-            surface: {
-              background: '#D8E1EB',
-              foreground: '#F0F5FA'
-            }
+  console.log('Initializing ChatKit with workflow:', workflowId);
+  
+  this.elements.form.style.display = 'none';
+  
+  const workflowApiUrl = this.appState.workflowApiUrl;
+  const ubId = this.appState.ubId;
+  const blockId = this.appState.blockId;
+  const userId = this.appState.userId;
+  
+  // Check if self-hosted mode (uses your own workflows via ChatKit UI)
+  const isSelfHosted = workflowId === 'self-hosted';
+  
+  this.elements.mainContainer.innerHTML = `
+    <style>
+      #chatkit-wrapper {
+        width: 100%;
+        height: 100%;
+        min-height: 100%;
+        position: relative;
+      }
+      #chatkit-widget {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+    </style>
+    <div id="chatkit-wrapper">
+      <openai-chatkit id="chatkit-widget"></openai-chatkit>
+    </div>
+  `;
+  
+  const chatWidget = document.getElementById('chatkit-widget');
+  
+  if (chatWidget) {
+    // Base theme options (shared between both modes)
+    const themeOptions = {
+      theme: {
+        colorScheme: 'light',
+        radius: 'soft',
+        density: 'spacious',
+        color: {
+          grayscale: {
+            hue: 219,
+            tint: 1
           },
-          typography: {
-            baseSize: 16,
-            fontFamily: 'Google Sans Display, sans-serif',
-            fontSources: [
-              {
-                family: 'Google Sans Display',
-                src: 'https://fonts.gstatic.com/s/googlesansdisplay/v21/ea8FacM9Wef3EJPWRrHjgE4B6CnlZxHVDvr9oS_a.woff2',
-                weight: 400,
-                style: 'normal'
-              },
-              {
-                family: 'Google Sans Display',
-                src: 'https://fonts.gstatic.com/s/googlesansdisplay/v21/ea8FacM9Wef3EJPWRrHjgE4B6CnlZxHVDvr9oS_a.woff2',
-                weight: 500,
-                style: 'normal'
-              },
-              {
-                family: 'Google Sans Display',
-                src: 'https://fonts.gstatic.com/s/googlesansdisplay/v21/ea8FacM9Wef3EJPWRrHjgE4B6CnlZxHVDvr9oS_a.woff2',
-                weight: 600,
-                style: 'normal'
-              },
-              {
-                family: 'Google Sans Display',
-                src: 'https://fonts.gstatic.com/s/googlesansdisplay/v21/ea8FacM9Wef3EJPWRrHjgE4B6CnlZxHVDvr9oS_a.woff2',
-                weight: 700,
-                style: 'normal'
-              }
-            ]
+          accent: {
+            primary: '#CAFCEE',
+            level: 0
+          },
+          surface: {
+            background: '#D8E1EB',
+            foreground: '#F0F5FA'
           }
         },
-        composer: {
-          attachments: {
-            enabled: true,
-            maxCount: 5,
-            maxSize: 10485760
-          }
+          typography: {
+    baseSize: 16,
+    fontFamily: '"Google Sans Display", sans-serif',
+    fontSources: [
+      // Regular 400 - Cyrillic
+      {
+        family: 'Google Sans Display',
+        src: 'https://fonts.gstatic.com/s/googlesansdisplay/v21/ea8FacM9Wef3EJPWRrHjgE4B6CnlZxHVDvr9oS_a.woff2',
+        weight: 400,
+        style: 'normal'
+      },
+      // Regular 400 - Latin
+      {
+        family: 'Google Sans Display',
+        src: 'https://fonts.gstatic.com/s/googlesansdisplay/v21/ea8FacM9Wef3EJPWRrHjgE4B6CnlZxHVDvv9oQ.woff2',
+        weight: 400,
+        style: 'normal'
+      },
+      // Medium 500 - Cyrillic
+      {
+        family: 'Google Sans Display',
+        src: 'https://fonts.gstatic.com/s/googlesansdisplay/v21/ea8IacM9Wef3EJPWRrHjgE4B6CnlZxHVBg3etBT7TKx9.woff2',
+        weight: 500,
+        style: 'normal'
+      },
+      // Medium 500 - Latin
+      {
+        family: 'Google Sans Display',
+        src: 'https://fonts.gstatic.com/s/googlesansdisplay/v21/ea8IacM9Wef3EJPWRrHjgE4B6CnlZxHVBg3etBD7TA.woff2',
+        weight: 500,
+        style: 'normal'
+      },
+      // Bold 700 - Cyrillic
+      {
+        family: 'Google Sans Display',
+        src: 'https://fonts.gstatic.com/s/googlesansdisplay/v21/ea8IacM9Wef3EJPWRrHjgE4B6CnlZxHVBkXYtBT7TKx9.woff2',
+        weight: 700,
+        style: 'normal'
+      },
+      // Bold 700 - Latin
+      {
+        family: 'Google Sans Display',
+        src: 'https://fonts.gstatic.com/s/googlesansdisplay/v21/ea8IacM9Wef3EJPWRrHjgE4B6CnlZxHVBkXYtBD7TA.woff2',
+        weight: 700,
+        style: 'normal'
+      }
+    ]
+  }
+},
+      composer: {
+        attachments: {
+          enabled: true,
+          maxCount: 5,
+          maxSize: 10485760
         }
-      };
-      
-      const chatKitPrompts = Array.isArray(this.appState.ubData._block.chatkit_prompts) 
+      }
+    };
+    
+    const chatKitPrompts = Array.isArray(this.appState.ubData._block.chatkit_prompts) 
   ? this.appState.ubData._block.chatkit_prompts 
   : [];
 const chatKitGreeting = this.appState.ubData._block.chatkit_greeting || 'Start the conversation as you do with real people.';
@@ -253,12 +271,12 @@ if (isSelfHosted) {
   });
   console.log('ChatKit configured for OPENAI-HOSTED mode (Agent Builder)');
 }
-      
-      console.log('ChatKit options set successfully');
-    } else {
-      console.error('ChatKit widget element not found');
-    }
+    
+    console.log('ChatKit options set successfully');
+  } else {
+    console.error('ChatKit widget element not found');
   }
+}
   
   setupInputFocusHandling() {
     this.elements.userInput.addEventListener('focus', function() {
@@ -282,9 +300,6 @@ if (isSelfHosted) {
     
     if (this.appState.ubData.status === "finished" || this.appState.ubData.status === "blocked") {
       this.elements.form.style.display = "none";
-    }
-    if (this.elements.form && this.elements.form.parentElement) {
-        this.elements.form.parentElement.style.display = 'block';
     }
 
     this.updateFileUploadUI();
@@ -695,24 +710,9 @@ if (isSelfHosted) {
     return textValue;
   }
 
-  createUserMessage(text, timestamp = null) {
+  createUserMessage(text) {
     const userContainer = document.createElement('div');
     userContainer.className = 'user_content_container';
-    
-    const messageHeader = document.createElement('div');
-    messageHeader.className = 'message-header user-header';
-    
-    const userName = this.appState.user?.name || 'Student';
-    const dateTime = timestamp ? new Date(timestamp) : new Date();
-    const formattedTime = dateTime.toLocaleString('uk-UA', {
-      day: '2-digit',
-      month: '2-digit', 
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-    
-    messageHeader.innerHTML = `<span class="sender-name">${userName}</span> <span class="message-time">${formattedTime}</span>`;
     
     const userBubble = document.createElement('div');
     userBubble.className = 'user_bubble';
@@ -722,33 +722,15 @@ if (isSelfHosted) {
     userContent.textContent = text;
     
     userBubble.appendChild(userContent);
-    userContainer.appendChild(messageHeader);
     userContainer.appendChild(userBubble);
     this.elements.mainContainer.appendChild(userContainer);
     
     this.scrollToBottom();
   }
 
-  createAssistantMessage(text, timestamp = null) {
-    const currentIndex = this.appState.messageIndex++;
-    
+  createAssistantMessage(text) {
     const aiContainer = document.createElement('div');
     aiContainer.className = 'ai_content_container';
-    aiContainer.dataset.messageIndex = currentIndex;
-    
-    const messageHeader = document.createElement('div');
-    messageHeader.className = 'message-header ai-header';
-    
-    const dateTime = timestamp ? new Date(timestamp) : new Date();
-    const formattedTime = dateTime.toLocaleString('uk-UA', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric', 
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-    
-    messageHeader.innerHTML = `<span class="sender-name">Alsie</span> <span class="message-time">${formattedTime}</span>`;
     
     const alsieAvatar = document.createElement('div');
     alsieAvatar.id = 'alsie-avatar';
@@ -758,113 +740,41 @@ if (isSelfHosted) {
     aiBubble.className = 'ai_bubble';
     
     const aiText = document.createElement('div');
-    aiText.className = 'ai_text';
+    aiText.className = 'ai_text w-richtext';
     
-    if (text) {
+    try {
       if (typeof marked !== 'undefined') {
-        marked.setOptions({ breaks: true, gfm: true, sanitize: false });
+        marked.setOptions({
+          breaks: true,
+          gfm: true,
+          sanitize: false
+        });
+        
         aiText.innerHTML = marked.parse(text);
+        
+        if (typeof Prism !== 'undefined') {
+          aiText.querySelectorAll('pre code').forEach((block) => {
+            Prism.highlightElement(block);
+          });
+        }
       } else {
+        console.warn('Marked library not loaded, displaying plain text');
         aiText.textContent = text;
       }
+    } catch (error) {
+      console.error('Error parsing markdown:', error);
+      aiText.textContent = text;
     }
     
-    const reportButton = document.createElement('button');
-    reportButton.className = 'report-button';
-    reportButton.textContent = 'Report';
-    reportButton.addEventListener('click', () => {
-      this.showReportModal(text, currentIndex);
-    });
-    
     aiBubble.appendChild(aiText);
-    aiBubble.appendChild(reportButton);
-    aiContainer.appendChild(messageHeader);
     aiContainer.appendChild(alsieAvatar);
     aiContainer.appendChild(aiBubble);
     this.elements.mainContainer.appendChild(aiContainer);
     
+    this.setupCodeBlocks(aiContainer);
     this.scrollToBottom();
     
     return aiText;
-  }
-
-  showReportModal(messageText, messageIndex) {
-    const overlay = document.createElement('div');
-    overlay.className = 'report-modal-overlay';
-    
-    const modal = document.createElement('div');
-    modal.className = 'report-modal';
-    modal.innerHTML = `
-      <h3>Report this message</h3>
-      <textarea placeholder="Add a comment (optional)..." id="report-comment"></textarea>
-      <div class="report-modal-buttons">
-        <button class="report-cancel-btn">Cancel</button>
-        <button class="report-submit-btn">Submit Report</button>
-      </div>
-    `;
-    
-    overlay.appendChild(modal);
-    document.body.appendChild(overlay);
-    
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) {
-        document.body.removeChild(overlay);
-      }
-    });
-    
-    modal.querySelector('.report-cancel-btn').addEventListener('click', () => {
-      document.body.removeChild(overlay);
-    });
-    
-    modal.querySelector('.report-submit-btn').addEventListener('click', async () => {
-      const comment = document.getElementById('report-comment').value.trim();
-      await this.submitReport(messageText, messageIndex, comment, overlay);
-    });
-  }
-
-  async submitReport(messageText, messageIndex, comment, overlay) {
-    try {
-      const reportData = {
-        reporter_user_id: this.appState.userId,
-        reporter_role: 'student',
-        ub_id: this.appState.ubId,
-        message_index: messageIndex,
-        message_text: messageText.substring(0, 500),
-        comment: comment || null,
-        chat_type: this.appState.ubData._block.workflow_id ? 'chatkit' : 'workflow',
-        thread_id: this.appState.ubData.thread_id || null
-      };
-      
-      const response = await fetch('https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/message_report', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(reportData)
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to submit report');
-      }
-      
-      const modal = overlay.querySelector('.report-modal');
-      modal.innerHTML = `
-        <div class="report-success">
-          <div class="report-success-icon">✓</div>
-          <p>Thanks, we got your report!</p>
-        </div>
-      `;
-      
-      setTimeout(() => {
-        if (document.body.contains(overlay)) {
-          document.body.removeChild(overlay);
-        }
-      }, 2000);
-      
-    } catch (error) {
-      console.error('Error submitting report:', error);
-      alert('Failed to submit report. Please try again.');
-    }
   }
 
   setupCodeBlocks(container) {

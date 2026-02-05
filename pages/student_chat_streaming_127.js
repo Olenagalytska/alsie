@@ -505,8 +505,8 @@ if (isSelfHosted) {
                 this.createUserMessage(answer.user_message);
               }
               
-              if (answer.Google Sans Displayviewer_question) {
-                this.createAssistantMessage(answer.Google Sans Displayviewer_question);
+              if (answer.interviewer_question) {
+                this.createAssistantMessage(answer.interviewer_question);
               }
               
               if (answer.tutor_response) {

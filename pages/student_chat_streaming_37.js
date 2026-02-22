@@ -18,7 +18,9 @@ class StudentChat {
       ubData: null,
       courseId: null,
       lessonId: null,
-      currentStreamingMessage: null
+      currentStreamingMessage: null,
+      currentStreamingRawText: '',
+      workflowApiUrl: 'https://workflow-6zfgl77kh-toropilja374-gmailcoms-projects.vercel.app'
     };
   }
 
@@ -476,7 +478,20 @@ class StudentChat {
       
       // 5. Start streaming
       await this.startStreamingResponse(userInputValue);
-      
+
+      try {
+        await fetch(`${this.appState.workflowApiUrl}/chat/${this.appState.ubId}/save-turn`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_message: userInputValue,
+            assistant_response: this.appState.currentStreamingRawText
+          })
+        });
+      } catch (e) {
+        console.warn('Could not save turn to workflow state:', e);
+      }
+
     } catch (error) {
       console.error('Error handling chat submit:', error);
       this.setUILoadingState(false);
@@ -639,7 +654,7 @@ class StudentChat {
     
     // Clear references
     this.appState.currentStreamingMessage = null;
-    this.appState.currentStreamingRawText = '';
+    // Note: currentStreamingRawText is intentionally kept so handleStudentSubmit can read it for save-turn
     this.appState.streamingState = 'idle';
   
      

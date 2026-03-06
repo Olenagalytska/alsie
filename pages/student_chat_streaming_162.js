@@ -12,7 +12,7 @@ class StudentChat {
       currentStreamingMessage: null,
       currentStreamingRawText: '',
       selectedFiles: [],
-      workflowApiUrl: 'https://workflow-cho0kohq9-toropilja374-gmailcoms-projects.vercel.app',
+      workflowApiUrl: 'https://workflow-ovo60cu9i-toropilja374-gmailcoms-projects.vercel.app',
       messageIndex: 0
     };
     this.currentChatContext = null;
@@ -1133,7 +1133,7 @@ class StudentChat {
       if (userInputValue) {
         this.appState.currentStreamingMessage = this.createAssistantMessage('');
         this.setUILoadingState(true);
-        await this.startWorkflowStreaming(userInputValue);
+        await this.startWorkflowStreaming(userInputValue, uploadedUrls);
         if (uploadedUrls.length > 0) {
           try {
             await fetch(`${this.appState.workflowApiUrl}/chat/${this.appState.ubId}/add_files`, {
@@ -1158,7 +1158,7 @@ class StudentChat {
     }
   }
 
-  async startWorkflowStreaming(userInput) {
+  async startWorkflowStreaming(userInput, uploadedUrls = []) {
     try {
       const response = await fetch(`${this.appState.workflowApiUrl}/chat/message`, {
         method: 'POST',
@@ -1167,7 +1167,8 @@ class StudentChat {
         },
         body: JSON.stringify({
           ub_id: this.appState.ubId,
-          content: userInput
+          content: userInput,
+          files: uploadedUrls
         })
       });
 

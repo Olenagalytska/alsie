@@ -560,13 +560,13 @@ class StudentChat {
     }
   }
 
-  /*
+  
   async uploadFiles() {
     if (this.appState.selectedFiles.length === 0) {
       console.warn('No files selected for upload');
       return;
     }
-      */
+    
 
     const userInputValue = this.elements.userInput.value.trim();
 

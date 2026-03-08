@@ -33,6 +33,7 @@ class StudentChat {
     this.elements = {
       form: document.getElementById('chat-form'),
       mainContainer: document.getElementById('main-container'),
+      mainContainerChatkit: document.getElementById('main-container-chatkit'),
       userInput: document.getElementById('user-input'),
       submitButton: document.getElementById('submit-button'),
       attachFile: document.getElementById('attach-file-icon'),
@@ -115,7 +116,7 @@ class StudentChat {
       console.log('[ChatKit] No existing thread found:', error);
     }
     
-    this.elements.mainContainer.innerHTML = `
+    this.elements.mainContainerChatkit.innerHTML = `
       <style>
         #chatkit-wrapper {
           width: 100%;

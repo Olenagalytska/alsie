@@ -39,7 +39,7 @@ class StudentChat {
       attachFile: document.getElementById('attach-file-icon'),
       chatInputContainer: document.getElementById('chat-input-container'),
       removeFile: document.getElementById('remove-file-icon'),
-      uploadFile: document.getElementById('upload-file-icon'),
+      //uploadFile: document.getElementById('upload-file-icon'),
       fileName: document.getElementById('file-name')
     };
   }
@@ -515,13 +515,8 @@ class StudentChat {
     if (!fileList) {
       fileList = document.createElement('div');
       fileList.id = 'file-list-container';
-      fileList.style.cssText = `
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        padding: 4px 0;
-        width: 100%;
-      `;
+      fileList.className = `file-list-container`;
+      
       const container = this.elements.chatInputContainer;
       if (container) {
         container.insertBefore(fileList, container.firstChild);
@@ -534,20 +529,13 @@ class StudentChat {
       fileList.style.display = 'flex';
       this.appState.selectedFiles.forEach((file, index) => {
         const item = document.createElement('div');
-        item.style.cssText = `
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 13px;
-          color: #333;
-          background: rgba(255,255,255,0.15);
-          border-radius: 6px;
-          padding: 2px 8px;
-        `;
+        item.className = 'file-name-container';
+       
 
         const name = document.createElement('span');
         name.textContent = file.name;
-        name.style.cssText = 'flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;';
+        name.className = 'chat-input-file-name';
+        //name.style.cssText = 'flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;';
 
         const deleteBtn = document.createElement('span');
         deleteBtn.className = 'material-symbols-outlined';
@@ -555,12 +543,12 @@ class StudentChat {
         deleteBtn.style.cssText = `
           font-size: 18px;
           cursor: pointer;
-          color: #888;
+          color: #8395a3;
           flex-shrink: 0;
           user-select: none;
         `;
-        deleteBtn.addEventListener('mouseover', () => deleteBtn.style.color = '#e74c3c');
-        deleteBtn.addEventListener('mouseout', () => deleteBtn.style.color = '#888');
+        deleteBtn.addEventListener('mouseover', () => deleteBtn.style.color = '#ffffff');
+        deleteBtn.addEventListener('mouseout', () => deleteBtn.style.color = '#8395a3');
         deleteBtn.addEventListener('click', () => this.removeFile(index));
 
         item.appendChild(name);
@@ -572,11 +560,13 @@ class StudentChat {
     }
   }
 
+  /*
   async uploadFiles() {
     if (this.appState.selectedFiles.length === 0) {
       console.warn('No files selected for upload');
       return;
     }
+      */
 
     const userInputValue = this.elements.userInput.value.trim();
 

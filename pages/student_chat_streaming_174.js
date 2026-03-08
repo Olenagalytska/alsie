@@ -1288,8 +1288,10 @@ class StudentChat {
     const { userInput, chatInputContainer, submitButton } = this.elements;
 
     if (isLoading) {
-      if (chatInputContainer) chatInputContainer.className = 'chat-input-container-disabled';
+      if (chatInputContainer) chatInputContainer.className = 'chat-input-disabled';
       if (submitButton) submitButton.className = 'icon-button-disabled';
+      if (userInput) userInput.style.opacity = '0.5';
+      //if (userInput) userInput.disabled = true;
     } else {
       if (userInput) userInput.style.opacity = '1';
       if (userInput) userInput.disabled = false;

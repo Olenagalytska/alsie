@@ -880,7 +880,7 @@ class StudentChat {
           const img = document.createElement('img');
           img.src = file.url;
           img.alt = file.name || 'image';
-          img.style.cssText = 'max-width: 100%; max-height: 300px; border-radius: 8px; margin-top: 6px; display: block; cursor: pointer;';
+          img.className = 'chat-image';
           img.addEventListener('click', () => window.open(file.url, '_blank'));
           userBubble.appendChild(img);
         } else {
@@ -888,7 +888,7 @@ class StudentChat {
           fileLink.href = file.url;
           fileLink.target = '_blank';
           fileLink.textContent = `📎 ${file.name}`;
-          fileLink.style.cssText = 'display: block; margin-top: 6px; color: inherit; text-decoration: underline; font-size: 13px;';
+          fileLink.className = 'user_content';
           userBubble.appendChild(fileLink);
         }
       });
@@ -908,20 +908,7 @@ class StudentChat {
     aiContainer.className = 'ai_content_container';
     aiContainer.dataset.messageIndex = currentIndex;
     
-    const messageHeader = document.createElement('div');
-    messageHeader.className = 'message-header ai-header';
-    
-    const dateTime = timestamp ? new Date(timestamp) : new Date();
-    const formattedTime = dateTime.toLocaleString('uk-UA', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric', 
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-    
-    messageHeader.innerHTML = `<span class="sender-name">Alsie</span> <span class="message-time">${formattedTime}</span>`;
-    
+   
     const alsieAvatar = document.createElement('div');
     alsieAvatar.id = 'alsie-avatar';
     alsieAvatar.className = 'alsie-avatar';
@@ -950,7 +937,6 @@ class StudentChat {
     
     aiBubble.appendChild(aiText);
     aiBubble.appendChild(reportButton);
-    aiContainer.appendChild(messageHeader);
     aiContainer.appendChild(alsieAvatar);
     aiContainer.appendChild(aiBubble);
     this.elements.mainContainer.appendChild(aiContainer);

@@ -86,6 +86,8 @@ class StudentChat {
     await this.loadChatHistory();
   }
 
+
+
   async initChatKit(workflowId) {
     console.log('Initializing ChatKit with workflow:', workflowId);
     
@@ -375,6 +377,27 @@ class StudentChat {
     backButton?.addEventListener('click', () => {
       window.history.back();
     });
+    
+    document.getElementById('course-name')?.addEventListener('click', () => {
+      if (ubData._lesson.course_id) {
+        window.location.href = `/course-home-student?course_id=${ubData._lesson.course_id}`;
+      } else {
+        console.error('No course home available');
+      }
+    });
+    
+    document.getElementById('course-home')?.addEventListener('click', () => {
+      if (ubData._lesson.course_id) {
+        window.location.href = `/course-home-student?course_id=${ubData._lesson.course_id}`;
+      } else {
+        console.error('No course home available');
+      }
+    });
+    
+    document.getElementById('home-button')?.addEventListener('click', () => {
+      window.location.href = `/`;
+    });
+  
   }
 
   setupBasicNavigation() {

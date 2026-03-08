@@ -85,6 +85,38 @@ class TeacherChat {
     await this.loadChatHistory();
   }
 
+setupStudentNavigation() {
+    const { ubData, userId } = this.appState;
+    
+    this.setupBasicNavigation();
+    
+    const backButton = document.getElementById('back_to_course');
+    backButton?.addEventListener('click', () => {
+      window.history.back();
+    });
+    
+    document.getElementById('course-name')?.addEventListener('click', () => {
+      if (ubData._lesson.course_id) {
+        window.location.href = `/teacher/course-progress?course_id=${ubData._lesson.course_id}&lesson_id=${ubData._lesson.id}`;
+      } else {
+        console.error('No course home available');
+      }
+    });
+    
+    document.getElementById('course-home')?.addEventListener('click', () => {
+      if (ubData._lesson.course_id) {
+        window.location.href = `/teacher/course-progress?course_id=${ubData._lesson.course_id}&lesson_id=${ubData._lesson.id}`;
+      } else {
+        console.error('No course home available');
+      }
+    });
+    
+    document.getElementById('home-button')?.addEventListener('click', () => {
+      window.location.href = `/`;
+    });
+  
+  }
+
   setupInputFocusHandling() {
     this.elements.userInput.addEventListener('focus', function() {
       this.style.outline = 'none';

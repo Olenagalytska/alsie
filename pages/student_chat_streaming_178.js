@@ -539,7 +539,7 @@ class StudentChat {
 
         const deleteBtn = document.createElement('span');
         deleteBtn.className = 'material-symbols-outlined';
-        deleteBtn.textContent = 'delete';
+        deleteBtn.textContent = 'close';
         deleteBtn.style.cssText = `
           font-size: 18px;
           cursor: pointer;

@@ -117,7 +117,7 @@ class StudentChat {
     } catch (error) {
       console.log('[ChatKit] No existing thread found:', error);
     }
-    
+    this.elements.mainContainer.className = 'chatkit-container';
     this.elements.mainContainer.innerHTML = `
       <style>
         #chatkit-wrapper {

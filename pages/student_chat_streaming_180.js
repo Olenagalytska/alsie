@@ -118,7 +118,7 @@ class StudentChat {
       console.log('[ChatKit] No existing thread found:', error);
     }
     
-    this.elements.mainContainerChatkit.innerHTML = `
+    this.elements.mainContainer.innerHTML = `
       <style>
         #chatkit-wrapper {
           width: 100%;
@@ -233,9 +233,12 @@ class StudentChat {
       const DOMAIN_KEYS = {
         'alsie.app': 'domain_pk_6966384300208190964ee06d16b4c4f80f8d0edeb8b578d3',
         'www.alsie.app': 'domain_pk_6966386ed8b48193b96699515d23971c0baf4e46ee97082d',
-        'alsie-app.webflow.io': 'domain_pk_68f92d5f959c8190bfd55a86b1f2d6af0c600cbbe67779cf'
+        'alsie-app.webflow.io': 'domain_pk_68f92d5f959c8190bfd55a86b1f2d6af0c600cbbe67779cf', 
+        'alsie-front.vercel.app': 'domain_pk_69aad65cefe8819792b671e410a48dd509c552ca84d181d1',
+        'olenka-alsie.webflow.io': 'domain_pk_69ae99961aa48195ada6a22df7cd0aa7090847508180f0b6'
+
       };
-      const domainKey = DOMAIN_KEYS[window.location.hostname] || DOMAIN_KEYS['alsie-app.webflow.io'];
+      const domainKey = DOMAIN_KEYS[window.location.hostname] || DOMAIN_KEYS['alsie-app.webflow.io'] || DOMAIN_KEYS['olenka-alsie.webflow.io'];
 
       const uniqueSessionId = `${userId}_${ubId}_${blockId}`;
 

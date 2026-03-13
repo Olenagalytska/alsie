@@ -118,7 +118,7 @@ class StudentChat {
       console.log('[ChatKit] No existing thread found:', error);
     }
     
-    this.elements.mainContainerChatkit.innerHTML = `
+    this.elements.mainContainer.innerHTML = `
       <style>
         #chatkit-wrapper {
           width: 100%;

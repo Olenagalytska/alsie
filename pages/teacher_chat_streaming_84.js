@@ -176,11 +176,7 @@ class TeacherChat {
     const { ubData, userId } = this.appState;
     
     this.setupBasicNavigation();
-    
-    document.getElementById('back-button')?.addEventListener('click', () => {
-      console.log('back button clicked!');
-      window.history.back();
-    });
+  
   }
 
   setupBasicNavigation() {

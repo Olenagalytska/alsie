@@ -556,20 +556,6 @@ class TeacherChat {
     aiContainer.className = 'ai_content_container';
     aiContainer.dataset.messageIndex = currentIndex;
     
-    const messageHeader = document.createElement('div');
-    messageHeader.className = 'message-header ai-header';
-    
-    const dateTime = timestamp ? new Date(timestamp) : new Date();
-    const formattedTime = dateTime.toLocaleString('uk-UA', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric', 
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-    
-    messageHeader.innerHTML = `<span class="sender-name">Alsie</span> <span class="message-time">${formattedTime}</span>`;
-    
     const alsieAvatar = document.createElement('div');
     alsieAvatar.id = 'alsie-avatar';
     alsieAvatar.className = 'alsie-avatar';
@@ -578,34 +564,26 @@ class TeacherChat {
     aiBubble.className = 'ai_bubble';
     
     const aiText = document.createElement('div');
-    aiText.className = 'ai_text w-richtext';
+    aiText.className = 'ai_text';
     
-    try {
+    if (text) {
       if (typeof marked !== 'undefined') {
-        marked.setOptions({
-          breaks: true,
-          gfm: true,
-          sanitize: false
-        });
-        
+        marked.setOptions({ breaks: true, gfm: true, sanitize: false });
         aiText.innerHTML = marked.parse(text);
-        
-        if (typeof Prism !== 'undefined') {
-          aiText.querySelectorAll('pre code').forEach((block) => {
-            Prism.highlightElement(block);
-          });
-        }
       } else {
-        console.warn('Marked library not loaded, displaying plain text');
         aiText.textContent = text;
       }
-    } catch (error) {
-      console.error('Error rendering markdown:', error);
-      aiText.textContent = text;
     }
     
+    const reportButton = document.createElement('button');
+    reportButton.className = 'report-button';
+    reportButton.textContent = 'Report';
+    reportButton.addEventListener('click', () => {
+      this.showReportModal(text, currentIndex);
+    });
+    
     aiBubble.appendChild(aiText);
-    aiContainer.appendChild(messageHeader);
+    aiBubble.appendChild(reportButton);
     aiContainer.appendChild(alsieAvatar);
     aiContainer.appendChild(aiBubble);
     this.elements.mainContainer.appendChild(aiContainer);
@@ -616,6 +594,93 @@ class TeacherChat {
     
     return aiText;
   }
+
+  // ============================================================================
+  // REPORT MESSAGE
+  // ============================================================================
+
+  showReportModal(messageText, messageIndex) {
+    const overlay = document.createElement('div');
+    overlay.className = 'report-modal-overlay';
+    
+    const modal = document.createElement('div');
+    modal.className = 'report-modal';
+    modal.innerHTML = `
+      <h3>Report this message</h3>
+      <textarea placeholder="Add a comment (optional)..." id="report-comment"></textarea>
+      <div class="report-modal-buttons">
+        <button class="report-cancel-btn">Cancel</button>
+        <button class="report-submit-btn">Submit Report</button>
+      </div>
+    `;
+    
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        document.body.removeChild(overlay);
+      }
+    });
+    
+    modal.querySelector('.report-cancel-btn').addEventListener('click', () => {
+      document.body.removeChild(overlay);
+    });
+    
+    modal.querySelector('.report-submit-btn').addEventListener('click', async () => {
+      const comment = document.getElementById('report-comment').value.trim();
+      await this.submitReport(messageText, messageIndex, comment, overlay);
+    });
+  }
+
+  async submitReport(messageText, messageIndex, comment, overlay) {
+    try {
+      const reportData = {
+        reporter_user_id: this.appState.userId,
+        reporter_role: 'teacher',
+        ub_id: this.appState.ubId,
+        message_index: messageIndex,
+        message_text: messageText.substring(0, 500),
+        comment: comment || null,
+        chat_type: this.appState.ubData._block.workflow_id ? 'chatkit' : 'workflow',
+        thread_id: this.appState.ubData.thread_id || null
+      };
+      
+      const response = await fetch('https://xxye-mqg7-lvux.n7d.xano.io/api:DwPBcTo5/message_report', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(reportData)
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to submit report');
+      }
+      
+      const modal = overlay.querySelector('.report-modal');
+      modal.innerHTML = `
+        <div class="report-success">
+          <div class="report-success-icon">✓</div>
+          <p>Thanks, we got your report!</p>
+        </div>
+      `;
+      
+      setTimeout(() => {
+        if (document.body.contains(overlay)) {
+          document.body.removeChild(overlay);
+        }
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Error submitting report:', error);
+      alert('Failed to submit report. Please try again.');
+    }
+  }
+
+  // ============================================================================
+  // CODE BLOCKS & UTILITIES
+  // ============================================================================
 
   setupCodeBlocks(container) {
     const codeBlocks = container.querySelectorAll('pre code');

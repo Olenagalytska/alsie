@@ -564,7 +564,7 @@ class TeacherChat {
     aiBubble.className = 'ai_bubble';
     
     const aiText = document.createElement('div');
-    aiText.className = 'ai_text';
+    aiText.className = 'ai_text w-richtext';
     
     if (text) {
       if (typeof marked !== 'undefined') {

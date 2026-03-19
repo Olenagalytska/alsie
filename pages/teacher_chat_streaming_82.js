@@ -376,8 +376,8 @@ class TeacherChat {
                 this.createAssistantMessage(answer.interviewer_question);
               }
               
-              if (answer.tutor_response) {
-                this.createAssistantMessage(answer.tutor_response);
+              if (answer.agent_response) {
+                this.createAssistantMessage(answer.agent_response);
               } else if (answer.assignment && !shownAssignments.has(answer.assignment)) {
                 this.createAssistantMessage(answer.assignment);
                 shownAssignments.add(answer.assignment);

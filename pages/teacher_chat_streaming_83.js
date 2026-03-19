@@ -94,9 +94,9 @@ class TeacherChat {
     
     this.setupBasicNavigation();
     
-    const backButton = document.getElementById('back_to_course');
+    const backButton = document.getElementById('back-button');
     backButton?.addEventListener('click', () => {
-      window.history.back();
+        window.location.href = `/teacher/course-testing?course_id=${ubData._lesson.course_id}&lesson_id=${ubData._lesson.id}`;
     });
     
     document.getElementById('course-name')?.addEventListener('click', () => {

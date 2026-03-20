@@ -86,6 +86,7 @@ async function verifyTeacherPermissions(user_id, course_id) {
         }
         
         const course = await response.json();
+        console.log('course:', course);
         
 if (user_id != course.user_id && !course.shared_with?.includes(user_id)) {
     alert("You don't have the rights to view this page");

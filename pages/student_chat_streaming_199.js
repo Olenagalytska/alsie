@@ -75,7 +75,7 @@ class StudentChat {
     
     await this.setupStudentPageElements();
 
-    if (this.appState.ubData._block.workflow_id) {
+     if (this.appState.ubData._block.workflow_id && this.appState.ubData._block.workflow_id !== 'self-hosted') {
       console.log('ChatKit workflow detected:', this.appState.ubData._block.workflow_id);
       await this.initChatKit(this.appState.ubData._block.workflow_id);
       return;
